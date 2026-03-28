@@ -94,10 +94,6 @@
 /* ===== RESET & BASE ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html {
-    zoom: 0.8;
-}
-
 body {
     font-family: var(--font);
     font-weight: 500;
