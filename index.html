@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚾ 나도GM — 데이터로 완성하는 승리의 라인업</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- ===== TOP NAV ===== -->
+    <header class="top-bar">
+        <div class="top-bar__brand">
+            <span class="top-bar__logo">⚾</span>
+            <h1 class="top-bar__title">나도GM — 데이터로 완성하는 승리의 라인업</h1>
+            <span class="top-bar__quarter" id="quarterBadge">시즌 시작 전</span>
+        </div>
+        <nav class="top-bar__nav">
+            <button class="nav-btn active" data-view="dashboard">구단 대시보드</button>
+            <button class="nav-btn" data-view="roster">1군 로스터</button>
+            <button class="nav-btn nav-btn--futures" data-view="futures">2군 (퓨처스)</button>
+            <button class="nav-btn" data-view="trade">트레이드 마켓</button>
+            <button class="nav-btn" data-view="simulator">리그 시뮬레이션</button>
+            <button class="nav-btn" data-view="postseason">포스트시즌</button>
+        </nav>
+        <div class="top-bar__actions">
+            <button class="btn btn--sm" id="btnThemeToggle" title="다크/라이트 모드 전환">라이트</button>
+            <button class="btn btn--sm" id="btnImportCSV" title="CSV 데이터 불러오기">CSV 불러오기</button>
+            <button class="btn btn--sm" id="btnSave" title="현재 상태 저장">저장</button>
+            <button class="btn btn--sm btn--danger" id="btnReset" title="초기 상태로 되돌리기">초기화</button>
+        </div>
+    </header>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="content">
+
+        <!-- VIEW: Dashboard -->
+        <section id="view-dashboard" class="view active">
+            <h2 class="view__title">구단 대시보드</h2>
+            <div class="team-grid" id="teamGrid">
+                <!-- 10 team cards rendered by JS -->
+            </div>
+            <div class="team-detail" id="teamDetail" style="display:none;">
+                <button class="team-detail__close" id="detailClose">&times;</button>
+                <div class="team-detail__header">
+                    <img class="team-emblem-lg" id="detailEmblem" src="" alt="">
+                    <div>
+                        <h3 id="detailTeamName"></h3>
+                        <div class="team-detail__record" id="detailRecord"></div>
+                    </div>
+                </div>
+                <div class="team-detail__body">
+                    <div class="team-detail__left">
+                        <h4>전력 분석</h4>
+                        <div class="team-detail__bars">
+                            <h5>투수 파워</h5>
+                            <div class="power-compare" id="detailPitchCompare"></div>
+                            <h5>타자 파워</h5>
+                            <div class="power-compare" id="detailBatCompare"></div>
+                        </div>
+                        <div class="team-detail__finance" id="detailFinance"></div>
+                    </div>
+                    <div class="team-detail__chart">
+                        <canvas id="radarChart" width="360" height="360"></canvas>
+                    </div>
+                </div>
+                <!-- 감독/코치진 + 1군 로스터 요약 -->
+                <div class="team-detail__roster" id="detailRoster"></div>
+            </div>
+        </section>
+
+        <!-- VIEW: Roster -->
+        <section id="view-roster" class="view">
+            <div class="view__header">
+                <img class="team-emblem-roster" id="rosterEmblem" src="" alt="">
+                <img class="team-wordmark-roster" id="rosterWordmark" src="" alt="">
+                <select id="rosterTeamSelect" class="select"></select>
+                <div class="roster-tier-tabs">
+                    <button class="tier-tab active" data-tier="1군" id="tabFirstTeam">1군 (29명)</button>
+                    <button class="tier-tab" data-tier="2군" id="tabFutures">2군 (퓨처스)</button>
+                </div>
+            </div>
+
+            <!-- 1군 영역 -->
+            <div id="firstTeamSection">
+                <div class="roster-validation" id="rosterValidation"></div>
+                <div class="roster-salary" id="rosterSalary"></div>
+                <div class="roster-cap-detail" id="rosterCapDetail"></div>
+            </div>
+
+            <!-- 2군 영역 -->
+            <div id="futuresSection" style="display:none;">
+                <div class="futures-info" id="futuresInfo"></div>
+            </div>
+
+            <div class="roster-tables">
+                <div class="roster-col">
+                    <h3>투수진</h3>
+                    <table class="player-table" id="pitcherTable">
+                        <thead>
+                            <tr>
+                                <th data-sort="number">#</th>
+                                <th data-sort="name">이름</th>
+                                <th data-sort="role">역할</th>
+                                <th data-sort="throwBat">투타</th>
+                                <th data-sort="age">나이</th>
+                                <th data-sort="IVB">IVB</th>
+                                <th data-sort="VAA">VAA</th>
+                                <th data-sort="CSW%">CSW%</th>
+                                <th data-sort="FIP">FIP</th>
+                                <th data-sort="ERA">ERA</th>
+                                <th data-sort="power">파워</th>
+                                <th data-sort="salary">연봉</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="roster-col">
+                    <h3>야수진</h3>
+                    <table class="player-table" id="batterTable">
+                        <thead>
+                            <tr>
+                                <th data-sort="number">#</th>
+                                <th data-sort="name">이름</th>
+                                <th data-sort="position">포지션</th>
+                                <th data-sort="throwBat">투타</th>
+                                <th data-sort="age">나이</th>
+                                <th data-sort="contact">컨택</th>
+                                <th data-sort="power_r">파워</th>
+                                <th data-sort="eye">선구안</th>
+                                <th data-sort="speed_r">스피드</th>
+                                <th data-sort="defense_r">수비</th>
+                                <th data-sort="ovr">OVR</th>
+                                <th data-sort="salary">연봉</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: Trade -->
+        <section id="view-trade" class="view">
+            <h2 class="view__title">트레이드 마켓</h2>
+            <div class="trade-panels">
+                <div class="trade-panel">
+                    <div class="trade-panel__header"><img class="team-logo-trade" id="tradeSendLogo" src="" alt=""><h3>보내는 팀</h3></div>
+                    <select id="tradeSendTeam" class="select"></select>
+                    <div class="trade-player-list" id="tradeSendList"></div>
+                    <div class="trade-selected">
+                        <h4>보내는 선수</h4>
+                        <div id="tradeSendSelected"></div>
+                    </div>
+                </div>
+                <div class="trade-center">
+                    <div class="trade-summary" id="tradeSummary"></div>
+                    <div class="trade-validation" id="tradeValidation"></div>
+                    <button class="btn btn--primary btn--lg" id="btnExecuteTrade" disabled>트레이드 확정</button>
+                </div>
+                <div class="trade-panel">
+                    <div class="trade-panel__header"><img class="team-logo-trade" id="tradeRecvLogo" src="" alt=""><h3>받는 팀</h3></div>
+                    <select id="tradeRecvTeam" class="select"></select>
+                    <div class="trade-player-list" id="tradeRecvList"></div>
+                    <div class="trade-selected">
+                        <h4>받는 선수</h4>
+                        <div id="tradeRecvSelected"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="trade-history">
+                <h3>트레이드 히스토리</h3>
+                <div id="tradeHistory"></div>
+            </div>
+        </section>
+
+        <!-- VIEW: Simulator -->
+        <section id="view-simulator" class="view">
+            <h2 class="view__title">리그 시뮬레이션</h2>
+            <div class="sim-quarters" id="simQuarters">
+                <button class="quarter-btn" data-q="1">1Q (1~36)</button>
+                <button class="quarter-btn" data-q="2">2Q (37~72)</button>
+                <button class="quarter-btn" data-q="3">3Q (73~108)</button>
+                <button class="quarter-btn" data-q="4">4Q (109~144)</button>
+            </div>
+            <div class="sim-controls">
+                <button class="btn btn--primary btn--xl pulse" id="btnSimulate">시뮬레이션 실행</button>
+                <div class="sim-progress" id="simProgress" style="display:none;">
+                    <div class="sim-progress__bar"><div class="sim-progress__fill" id="simFill"></div></div>
+                    <span class="sim-progress__text" id="simText">0 / 36 경기</span>
+                </div>
+            </div>
+            <div class="sim-lock-msg" id="simLockMsg" style="display:none;"></div>
+            <table class="standings-table" id="standingsTable">
+                <thead>
+                    <tr>
+                        <th>순위</th>
+                        <th>팀</th>
+                        <th>승</th>
+                        <th>패</th>
+                        <th>승률</th>
+                        <th>게임차</th>
+                        <th>투수 파워</th>
+                        <th>타자 파워</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div class="sim-chart-wrap">
+                <canvas id="trendChart" height="300"></canvas>
+            </div>
+        </section>
+
+        <!-- VIEW: Postseason -->
+        <section id="view-postseason" class="view">
+            <h2 class="view__title">포스트시즌</h2>
+            <div id="postseasonLock" class="postseason-lock">
+                <p>정규시즌(4Q)이 완료된 후 포스트시즌이 활성화됩니다.</p>
+            </div>
+            <div id="postseasonContent" style="display:none;">
+                <div class="bracket">
+                    <div class="bracket__round bracket__round--po">
+                        <h3>4강 플레이오프 (3판 2선승)</h3>
+                        <div class="bracket__match" id="poMatch1">
+                            <div class="bracket__team" id="po1TeamA"></div>
+                            <div class="bracket__vs">VS</div>
+                            <div class="bracket__team" id="po1TeamB"></div>
+                            <div class="bracket__result" id="po1Result"></div>
+                            <button class="btn btn--sm" id="btnPO1">경기 시작</button>
+                        </div>
+                        <div class="bracket__match" id="poMatch2">
+                            <div class="bracket__team" id="po2TeamA"></div>
+                            <div class="bracket__vs">VS</div>
+                            <div class="bracket__team" id="po2TeamB"></div>
+                            <div class="bracket__result" id="po2Result"></div>
+                            <button class="btn btn--sm" id="btnPO2">경기 시작</button>
+                        </div>
+                    </div>
+                    <div class="bracket__connector"></div>
+                    <div class="bracket__round bracket__round--ks">
+                        <h3>한국시리즈 (5판 3선승)</h3>
+                        <div class="bracket__match" id="ksMatch">
+                            <div class="bracket__team" id="ksTeamA"></div>
+                            <div class="bracket__vs">VS</div>
+                            <div class="bracket__team" id="ksTeamB"></div>
+                            <div class="bracket__result" id="ksResult"></div>
+                            <button class="btn btn--sm" id="btnKS" disabled>경기 시작</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="champion" id="champion" style="display:none;">
+                    <h2 id="championName"></h2>
+                    <p>한국시리즈 우승!</p>
+                    <div class="confetti" id="confetti"></div>
+                </div>
+                <div class="postseason-awards" id="postseasonAwards" style="display:none;">
+                    <h3>시상식</h3>
+                    <div id="awardsContent"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Player Detail Modal -->
+    <div class="modal-overlay" id="playerModal" style="display:none;">
+        <div class="modal modal--player">
+            <button class="modal__close" id="playerModalClose">&times;</button>
+            <div class="player-modal__header" id="playerModalHeader"></div>
+            <div class="player-modal__ratings" id="playerModalRatings"></div>
+            <div class="player-modal__stats" id="playerModalStats"></div>
+        </div>
+    </div>
+
+    <!-- CSV Import Modal -->
+    <div class="modal-overlay" id="csvModal" style="display:none;">
+        <div class="modal">
+            <h3>CSV 데이터 불러오기</h3>
+            <p>투수 또는 타자 CSV 파일을 선택하세요.</p>
+            <div class="modal__body">
+                <label class="file-label">
+                    <input type="file" id="csvFileInput" accept=".csv,.txt">
+                    파일 선택
+                </label>
+                <select id="csvType" class="select">
+                    <option value="pitcher">투수 데이터</option>
+                    <option value="batter">타자 데이터</option>
+                </select>
+                <select id="csvTeam" class="select"></select>
+            </div>
+            <div class="modal__preview" id="csvPreview"></div>
+            <div class="modal__footer">
+                <button class="btn" id="btnCsvCancel">취소</button>
+                <button class="btn btn--primary" id="btnCsvImport" disabled>불러오기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Swap Modal (등록/말소) -->
+    <div class="modal-overlay" id="swapModal" style="display:none;">
+        <div class="modal modal--swap">
+            <button class="modal__close" id="swapModalClose">&times;</button>
+            <h3 id="swapModalTitle">등록/말소</h3>
+            <p id="swapModalDesc"></p>
+            <div class="swap-tabs">
+                <button class="swap-tab swap-tab--active" data-swap-tab="pitcher">투수</button>
+                <button class="swap-tab" data-swap-tab="batter">야수</button>
+            </div>
+            <div class="swap-list" id="swapList"></div>
+            <div class="modal__footer">
+                <button class="btn" id="btnSwapCancel">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/models.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/csv-import.js"></script>
+    <script src="js/simulator.js"></script>
+    <script src="js/postseason.js"></script>
+    <script src="js/trade.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
