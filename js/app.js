@@ -360,8 +360,7 @@ function renderDetailRoster(code) {
 
     // 코칭스태프
     const coachList = staff ? staff.coaches.map(c => {
-        const [name, num] = c.split('#');
-        return `<span class="staff-tag">#${num} ${name}</span>`;
+        return `<span class="staff-tag">${c}</span>`;
     }).join('') : '';
 
     // 투수 목록
@@ -394,7 +393,7 @@ function renderDetailRoster(code) {
             <h4>코칭스태프</h4>
             <div class="staff-manager">
                 <img class="team-logo-sm" src="${teamLogo(code)}" alt="">
-                <strong>감독</strong> ${staff ? staff.manager : team.manager}
+                <strong>감독</strong> ${(staff ? staff.manager : team.manager).replace(/#\d+/, '')}
             </div>
             <div class="staff-coaches">${coachList}</div>
         </div>
