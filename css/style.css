@@ -1731,6 +1731,62 @@ body {
     .bracket__connector { width: 2px; height: 30px; border-top: none; border-left: 2px solid var(--border); }
 }
 
+/* ===== PITCH TYPE LIST ===== */
+.pm-pitch-list { display: flex; flex-direction: column; gap: 10px; padding: 8px 0; }
+.pm-pitch-row { display: flex; align-items: center; gap: 10px; }
+.pm-pitch-name { width: 68px; font-size: 13px; font-weight: 600; color: var(--text); flex-shrink: 0; }
+.pm-pitch-bar-wrap { flex: 1; height: 18px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
+.pm-pitch-bar { height: 100%; border-radius: 4px; transition: width 0.3s ease; min-width: 4px; }
+.pm-pitch-pct { width: 38px; font-size: 13px; font-weight: 700; text-align: right; color: var(--text); flex-shrink: 0; }
+.pm-pitch-velo { width: 62px; font-size: 12px; text-align: right; color: var(--text-dim); flex-shrink: 0; }
+
+/* ── 육성선수 서브탭 ── */
+.futures-sub-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+.futures-sub-tab {
+    padding: 5px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--card);
+    color: var(--text-dim);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+}
+.futures-sub-tab:hover {
+    border-color: var(--accent);
+    color: var(--text-main);
+}
+.futures-sub-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+.dev-badge {
+    display: inline-block;
+    font-size: 9px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    background: #6B4C9A;
+    color: #fff;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+.mil-badge {
+    display: inline-block;
+    font-size: 9px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    background: #4A6741;
+    color: #fff;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
 /* ===== PRINT ===== */
 @media print {
     .top-bar, .sim-controls, .trade-center button, .bracket button { display: none !important; }

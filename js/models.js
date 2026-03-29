@@ -232,6 +232,11 @@ function getTeamFuturesPlayers(state, teamCode) {
     return (team.futuresRoster || []).map(id => state.players[id]).filter(Boolean);
 }
 
+function getTeamMilitaryPlayers(state, teamCode) {
+    const team = state.teams[teamCode];
+    return (team.militaryRoster || []).map(id => state.players[id]).filter(Boolean);
+}
+
 // 등록: 2군 → 1군 (1군에서 1명 말소 필수)
 function promotePlayer(state, teamCode, futuresPlayerId, demotePlayerId) {
     const team = state.teams[teamCode];
@@ -428,6 +433,7 @@ window.getAcePitcher = getAcePitcher;
 window.calcBatterRatings = calcBatterRatings;
 window.calcBatterOVR = calcBatterOVR;
 window.getTeamFuturesPlayers = getTeamFuturesPlayers;
+window.getTeamMilitaryPlayers = getTeamMilitaryPlayers;
 window.promotePlayer = promotePlayer;
 window.promotePlayerSimple = promotePlayerSimple;
 window.demotePlayer = demotePlayer;

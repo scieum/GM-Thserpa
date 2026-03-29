@@ -365,12 +365,14 @@ function renderDetailRoster(code) {
 
     // 투수 목록
     const pRows = pitchers.map(p => {
-        const pw = (typeof p.power === 'number') ? p.power.toFixed(1) : '-';
+        const hasOvr = p.ovr != null;
+        const displayVal = hasOvr ? p.ovr : ((typeof p.power === 'number') ? p.power.toFixed(1) : '-');
+        const displayColor = hasOvr ? ratingColor(p.ovr) : powerColor(p.power);
         return `<tr>
             <td style="color:var(--text-dim);">${p.number != null ? p.number : '-'}</td>
             <td>${p.name}${p.isForeign ? ' <span style="color:var(--kbo-gold);font-size:10px;">외</span>' : ''}${p.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''}</td>
             <td>${p.role || '-'}</td>
-            <td style="color:${powerColor(p.power)};">${pw}</td>
+            <td style="color:${displayColor};">${displayVal}</td>
             <td>${p.salary}억</td>
         </tr>`;
     }).join('');
@@ -401,7 +403,7 @@ function renderDetailRoster(code) {
             <div class="detail-roster-col">
                 <h4>투수진 <span class="detail-count">${pitchers.length}명</span></h4>
                 <table class="detail-roster-table">
-                    <thead><tr><th>#</th><th>이름</th><th>역할</th><th>파워</th><th>연봉</th></tr></thead>
+                    <thead><tr><th>#</th><th>이름</th><th>역할</th><th>OVR</th><th>연봉</th></tr></thead>
                     <tbody>${pRows}</tbody>
                 </table>
             </div>
@@ -423,6 +425,7 @@ function renderDetailRoster(code) {
 let rosterSortKey = null;
 let rosterSortDir = 'desc';
 let rosterTier = '1군'; // '1군' or '2군'
+let futuresTier = '2군'; // '2군' or '육성'
 
 function setupRosterView() {
     const select = document.getElementById('rosterTeamSelect');
@@ -445,6 +448,16 @@ function setupRosterView() {
                 if (rosterNav) rosterNav.classList.add('active');
                 renderRoster();
             }
+        });
+    });
+
+    // 육성선수 서브탭
+    document.querySelectorAll('.futures-sub-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            futuresTier = tab.dataset.futuresTier;
+            document.querySelectorAll('.futures-sub-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            renderRoster();
         });
     });
 
@@ -497,8 +510,13 @@ function renderRoster() {
     document.getElementById('rosterWordmark').src = teamWordmark(code);
 
     // 1군/2군 탭 카운트 업데이트
+    const allFutPlayers = getTeamFuturesPlayers(state, code);
+    const regFutPlayers = allFutPlayers.filter(p => !p.number || p.number < 100);
+    const devFutPlayers = allFutPlayers.filter(p => p.number >= 100);
+    const milPlayers = getTeamMilitaryPlayers(state, code);
+    const totalFutCount = (team.futuresRoster || []).length + (team.militaryRoster || []).length;
     document.getElementById('tabFirstTeam').textContent = `1군 (${team.roster.length}명)`;
-    document.getElementById('tabFutures').textContent = `2군 (${(team.futuresRoster || []).length}명)`;
+    document.getElementById('tabFutures').textContent = `2군 (${totalFutCount}명)`;
 
     // 1군/2군 영역 토글
     const firstSection = document.getElementById('firstTeamSection');
@@ -506,10 +524,15 @@ function renderRoster() {
     if (rosterTier === '2군') {
         firstSection.style.display = 'none';
         futuresSection.style.display = 'block';
-        const futPlayers = getTeamFuturesPlayers(state, code);
-        document.getElementById('futuresInfo').innerHTML = futPlayers.length > 0
-            ? `퓨처스리그 등록 선수 <strong>${futPlayers.length}명</strong> (투수 ${futPlayers.filter(p=>p.position==='P').length}명 / 야수 ${futPlayers.filter(p=>p.position!=='P').length}명)`
-            : '<em>2군 등록 선수가 없습니다. 나중에 추가할 수 있습니다.</em>';
+        // 서브탭 카운트 업데이트
+        document.getElementById('subTab2gun').textContent = `2군 (${regFutPlayers.length}명)`;
+        document.getElementById('subTabDev').textContent = `육성선수 (${devFutPlayers.length}명)`;
+        document.getElementById('subTabMil').textContent = `군보류 (${milPlayers.length}명)`;
+        const displayPlayers = futuresTier === '군보류' ? milPlayers : (futuresTier === '육성' ? devFutPlayers : regFutPlayers);
+        const tierLabel = futuresTier === '군보류' ? '군보류' : (futuresTier === '육성' ? '육성선수' : '퓨처스리그');
+        document.getElementById('futuresInfo').innerHTML = displayPlayers.length > 0
+            ? `${tierLabel} 등록 선수 <strong>${displayPlayers.length}명</strong> (투수 ${displayPlayers.filter(p=>p.position==='P').length}명 / 야수 ${displayPlayers.filter(p=>p.position!=='P').length}명)${futuresTier === '군보류' ? ' <span style="color:#ED1C24;font-size:11px;">※ 이번 시즌 등록 불가</span>' : ''}`
+            : `<em>${tierLabel} 선수가 없습니다.</em>`;
     } else {
         firstSection.style.display = 'block';
         futuresSection.style.display = 'none';
@@ -584,7 +607,16 @@ function renderRoster() {
     // 1군/2군에 따라 선수 목록 분기
     let allPlayers;
     if (rosterTier === '2군') {
-        allPlayers = getTeamFuturesPlayers(state, code);
+        if (futuresTier === '군보류') {
+            allPlayers = getTeamMilitaryPlayers(state, code);
+        } else {
+            const futAll = getTeamFuturesPlayers(state, code);
+            if (futuresTier === '육성') {
+                allPlayers = futAll.filter(p => p.number >= 100);
+            } else {
+                allPlayers = futAll.filter(p => !p.number || p.number < 100);
+            }
+        }
     } else {
         allPlayers = getTeamPlayers(state, code);
     }
@@ -612,6 +644,11 @@ function renderRoster() {
             else if (rosterSortKey === 'eye') { va = a.ratings ? a.ratings.eye : 0; vb = b.ratings ? b.ratings.eye : 0; }
             else if (rosterSortKey === 'speed_r') { va = a.ratings ? a.ratings.speed : 0; vb = b.ratings ? b.ratings.speed : 0; }
             else if (rosterSortKey === 'defense_r') { va = a.ratings ? a.ratings.defense : 0; vb = b.ratings ? b.ratings.defense : 0; }
+            else if (rosterSortKey === 'stuff') { va = a.ratings ? a.ratings.stuff : 0; vb = b.ratings ? b.ratings.stuff : 0; }
+            else if (rosterSortKey === 'command') { va = a.ratings ? a.ratings.command : 0; vb = b.ratings ? b.ratings.command : 0; }
+            else if (rosterSortKey === 'stamina') { va = a.ratings ? a.ratings.stamina : 0; vb = b.ratings ? b.ratings.stamina : 0; }
+            else if (rosterSortKey === 'effectiveness') { va = a.ratings ? a.ratings.effectiveness : 0; vb = b.ratings ? b.ratings.effectiveness : 0; }
+            else if (rosterSortKey === 'consistency') { va = a.ratings ? a.ratings.consistency : 0; vb = b.ratings ? b.ratings.consistency : 0; }
             else if (rosterSortKey === 'ovr') { va = a.ovr || a.power; vb = b.ovr || b.power; }
             else if (rosterSortKey === 'power') { va = a.power; vb = b.power; }
             else if (rosterSortKey === 'salary') { va = a.salary; vb = b.salary; }
@@ -641,27 +678,29 @@ function renderRoster() {
     const pTbody = document.querySelector('#pitcherTable tbody');
     pTbody.innerHTML = pitchers.map(p => {
         const actionBtn = rosterTier === '2군'
-            ? `<td><button class="promote-btn" data-id="${p.id}" data-team="${code}">↑ 등록</button></td>`
+            ? (p.isMilitary ? `<td><span style="color:#4A6741;font-size:11px;">복무중</span></td>` : `<td><button class="promote-btn" data-id="${p.id}" data-team="${code}">↑ 등록</button></td>`)
             : `<td><button class="demote-btn" data-id="${p.id}" data-team="${code}">↓ 말소</button></td>`;
         const roleSelect = `<select class="role-select" data-id="${p.id}">
             <option value="선발" ${p.role==='선발'?'selected':''}>선발</option>
             <option value="중계" ${p.role==='중계'?'selected':''}>중계</option>
             <option value="마무리" ${p.role==='마무리'?'selected':''}>마무리</option>
         </select>`;
+        const r = p.ratings;
+        const hasRatings = !!r;
         return `<tr data-player-id="${p.id}">
             <td style="color:var(--text-dim);">${p.number != null ? p.number : '-'}</td>
-            <td>${p.name}${p.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''}${p.isForeign ? ' <span style="color:#B3A177;font-size:10px;">외</span>' : ''}${p.isFutures ? ' <span class="futures-badge">2군</span>' : ''}</td>
+            <td>${p.name}${p.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''}${p.isForeign ? ' <span style="color:#B3A177;font-size:10px;">외</span>' : ''}${p.isMilitary ? ' <span class="mil-badge">군보류</span>' : (p.isFutures ? (p.number >= 100 ? ' <span class="dev-badge">육성</span>' : ' <span class="futures-badge">2군</span>') : '')}</td>
             <td>${roleSelect}</td>
-            <td style="font-size:11px;color:#8899aa;">${p.throwBat || '-'}</td>
+            <td style="font-size:11px;color:${p.throwBat && p.throwBat.startsWith('좌') ? '#00AEEF' : '#8899aa'};">${p.throwBat ? p.throwBat.substring(0, 2) : '-'}</td>
             <td style="font-size:11px;">${p.age != null ? p.age + '세' : '-'}</td>
-            <td>${p.stats.IVB}</td>
-            <td>${p.stats.VAA}</td>
-            <td>${p.stats['CSW%']}</td>
-            <td>${p.stats.FIP}</td>
-            <td>${p.stats.ERA}</td>
+            <td style="color:${hasRatings ? ratingColor(r.stuff) : '#8899aa'};">${hasRatings ? r.stuff : '-'}</td>
+            <td style="color:${hasRatings ? ratingColor(r.command) : '#8899aa'};">${hasRatings ? r.command : '-'}</td>
+            <td style="color:${hasRatings ? ratingColor(r.stamina) : '#8899aa'};">${hasRatings ? r.stamina : '-'}</td>
+            <td style="color:${hasRatings ? ratingColor(r.effectiveness) : '#8899aa'};">${hasRatings ? r.effectiveness : '-'}</td>
+            <td style="color:${hasRatings ? ratingColor(r.consistency) : '#8899aa'};">${hasRatings ? r.consistency : '-'}</td>
             <td><div class="power-cell">
-                <div class="power-mini-bar"><div class="power-mini-bar__fill" style="width:${p.power}%; background:${powerColor(p.power)};"></div></div>
-                <span>${p.power.toFixed(1)}</span>
+                <div class="power-mini-bar"><div class="power-mini-bar__fill" style="width:${(hasRatings ? p.ovr : p.power) / 80 * 100}%; background:${hasRatings ? ratingColor(p.ovr) : powerColor(p.power)};"></div></div>
+                <span style="font-weight:700;">${hasRatings ? p.ovr : p.power.toFixed(1)}</span>
             </div></td>
             <td>${p.salary}억</td>
             ${actionBtn}
@@ -671,7 +710,7 @@ function renderRoster() {
     const bTbody = document.querySelector('#batterTable tbody');
     bTbody.innerHTML = batters.map(b => {
         const actionBtn = rosterTier === '2군'
-            ? `<td><button class="promote-btn" data-id="${b.id}" data-team="${code}">↑ 등록</button></td>`
+            ? (b.isMilitary ? `<td><span style="color:#4A6741;font-size:11px;">복무중</span></td>` : `<td><button class="promote-btn" data-id="${b.id}" data-team="${code}">↑ 등록</button></td>`)
             : `<td><button class="demote-btn" data-id="${b.id}" data-team="${code}">↓ 말소</button></td>`;
         const r = b.ratings;
         const hasRatings = !!r;
@@ -686,7 +725,7 @@ function renderRoster() {
         const posSelect = `<select class="pos-select ${penaltyVal < 0 ? 'pos-select--penalty' : ''}" data-id="${b.id}">${posOptions}</select>`;
         return `<tr data-player-id="${b.id}">
             <td style="color:var(--text-dim);">${b.number != null ? b.number : '-'}</td>
-            <td>${b.name}${b.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''}${b.isForeign ? ' <span style="color:#B3A177;font-size:10px;">외</span>' : ''}${b.isFutures ? ' <span class="futures-badge">2군</span>' : ''}</td>
+            <td>${b.name}${b.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''}${b.isForeign ? ' <span style="color:#B3A177;font-size:10px;">외</span>' : ''}${b.isMilitary ? ' <span class="mil-badge">군보류</span>' : (b.isFutures ? (b.number >= 100 ? ' <span class="dev-badge">육성</span>' : ' <span class="futures-badge">2군</span>') : '')}</td>
             <td>${posSelect}${penaltyBadge}</td>
             <td style="font-size:11px;color:#8899aa;">${b.throwBat || '-'}</td>
             <td style="font-size:11px;">${b.age != null ? b.age + '세' : '-'}</td>
@@ -898,6 +937,7 @@ function generateScoutReport(player) {
 
     if (!r) {
         if (player.isForeign) return '외국인 선수 — KBO 기록 분석 필요';
+        if (player.isMilitary) return '군보류 선수 — 이번 시즌 등록 불가';
         if (player.isFutures) return '2군 유망주 — 성장 가능성 주목';
         if (player.position === 'P') return '';
         if (age && age <= 23) return '영건 — 실전 경험 필요';
@@ -912,6 +952,73 @@ function generateScoutReport(player) {
         : age <= 35 ? 'veteran'    // 베테랑
         : 'aging';                 // 노장
 
+    // ── 투수 스카우트 리포트 ──
+    if (player.position === 'P' && r.stuff != null) {
+        const strengths = [];
+        const weaknesses = [];
+
+        if (r.stuff >= 70) strengths.push('압도적 구위');
+        else if (r.stuff >= 60) strengths.push('좋은 구위');
+        if (r.command >= 70) strengths.push('정밀 제구');
+        else if (r.command >= 60) strengths.push('안정적 제구');
+        if (r.stamina >= 70) strengths.push('강철 체력');
+        else if (r.stamina >= 60) strengths.push('준수한 체력');
+        if (r.effectiveness >= 70) strengths.push('뛰어난 효율');
+        else if (r.effectiveness >= 60) strengths.push('좋은 효율');
+        if (r.consistency >= 70) strengths.push('탁월한 안정감');
+        else if (r.consistency >= 60) strengths.push('안정적');
+
+        if (r.stuff <= 30) weaknesses.push('구위 부족');
+        if (r.command <= 30) weaknesses.push('제구 불안');
+        if (r.stamina <= 30) weaknesses.push('체력 약점');
+        if (r.effectiveness <= 35) weaknesses.push('효율 낮음');
+        if (r.consistency <= 30) weaknesses.push('안정감 부족');
+
+        let type = '';
+        const role = player.role || '';
+        if (r.stuff >= 65 && r.command >= 60 && r.effectiveness >= 60) type = '에이스형';
+        else if (r.stuff >= 65 && r.effectiveness >= 55) type = '파워 피처';
+        else if (r.command >= 65 && r.effectiveness >= 60) type = '컨트롤 피처';
+        else if (r.stamina >= 70 && r.effectiveness >= 55) type = '이닝이터';
+        else if (r.stuff >= 60 && role === '마무리') type = '마무리형';
+        else if (r.consistency >= 60 && role === '중계') type = '셋업형';
+        else if (r.effectiveness >= 55) type = '안정형';
+        else if (player.ovr >= 50) type = '밸런스형';
+        else if (agePhase === 'prospect') type = '성장형 유망주';
+        else if (agePhase === 'rising') type = '기량 발전 중';
+        else type = '보강 고려';
+
+        let report = type;
+        if (weaknesses.length > 0 && strengths.length > 0) report += ', ' + weaknesses[0];
+
+        let warTag = '';
+        if (rs) {
+            if (rs.WAR >= 5) warTag = '에이스급';
+            else if (rs.WAR >= 3) warTag = '올스타급';
+            else if (rs.WAR >= 2) warTag = '팀 핵심';
+            else if (rs.WAR >= 1) warTag = '주전급';
+            else if (rs.WAR >= 0) warTag = role === '선발' ? '로테이션 요원' : '불펜 요원';
+            else warTag = '보강 고려';
+        }
+
+        let ageTag = '';
+        if (agePhase === 'prospect' && player.ovr >= 45) ageTag = '유망주';
+        else if (agePhase === 'prospect') ageTag = '영건';
+        else if (agePhase === 'rising' && player.ovr >= 55) ageTag = '성장세';
+        else if (agePhase === 'veteran' && player.ovr >= 55) ageTag = '노익장';
+        else if (agePhase === 'veteran') ageTag = '베테랑';
+        else if (agePhase === 'aging' && player.ovr >= 50) ageTag = '노장 건재';
+        else if (agePhase === 'aging') ageTag = '은퇴 고려';
+
+        const parts = [];
+        if (ageTag) parts.push(ageTag);
+        parts.push(report);
+        let result = parts.join(' · ');
+        if (warTag) result += ' — ' + warTag;
+        return result;
+    }
+
+    // ── 타자 스카우트 리포트 ──
     const strengths = [];
     const weaknesses = [];
 
@@ -1016,7 +1123,7 @@ function showPlayerModal(player) {
             <div class="pm-meta">
                 <span>${teamName}</span>
                 <span>${p.position === 'P' ? '투수 (' + (p.role || '') + ')' : p.position}</span>
-                ${p.throwBat ? `<span>${p.throwBat}</span>` : ''}
+                ${p.throwBat ? `<span>${p.position === 'P' ? (p.throwBat.startsWith('좌') ? '좌투수' : '우투수') : p.throwBat}</span>` : ''}
                 ${p.age != null ? `<span>${p.age}세</span>` : ''}
                 ${p.height ? `<span>${p.height}cm / ${p.weight}kg</span>` : ''}
             </div>
@@ -1040,6 +1147,31 @@ function showPlayerModal(player) {
             { label: '선구안', val: r.eye },
             { label: '스피드', val: r.speed },
             { label: '수비', val: r.defense },
+        ];
+        ratingsEl.innerHTML = `
+            <div class="pm-ratings-title">20-80 스카우팅 레이팅</div>
+            ${tools.map(t => `
+                <div class="pm-rating-row">
+                    <span class="pm-rating-label">${t.label}</span>
+                    <div class="pm-rating-bar">
+                        <div class="pm-rating-fill" style="width:${(t.val - 20) / 60 * 100}%; background:${ratingColor(t.val)};"></div>
+                    </div>
+                    <span class="pm-rating-value" style="color:${ratingColor(t.val)};">${t.val}</span>
+                </div>
+            `).join('')}
+            <div class="pm-ovr-row">
+                <span class="pm-ovr-label">OVR</span>
+                <span class="pm-ovr-value" style="color:${ratingColor(p.ovr)};">${p.ovr}</span>
+            </div>
+        `;
+    } else if (p.ratings && p.position === 'P') {
+        const r = p.ratings;
+        const tools = [
+            { label: '구위', val: r.stuff },
+            { label: '제구', val: r.command },
+            { label: '체력', val: r.stamina },
+            { label: '효율', val: r.effectiveness },
+            { label: '안정', val: r.consistency },
         ];
         ratingsEl.innerHTML = `
             <div class="pm-ratings-title">20-80 스카우팅 레이팅</div>
@@ -1105,7 +1237,31 @@ function showPlayerModal(player) {
             });
         });
     } else if (rs && p.position === 'P') {
-        statsEl.innerHTML = `<div class="pm-stats-title">2025 시즌 성적</div><div class="pm-no-data">투수 시즌 성적은 추후 업데이트됩니다.</div>`;
+        statsEl.innerHTML = `
+            <div class="pm-tabs">
+                <button class="pm-tab active" data-pm-tab="p-classic">클래식</button>
+                <button class="pm-tab" data-pm-tab="p-saber">세이버메트릭스</button>
+                <button class="pm-tab" data-pm-tab="p-pitch">구종</button>
+            </div>
+            <div class="pm-tab-content" id="pmTabPClassic">
+                ${renderPitcherClassicStats(rs)}
+            </div>
+            <div class="pm-tab-content" id="pmTabPSaber" style="display:none;">
+                ${renderPitcherSaberStats(rs)}
+            </div>
+            <div class="pm-tab-content" id="pmTabPPitch" style="display:none;">
+                ${renderPitcherPitchTypes(rs)}
+            </div>
+        `;
+        statsEl.querySelectorAll('.pm-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                statsEl.querySelectorAll('.pm-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('pmTabPClassic').style.display = tab.dataset.pmTab === 'p-classic' ? 'block' : 'none';
+                document.getElementById('pmTabPSaber').style.display = tab.dataset.pmTab === 'p-saber' ? 'block' : 'none';
+                document.getElementById('pmTabPPitch').style.display = tab.dataset.pmTab === 'p-pitch' ? 'block' : 'none';
+            });
+        });
     } else {
         statsEl.innerHTML = `
             <div class="pm-stats-title">2025 시즌 성적</div>
@@ -1223,6 +1379,98 @@ function renderDefenseStats(rs, player) {
             </div>`
         ).join('')}</div>
     `;
+}
+
+// ── 투수 스탯 렌더링 ──
+
+function renderPitcherClassicStats(rs) {
+    const items = [
+        { label: '경기', value: rs.G },
+        { label: '선발', value: rs.GS },
+        { label: '승', value: rs.W },
+        { label: '패', value: rs.L },
+        { label: '세이브', value: rs.S },
+        { label: '홀드', value: rs.HLD },
+        { label: '이닝', value: rs.IP },
+        { label: '피안타', value: rs.H },
+        { label: '피홈런', value: rs.HR },
+        { label: '볼넷', value: rs.BB },
+        { label: '사구', value: rs.HBP },
+        { label: '삼진', value: rs.SO },
+        { label: '자책점', value: rs.ER },
+        { label: '실점', value: rs.R },
+        { label: 'ERA', value: rs.ERA.toFixed(2) },
+        { label: 'WHIP', value: rs.WHIP.toFixed(2) },
+    ];
+    return `<div class="pm-stats-grid">${items.map(s =>
+        `<div class="pm-stat-cell">
+            <div class="pm-stat-label">${s.label}</div>
+            <div class="pm-stat-value">${s.value != null ? s.value : '-'}</div>
+        </div>`
+    ).join('')}</div>`;
+}
+
+function renderPitcherSaberStats(rs) {
+    const IP = rs.IP || 1;
+    const TBF = IP * 3 + (rs.H || 0) + (rs.BB || 0) + (rs.HBP || 0);
+    const K9 = (rs.SO / IP * 9).toFixed(2);
+    const BB9 = (rs.BB / IP * 9).toFixed(2);
+    const KPCT = (rs.SO / TBF * 100).toFixed(1);
+    const BBPCT = (rs.BB / TBF * 100).toFixed(1);
+    const KBBPCT = ((rs.SO - rs.BB) / TBF * 100).toFixed(1);
+
+    const valColor = (label, val) => {
+        if (label === 'FIP') return val <= 3.0 ? '#22c55e' : val <= 3.8 ? '#4ade80' : val <= 4.5 ? '#00AEEF' : val <= 5.5 ? '#B3A177' : '#ED1C24';
+        if (label === 'WAR') return val >= 4 ? '#22c55e' : val >= 2 ? '#4ade80' : val >= 1 ? '#00AEEF' : val >= 0 ? '#B3A177' : '#ED1C24';
+        if (label === 'ERA') return val <= 3.0 ? '#22c55e' : val <= 3.8 ? '#4ade80' : val <= 4.5 ? '#00AEEF' : val <= 5.5 ? '#B3A177' : '#ED1C24';
+        if (label === 'WPA') return val >= 2 ? '#22c55e' : val >= 0.5 ? '#4ade80' : val >= 0 ? '#00AEEF' : val >= -0.5 ? '#B3A177' : '#ED1C24';
+        return '#e8edf2';
+    };
+    const items = [
+        { label: 'FIP', value: rs.FIP.toFixed(2) },
+        { label: 'WAR', value: rs.WAR.toFixed(2) },
+        { label: 'K/9', value: K9 },
+        { label: 'BB/9', value: BB9 },
+        { label: 'K%', value: KPCT + '%' },
+        { label: 'BB%', value: BBPCT + '%' },
+        { label: 'K-BB%', value: KBBPCT + '%' },
+        { label: 'BABIP', value: rs.BABIP.toFixed(3) },
+        { label: 'WPA', value: rs.WPA.toFixed(2) },
+        { label: 'ERA', value: rs.ERA.toFixed(2) },
+    ];
+    return `<div class="pm-stats-grid">${items.map(s => {
+        const c = valColor(s.label, parseFloat(s.value));
+        return `<div class="pm-stat-cell">
+            <div class="pm-stat-label">${s.label}</div>
+            <div class="pm-stat-value" style="color:${c};">${s.value}</div>
+        </div>`;
+    }).join('')}</div>`;
+}
+
+function renderPitcherPitchTypes(rs) {
+    if (!rs.pitches || rs.pitches.length === 0) {
+        return '<div class="pm-no-data">구종 데이터가 등록되지 않았습니다.</div>';
+    }
+    const maxPct = Math.max(...rs.pitches.map(p => p.pct));
+    const pitchColor = (name) => {
+        if (name.includes('포심') || name.includes('투심')) return '#ED1C24';
+        if (name.includes('슬라이더')) return '#00AEEF';
+        if (name.includes('커브')) return '#22c55e';
+        if (name.includes('체인지업')) return '#B3A177';
+        if (name.includes('커터')) return '#f97316';
+        if (name.includes('포크')) return '#a855f7';
+        return '#8899aa';
+    };
+    return `<div class="pm-pitch-list">${rs.pitches.map(p => `
+        <div class="pm-pitch-row">
+            <span class="pm-pitch-name">${p.name}</span>
+            <div class="pm-pitch-bar-wrap">
+                <div class="pm-pitch-bar" style="width:${p.pct / maxPct * 100}%; background:${pitchColor(p.name)};"></div>
+            </div>
+            <span class="pm-pitch-pct">${p.pct}%</span>
+            <span class="pm-pitch-velo">${p.velo} km/h</span>
+        </div>
+    `).join('')}</div>`;
 }
 
 // ══════════════════════════════════════════
