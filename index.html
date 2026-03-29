@@ -12,26 +12,35 @@
 <body>
     <!-- ===== TOP NAV ===== -->
     <header class="top-bar">
-        <div class="top-bar__brand">
+        <div class="top-bar__brand" onclick="showView('dashboard')" style="cursor:pointer;">
             <span class="top-bar__logo">⚾</span>
             <h1 class="top-bar__title">나도GM — 데이터로 완성하는 승리의 라인업</h1>
-            <span class="top-bar__quarter" id="quarterBadge">시즌 시작 전</span>
         </div>
+        <span class="top-bar__quarter" id="quarterBadge" onclick="showView('simulator')">시즌 시작 전</span>
         <nav class="top-bar__nav">
             <button class="nav-btn active" data-view="dashboard">구단 대시보드</button>
             <button class="nav-btn" data-view="roster">1군 로스터</button>
             <button class="nav-btn nav-btn--futures" data-view="futures">2군 (퓨처스)</button>
+            <button class="nav-btn" data-view="depthchart">뎁스 차트</button>
             <button class="nav-btn" data-view="trade">트레이드 마켓</button>
             <button class="nav-btn" data-view="simulator">리그 시뮬레이션</button>
             <button class="nav-btn" data-view="postseason">포스트시즌</button>
         </nav>
         <div class="top-bar__actions">
+            <div class="search-box" id="searchBox">
+                <input type="text" class="search-box__input" id="playerSearchInput" placeholder="선수 검색..." autocomplete="off">
+                <div class="search-box__results" id="searchResults" style="display:none;"></div>
+            </div>
             <button class="btn btn--sm" id="btnThemeToggle" title="다크/라이트 모드 전환">라이트</button>
-            <button class="btn btn--sm" id="btnImportCSV" title="CSV 데이터 불러오기">CSV 불러오기</button>
             <button class="btn btn--sm" id="btnSave" title="현재 상태 저장">저장</button>
             <button class="btn btn--sm btn--danger" id="btnReset" title="초기 상태로 되돌리기">초기화</button>
         </div>
     </header>
+
+    <!-- ===== TEAM SIDEBAR ===== -->
+    <aside class="team-sidebar" id="teamSidebar">
+        <!-- 10 team logos rendered by JS -->
+    </aside>
 
     <!-- ===== MAIN CONTENT ===== -->
     <main class="content">
@@ -148,6 +157,26 @@
             </div>
         </section>
 
+        <!-- VIEW: Depth Chart -->
+        <section id="view-depthchart" class="view">
+            <div class="view__header">
+                <img class="team-emblem-roster" id="dcEmblem" src="" alt="">
+                <img class="team-wordmark-roster" id="dcWordmark" src="" alt="">
+                <select id="dcTeamSelect" class="select"></select>
+                <div class="dc-sub-tabs">
+                    <button class="dc-sub-tab active" data-dc-tab="batter">야수 라인업</button>
+                    <button class="dc-sub-tab" data-dc-tab="pitcher">투수 라인업</button>
+                </div>
+                <button class="btn btn--sm btn--primary" id="btnAutoDepth">자동 배정</button>
+            </div>
+
+            <!-- 야수 라인업 (수비 + 타선) -->
+            <div class="dc-panel dc-panel--batter active" id="dcBatterPanel"></div>
+
+            <!-- 투수 운용 (선발 로테이션 + 불펜 구성) -->
+            <div class="dc-panel dc-panel--pitcher" id="dcPitcherPanel"></div>
+        </section>
+
         <!-- VIEW: Trade -->
         <section id="view-trade" class="view">
             <h2 class="view__title">트레이드 마켓</h2>
@@ -184,38 +213,176 @@
 
         <!-- VIEW: Simulator -->
         <section id="view-simulator" class="view">
-            <h2 class="view__title">리그 시뮬레이션</h2>
-            <div class="sim-quarters" id="simQuarters">
-                <button class="quarter-btn" data-q="1">1Q (1~36)</button>
-                <button class="quarter-btn" data-q="2">2Q (37~72)</button>
-                <button class="quarter-btn" data-q="3">3Q (73~108)</button>
-                <button class="quarter-btn" data-q="4">4Q (109~144)</button>
-            </div>
-            <div class="sim-controls">
-                <button class="btn btn--primary btn--xl pulse" id="btnSimulate">시뮬레이션 실행</button>
-                <div class="sim-progress" id="simProgress" style="display:none;">
-                    <div class="sim-progress__bar"><div class="sim-progress__fill" id="simFill"></div></div>
-                    <span class="sim-progress__text" id="simText">0 / 36 경기</span>
+            <div class="sim-top-bar">
+                <h2 class="view__title" style="margin:0;">리그 시뮬레이션</h2>
+                <div class="sim-quarters" id="simQuarters">
+                    <button class="quarter-btn" data-q="1">1Q (1~36)</button>
+                    <button class="quarter-btn" data-q="2">2Q (37~72)</button>
+                    <button class="quarter-btn" data-q="3">3Q (73~108)</button>
+                    <button class="quarter-btn" data-q="4">4Q (109~144)</button>
+                </div>
+                <div class="sim-controls">
+                    <div class="sim-progress" id="simProgress" style="display:none;">
+                        <div class="sim-progress__bar"><div class="sim-progress__fill" id="simFill"></div></div>
+                        <span class="sim-progress__text" id="simText">0 / 5 경기</span>
+                    </div>
+                    <button class="btn btn--primary btn--lg pulse" id="btnSimulate">5경기 진행</button>
                 </div>
             </div>
             <div class="sim-lock-msg" id="simLockMsg" style="display:none;"></div>
-            <table class="standings-table" id="standingsTable">
-                <thead>
-                    <tr>
-                        <th>순위</th>
-                        <th>팀</th>
-                        <th>승</th>
-                        <th>패</th>
-                        <th>승률</th>
-                        <th>게임차</th>
-                        <th>투수 파워</th>
-                        <th>타자 파워</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-            <div class="sim-chart-wrap">
-                <canvas id="trendChart" height="300"></canvas>
+
+            <!-- 시뮬 탭: 팀순위 / 팀기록 / 타자기록 / 투수기록 -->
+            <div class="sim-tabs">
+                <button class="sim-tab active" data-sim-tab="standings">팀 순위</button>
+                <button class="sim-tab" data-sim-tab="team-records">팀 기록</button>
+                <button class="sim-tab" data-sim-tab="batter-records">타자 기록</button>
+                <button class="sim-tab" data-sim-tab="pitcher-records">투수 기록</button>
+            </div>
+
+            <!-- 팀 순위 -->
+            <div class="sim-panel active" id="simPanelStandings">
+                <table class="standings-table" id="standingsTable">
+                    <thead>
+                        <tr>
+                            <th>순위</th><th>팀</th><th>승</th><th>패</th><th>승률</th><th>게임차</th><th>투수 파워</th><th>타자 파워</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div class="sim-chart-wrap">
+                    <canvas id="trendChart" height="300"></canvas>
+                </div>
+            </div>
+
+            <!-- 팀 기록 -->
+            <div class="sim-panel" id="simPanelTeamRecords">
+                <div id="teamRecordsContent"></div>
+            </div>
+
+            <!-- 타자 기록 -->
+            <div class="sim-panel" id="simPanelBatterRecords">
+                <div class="records-top5-grid" id="batterTop5Grid"></div>
+                <div id="batterFullRecords" style="display:none;"></div>
+            </div>
+
+            <!-- 투수 기록 -->
+            <div class="sim-panel" id="simPanelPitcherRecords">
+                <div class="records-top5-grid" id="pitcherTop5Grid"></div>
+                <div id="pitcherFullRecords" style="display:none;"></div>
+            </div>
+        </section>
+
+        <!-- VIEW: Scout -->
+        <section id="view-scout" class="view">
+            <h2 class="view__title">선수 스카우트</h2>
+            <div class="scout-container">
+                <!-- 좌측: 탭 + 필터 -->
+                <div class="scout-left">
+                    <div class="scout-mode-tabs">
+                        <button class="scout-mode-tab active" data-scout-mode="pitcher" id="scoutModePitcher">투수 검색</button>
+                        <button class="scout-mode-tab" data-scout-mode="batter" id="scoutModeBatter">야수 검색</button>
+                    </div>
+                <!-- 투수 필터 -->
+                <div class="scout-filters" id="scoutPitcherFilters">
+                    <div class="scout-filter-group">
+                        <h4>기본 정보</h4>
+                        <div class="scout-row"><label>이름</label><input type="text" class="scout-input scout-f" data-f="name" placeholder="선수명..."></div>
+                        <div class="scout-row"><label>팀</label><select class="scout-select scout-f" data-f="team"><option value="">전체</option></select></div>
+                        <div class="scout-row"><label>역할</label>
+                            <div class="scout-multi-check">
+                                <label class="scout-chip"><input type="checkbox" class="scout-f" data-f="role" value="선발"> 선발</label>
+                                <label class="scout-chip"><input type="checkbox" class="scout-f" data-f="role" value="중계"> 중계</label>
+                                <label class="scout-chip"><input type="checkbox" class="scout-f" data-f="role" value="마무리"> 마무리</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="scout-filter-group">
+                        <h4>투타 / 신체</h4>
+                        <div class="scout-row"><label>투구</label><select class="scout-select scout-f" data-f="throw"><option value="">전체</option><option value="우투">우투</option><option value="좌투">좌투</option><option value="우언">우언</option><option value="좌언">좌언</option><option value="우사">우사</option><option value="좌사">좌사</option></select></div>
+                        <div class="scout-row scout-range-row"><label>나이</label><input type="number" class="scout-input-sm scout-f" data-f="ageMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm scout-f" data-f="ageMax" placeholder="최대"></div>
+                        <div class="scout-row scout-range-row"><label>연봉(억)</label><input type="number" class="scout-input-sm scout-f" data-f="salMin" placeholder="최소" step="0.1"><span>~</span><input type="number" class="scout-input-sm scout-f" data-f="salMax" placeholder="최대" step="0.1"></div>
+                    </div>
+                    <div class="scout-filter-group">
+                        <h4>능력치 (20-80)</h4>
+                        <div class="scout-row scout-range-row"><label>OVR</label><input type="number" class="scout-input-sm scout-f" data-f="ovrMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm scout-f" data-f="ovrMax" placeholder="최대"></div>
+                        <div class="scout-row scout-range-row"><label>구위</label><input type="number" class="scout-input-sm scout-f" data-f="stuffMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm scout-f" data-f="stuffMax" placeholder="최대"></div>
+                        <div class="scout-row scout-range-row"><label>제구</label><input type="number" class="scout-input-sm scout-f" data-f="commandMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm scout-f" data-f="commandMax" placeholder="최대"></div>
+                        <div class="scout-row scout-range-row"><label>체력</label><input type="number" class="scout-input-sm scout-f" data-f="staminaMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm scout-f" data-f="staminaMax" placeholder="최대"></div>
+                        <div class="scout-row scout-range-row"><label>효율</label><input type="number" class="scout-input-sm scout-f" data-f="effectivenessMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm scout-f" data-f="effectivenessMax" placeholder="최대"></div>
+                        <div class="scout-row scout-range-row"><label>안정</label><input type="number" class="scout-input-sm scout-f" data-f="consistencyMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm scout-f" data-f="consistencyMax" placeholder="최대"></div>
+                    </div>
+                    <div class="scout-filter-group">
+                        <h4>구종 / 구속</h4>
+                        <div class="scout-row scout-range-row"><label>평균 구속</label><input type="number" class="scout-input-sm scout-f" data-f="veloMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm scout-f" data-f="veloMax" placeholder="최대"></div>
+                        <div class="scout-row"><label>구종 보유</label><select class="scout-select scout-f" data-f="pitchType"><option value="">전체</option><option value="포심">포심</option><option value="투심">투심</option><option value="슬라이더">슬라이더</option><option value="커브">커브</option><option value="체인지업">체인지업</option><option value="커터">커터</option><option value="포크볼">포크볼</option><option value="싱커">싱커</option><option value="스위퍼">스위퍼</option></select></div>
+                    </div>
+                    <div class="scout-actions">
+                        <button class="btn btn--primary" id="btnScoutSearchP">검색</button>
+                        <button class="btn" id="btnScoutResetP">초기화</button>
+                        <span class="scout-count" id="scoutCountP">0명</span>
+                    </div>
+                </div>
+
+                <!-- 야수 필터 -->
+                <div class="scout-filters" id="scoutBatterFilters" style="display:none;">
+                    <div class="scout-filter-group">
+                        <h4>기본 정보</h4>
+                        <div class="scout-row"><label>이름</label><input type="text" class="scout-input scout-f" data-f="name" placeholder="선수명..."></div>
+                        <div class="scout-row"><label>팀</label><select class="scout-select scout-f" data-f="team"><option value="">전체</option></select></div>
+                        <div class="scout-row"><label>포지션</label>
+                            <div class="scout-multi-check">
+                                <label class="scout-chip"><input type="checkbox" class="scout-f" data-f="pos" value="C"> C</label>
+                                <label class="scout-chip"><input type="checkbox" class="scout-f" data-f="pos" value="1B"> 1B</label>
+                                <label class="scout-chip"><input type="checkbox" class="scout-f" data-f="pos" value="2B"> 2B</label>
+                                <label class="scout-chip"><input type="checkbox" class="scout-f" data-f="pos" value="3B"> 3B</label>
+                                <label class="scout-chip"><input type="checkbox" class="scout-f" data-f="pos" value="SS"> SS</label>
+                                <label class="scout-chip"><input type="checkbox" class="scout-f" data-f="pos" value="LF"> LF</label>
+                                <label class="scout-chip"><input type="checkbox" class="scout-f" data-f="pos" value="CF"> CF</label>
+                                <label class="scout-chip"><input type="checkbox" class="scout-f" data-f="pos" value="RF"> RF</label>
+                                <label class="scout-chip"><input type="checkbox" class="scout-f" data-f="pos" value="DH"> DH</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="scout-filter-group">
+                        <h4>투타 / 신체</h4>
+                        <div class="scout-row"><label>타격</label><select class="scout-select scout-f" data-f="bat"><option value="">전체</option><option value="우타">우타</option><option value="좌타">좌타</option><option value="양타">양타</option></select></div>
+                        <div class="scout-row"><label>투구</label><select class="scout-select scout-f" data-f="throw"><option value="">전체</option><option value="우투">우투</option><option value="좌투">좌투</option></select></div>
+                        <div class="scout-row scout-range-row"><label>나이</label><input type="number" class="scout-input-sm scout-f" data-f="ageMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm scout-f" data-f="ageMax" placeholder="최대"></div>
+                        <div class="scout-row scout-range-row"><label>연봉(억)</label><input type="number" class="scout-input-sm scout-f" data-f="salMin" placeholder="최소" step="0.1"><span>~</span><input type="number" class="scout-input-sm scout-f" data-f="salMax" placeholder="최대" step="0.1"></div>
+                    </div>
+                    <div class="scout-filter-group">
+                        <h4>능력치 (20-80)</h4>
+                        <div class="scout-row scout-range-row"><label>OVR</label><input type="number" class="scout-input-sm scout-f" data-f="ovrMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm scout-f" data-f="ovrMax" placeholder="최대"></div>
+                        <div class="scout-row scout-range-row"><label>컨택</label><input type="number" class="scout-input-sm scout-f" data-f="contactMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm scout-f" data-f="contactMax" placeholder="최대"></div>
+                        <div class="scout-row scout-range-row"><label>파워</label><input type="number" class="scout-input-sm scout-f" data-f="powerMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm scout-f" data-f="powerMax" placeholder="최대"></div>
+                        <div class="scout-row scout-range-row"><label>선구안</label><input type="number" class="scout-input-sm scout-f" data-f="eyeMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm scout-f" data-f="eyeMax" placeholder="최대"></div>
+                        <div class="scout-row scout-range-row"><label>스피드</label><input type="number" class="scout-input-sm scout-f" data-f="speedMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm scout-f" data-f="speedMax" placeholder="최대"></div>
+                        <div class="scout-row scout-range-row"><label>수비</label><input type="number" class="scout-input-sm scout-f" data-f="defenseMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm scout-f" data-f="defenseMax" placeholder="최대"></div>
+                    </div>
+                    <div class="scout-actions">
+                        <button class="btn btn--primary" id="btnScoutSearchB">검색</button>
+                        <button class="btn" id="btnScoutResetB">초기화</button>
+                        <span class="scout-count" id="scoutCountB">0명</span>
+                    </div>
+                </div>
+                </div><!-- /scout-left -->
+
+                <!-- 결과 테이블 -->
+                <div class="scout-results">
+                    <table class="player-table scout-table" id="scoutResultTable">
+                        <thead id="scoutResultHead"></thead>
+                        <tbody id="scoutResultBody"></tbody>
+                    </table>
+                    <!-- 선수 상세 인라인 패널 -->
+                    <div class="scout-detail" id="scoutDetail" style="display:none;">
+                        <button class="scout-detail__close" id="scoutDetailClose">&times;</button>
+                        <div class="scout-detail__header" id="scoutDetailHeader"></div>
+                        <div class="scout-detail__body">
+                            <div class="scout-detail__ratings" id="scoutDetailRatings"></div>
+                            <div class="scout-detail__stats" id="scoutDetailStats"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -269,6 +436,13 @@
         </section>
     </main>
 
+    <!-- Footer -->
+    <footer class="site-footer">
+        <span class="site-footer__copy">&copy; 2026 사이음(sci_eum). 과학의 사이, 사람을 잇다.</span>
+        <a href="https://www.instagram.com/sci_eum/" target="_blank" rel="noopener" class="site-footer__icon" title="Instagram"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+        <a href="https://www.youtube.com/@chem_is_try_" target="_blank" rel="noopener" class="site-footer__icon" title="YouTube"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+    </footer>
+
     <!-- Player Detail Modal -->
     <div class="modal-overlay" id="playerModal" style="display:none;">
         <div class="modal modal--player">
@@ -276,30 +450,6 @@
             <div class="player-modal__header" id="playerModalHeader"></div>
             <div class="player-modal__ratings" id="playerModalRatings"></div>
             <div class="player-modal__stats" id="playerModalStats"></div>
-        </div>
-    </div>
-
-    <!-- CSV Import Modal -->
-    <div class="modal-overlay" id="csvModal" style="display:none;">
-        <div class="modal">
-            <h3>CSV 데이터 불러오기</h3>
-            <p>투수 또는 타자 CSV 파일을 선택하세요.</p>
-            <div class="modal__body">
-                <label class="file-label">
-                    <input type="file" id="csvFileInput" accept=".csv,.txt">
-                    파일 선택
-                </label>
-                <select id="csvType" class="select">
-                    <option value="pitcher">투수 데이터</option>
-                    <option value="batter">타자 데이터</option>
-                </select>
-                <select id="csvTeam" class="select"></select>
-            </div>
-            <div class="modal__preview" id="csvPreview"></div>
-            <div class="modal__footer">
-                <button class="btn" id="btnCsvCancel">취소</button>
-                <button class="btn btn--primary" id="btnCsvImport" disabled>불러오기</button>
-            </div>
         </div>
     </div>
 
@@ -327,11 +477,11 @@
     <script src="js/data.js"></script>
     <script src="js/models.js"></script>
     <script src="js/charts.js"></script>
-    <script src="js/csv-import.js"></script>
     <script src="js/simulator.js"></script>
     <script src="js/postseason.js"></script>
     <script src="js/trade.js"></script>
     <script src="js/ui.js"></script>
+    <script src="js/depthchart.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

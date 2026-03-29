@@ -9,8 +9,11 @@ function initApp() {
     updateAllPowerScores();
     setupNav();
     setupTopBarActions();
+    renderTeamSidebar();
+    setupPlayerSearch();
     renderDashboard();
     setupRosterView();
+    setupDepthChartView();
     setupTradeView();
     setupSimulatorView();
     setupPostseasonView();
@@ -41,6 +44,7 @@ function resetState() {
     updateAllPowerScores();
     renderDashboard();
     renderRoster();
+    renderDepthChart();
     renderSimulator();
     renderPostseason();
     updateQuarterBadge();
@@ -83,21 +87,27 @@ function showView(viewName) {
     // Refresh view data
     if (actualView === 'dashboard') renderDashboard();
     if (actualView === 'roster') renderRoster();
+    if (viewName === 'depthchart') renderDepthChart();
     if (viewName === 'trade') renderTradeView();
+    if (viewName === 'scout') setupScoutView();
     if (viewName === 'simulator') renderSimulator();
     if (viewName === 'postseason') renderPostseason();
 }
 
 function updateQuarterBadge() {
     const badge = document.getElementById('quarterBadge');
-    const q = getCurrentQuarter(state);
-    if (q > 4) {
+    const totalPlayed = getTotalGamesPlayed(state);
+    if (totalPlayed >= 144) {
         badge.textContent = '시즌 종료';
         badge.style.background = '#22c55e';
-    } else if (q === 1 && getCompletedQuarters(state) === 0) {
+        badge.style.cursor = 'default';
+    } else if (totalPlayed === 0) {
         badge.textContent = '시즌 시작 전';
+        badge.style.cursor = 'pointer';
     } else {
-        badge.textContent = `현재: ${q}Q`;
+        const q = Math.floor(totalPlayed / 36) + 1;
+        badge.textContent = `현재: ${Math.min(q, 4)}Q`;
+        badge.style.cursor = 'pointer';
     }
 }
 
@@ -105,9 +115,6 @@ function updateQuarterBadge() {
 function setupTopBarActions() {
     document.getElementById('btnSave').addEventListener('click', saveState);
     document.getElementById('btnReset').addEventListener('click', resetState);
-    document.getElementById('btnImportCSV').addEventListener('click', () => {
-        openCSVModal();
-    });
 
     // 다크/라이트 모드 토글
     const themeBtn = document.getElementById('btnThemeToggle');
@@ -132,47 +139,124 @@ function applyTheme(theme) {
     localStorage.setItem('kbo-sim-theme', theme);
 }
 
-// ── CSV 모달 ──
-function openCSVModal() {
-    const modal = document.getElementById('csvModal');
-    modal.style.display = 'flex';
-    populateTeamSelect(document.getElementById('csvTeam'), state.teams);
-    document.getElementById('csvPreview').textContent = '';
-    document.getElementById('btnCsvImport').disabled = true;
+// ── 구단 사이드바 ──
+function renderTeamSidebar() {
+    const sidebar = document.getElementById('teamSidebar');
+    sidebar.innerHTML = '';
 
-    const fileInput = document.getElementById('csvFileInput');
-    fileInput.value = '';
+    // 스카우트 버튼
+    const scoutBtn = document.createElement('button');
+    scoutBtn.className = 'team-sidebar__scout';
+    scoutBtn.title = '선수 스카우트';
+    scoutBtn.innerHTML = '🔍';
+    scoutBtn.addEventListener('click', () => {
+        showView('scout');
+    });
+    sidebar.appendChild(scoutBtn);
 
-    fileInput.onchange = () => {
-        const file = fileInput.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const text = e.target.result;
-            const rows = parseCSV(text);
-            document.getElementById('csvPreview').textContent =
-                `${rows.length}행 감지\n\n컬럼: ${rows.length > 0 ? Object.keys(rows[0]).join(', ') : '없음'}\n\n` +
-                rows.slice(0, 3).map(r => JSON.stringify(r)).join('\n') + (rows.length > 3 ? '\n...' : '');
-            document.getElementById('btnCsvImport').disabled = false;
-            fileInput._csvText = text;
-        };
-        reader.readAsText(file, 'UTF-8');
-    };
+    // 구분선
+    const divider = document.createElement('div');
+    divider.className = 'team-sidebar__divider';
+    sidebar.appendChild(divider);
 
-    document.getElementById('btnCsvCancel').onclick = () => { modal.style.display = 'none'; };
-    document.getElementById('btnCsvImport').onclick = () => {
-        const text = fileInput._csvText;
-        const type = document.getElementById('csvType').value;
-        const team = document.getElementById('csvTeam').value;
-        const result = importCSVToTeam(text, type, team, state);
-        if (result.success) {
-            updateAllPowerScores();
-            showToast(result.message, 'success');
+    for (const code of Object.keys(state.teams)) {
+        const item = document.createElement('div');
+        item.className = 'team-sidebar__item';
+        item.dataset.team = code;
+        item.title = state.teams[code].name;
+        item.innerHTML = `<img src="${teamLogo(code)}" alt="${code}">`;
+        item.addEventListener('click', () => {
+            const sel = document.getElementById('rosterTeamSelect');
+            if (sel) sel.value = code;
+            rosterTier = '1군';
+            document.querySelectorAll('.tier-tab').forEach(t => {
+                t.classList.toggle('active', t.dataset.tier === '1군');
+            });
+            showView('roster');
+            renderRoster();
+            updateSidebarActive(code);
+        });
+        sidebar.appendChild(item);
+    }
+}
+
+function updateSidebarActive(code) {
+    document.querySelectorAll('.team-sidebar__item').forEach(el => {
+        el.classList.toggle('active', el.dataset.team === code);
+    });
+}
+
+// ── 선수 검색 ──
+function setupPlayerSearch() {
+    const input = document.getElementById('playerSearchInput');
+    const resultsDiv = document.getElementById('searchResults');
+
+    input.addEventListener('input', () => {
+        const q = input.value.trim();
+        if (q.length < 1) { resultsDiv.style.display = 'none'; return; }
+        const results = searchPlayers(q);
+        if (results.length === 0) {
+            resultsDiv.innerHTML = '<div class="search-result__no-match">검색 결과 없음</div>';
         } else {
-            showToast(result.message, 'error');
+            resultsDiv.innerHTML = results.slice(0, 15).map(p => `
+                <div class="search-result" data-team="${p.team}" data-id="${p.id}">
+                    <img class="search-result__logo" src="${teamLogo(p.team)}" alt="">
+                    <span class="search-result__name">${p.name}</span>
+                    <span class="search-result__info">#${p.number || '-'} ${p.pos} ${p.salary ? p.salary.toFixed(1) + '억' : ''}</span>
+                </div>
+            `).join('');
         }
-        modal.style.display = 'none';
-    };
+        resultsDiv.style.display = 'block';
+    });
+
+    // 엔터키: 첫 번째 결과로 이동
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const firstResult = resultsDiv.querySelector('.search-result');
+            if (firstResult) firstResult.click();
+        }
+    });
+
+    resultsDiv.addEventListener('click', (e) => {
+        const item = e.target.closest('.search-result');
+        if (!item) return;
+        const playerId = item.dataset.id;
+        const player = state.players[playerId];
+        if (player) {
+            // 스카우트 뷰로 이동 후 해당 선수 모달 바로 오픈
+            showView('scout');
+            // 모드 설정 (투수/야수)
+            scoutMode = player.position === 'P' ? 'pitcher' : 'batter';
+            document.querySelectorAll('.scout-mode-tab').forEach(t => t.classList.toggle('active', t.dataset.scoutMode === scoutMode));
+            document.getElementById('scoutPitcherFilters').style.display = scoutMode === 'pitcher' ? '' : 'none';
+            document.getElementById('scoutBatterFilters').style.display = scoutMode === 'batter' ? '' : 'none';
+            // 이름 필터 설정
+            const panelId = scoutMode === 'pitcher' ? 'scoutPitcherFilters' : 'scoutBatterFilters';
+            document.getElementById(panelId).querySelector('input[data-f="name"]').value = player.name;
+            runScoutSearch();
+            // 인라인 상세 패널로 표시
+            setTimeout(() => showScoutDetailInline(player), 100);
+        }
+        input.value = '';
+        resultsDiv.style.display = 'none';
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#searchBox')) resultsDiv.style.display = 'none';
+    });
+}
+
+function searchPlayers(query) {
+    const results = [];
+    const q = query.toLowerCase();
+    for (const [id, p] of Object.entries(state.players)) {
+        if (p.name && p.name.toLowerCase().includes(q)) {
+            results.push({ id, name: p.name, team: p.team, pos: p.position || p.pos || '', number: p.number, salary: p.salary });
+        }
+    }
+    results.sort((a, b) => (b.salary || 0) - (a.salary || 0));
+    return results;
 }
 
 // ══════════════════════════════════════════
@@ -430,7 +514,7 @@ let futuresTier = '2군'; // '2군' or '육성'
 function setupRosterView() {
     const select = document.getElementById('rosterTeamSelect');
     populateTeamSelect(select, state.teams);
-    select.addEventListener('change', renderRoster);
+    select.addEventListener('change', () => { renderRoster(); updateSidebarActive(select.value); });
 
     // Tier tabs — 2군 클릭 시 상단 네비도 퓨처스 탭으로 전환
     document.querySelectorAll('.tier-tab').forEach(tab => {
@@ -806,11 +890,11 @@ function openSwapModal(mode, teamCode, playerId) {
     const swapModalEl = document.querySelector('.modal--swap');
     if (mode === 'promote') {
         title.textContent = `1군 등록: ${player.name}`;
-        desc.textContent = `${player.name}을(를) 1군에 등록합니다. 1군에서 말소할 선수를 선택하세요.`;
+        desc.innerHTML = `${player.name}을(를) 1군에 등록합니다.<br>말소할 선수를 선택하거나, 말소 없이 바로 등록할 수 있습니다.`;
         swapModalEl.style.borderTop = '3px solid #00AEEF';
     } else {
         title.textContent = `1군 말소: ${player.name}`;
-        desc.textContent = `${player.name}을(를) 말소합니다. 퓨처스에서 등록할 선수를 선택하세요.`;
+        desc.innerHTML = `${player.name}을(를) 말소합니다.<br>등록할 선수를 선택하거나, 등록 없이 바로 말소할 수 있습니다.`;
         swapModalEl.style.borderTop = '3px solid #00A5BD';
     }
 
@@ -827,29 +911,38 @@ function openSwapModal(mode, teamCode, playerId) {
 
 function renderSwapList() {
     if (!swapModalState) return;
-    const { mode, teamCode, tab } = swapModalState;
+    const { mode, teamCode, playerId, tab } = swapModalState;
     const listEl = document.getElementById('swapList');
+    const player = state.players[playerId];
+
+    // 단독 등록/말소 버튼
+    let soloBtn = '';
+    if (mode === 'promote') {
+        soloBtn = `<div class="swap-solo-action">
+            <button class="btn btn--primary btn--sm" id="btnSoloPromote">말소 없이 바로 등록 ↑</button>
+            <span class="swap-solo-hint">${player.name}을(를) 1군에 바로 등록합니다</span>
+        </div>`;
+    } else {
+        soloBtn = `<div class="swap-solo-action">
+            <button class="btn btn--sm" id="btnSoloDemote" style="background:var(--kbo-mint);color:#fff;border-color:var(--kbo-mint);">등록 없이 바로 말소 ↓</button>
+            <span class="swap-solo-hint">${player.name}을(를) 2군으로 바로 말소합니다</span>
+        </div>`;
+    }
 
     let candidates;
     if (mode === 'promote') {
-        // 1군 선수 목록에서 고르기 (말소 대상)
         candidates = getTeamPlayers(state, teamCode);
     } else {
-        // 2군 선수 목록에서 고르기 (등록 대상)
         candidates = getTeamFuturesPlayers(state, teamCode);
     }
 
-    // 탭 필터
     if (tab === 'pitcher') {
         candidates = candidates.filter(p => p.position === 'P');
     } else {
         candidates = candidates.filter(p => p.position !== 'P');
     }
 
-    if (candidates.length === 0) {
-        listEl.innerHTML = '<div class="swap-empty">해당 포지션 선수가 없습니다.</div>';
-        return;
-    }
+    const divider = `<div class="swap-divider"><span>또는 교환할 선수 선택</span></div>`;
 
     const header = `<div class="swap-player-row swap-header">
         <span class="sp-no">번호</span>
@@ -859,25 +952,62 @@ function renderSwapList() {
         <span class="sp-ovr">OVR</span>
         <span class="sp-salary">연봉</span>
     </div>`;
-    listEl.innerHTML = header + candidates.map(p => {
-        const pw = (typeof p.power === 'number') ? p.power.toFixed(1) : '-';
-        const pwNum = (typeof p.power === 'number') ? p.power : 0;
-        const sal = (typeof p.salary === 'number') ? p.salary + '억' : '-';
-        const ovrBar = (typeof p.power === 'number')
-            ? `<div class="sp-ovr">
-                <div class="sp-ovr-bar"><div class="sp-ovr-bar__fill" style="width:${pwNum}%; background:${powerColor(pwNum)};"></div></div>
-                <span style="color:${powerColor(pwNum)};">${pw}</span>
-               </div>`
-            : `<div class="sp-ovr"><span>-</span></div>`;
-        return `<div class="swap-player-row" data-swap-id="${p.id}">
-            <span class="sp-no">#${p.number != null ? p.number : '-'}</span>
-            <span class="sp-name">${p.name}${p.isForeign ? ' <span style="color:#B3A177;font-size:10px;">외</span>' : ''}</span>
-            <span class="sp-pos">${p.position || '-'}</span>
-            <span class="sp-tb">${p.throwBat || '-'}</span>
-            ${ovrBar}
-            <span class="sp-salary">${sal}</span>
-        </div>`;
-    }).join('');
+
+    const rows = candidates.length === 0
+        ? '<div class="swap-empty">해당 포지션 선수가 없습니다.</div>'
+        : candidates.map(p => {
+            const pw = (typeof p.power === 'number') ? p.power.toFixed(1) : '-';
+            const pwNum = (typeof p.power === 'number') ? p.power : 0;
+            const sal = (typeof p.salary === 'number') ? p.salary + '억' : '-';
+            const ovrBar = (typeof p.power === 'number')
+                ? `<div class="sp-ovr">
+                    <div class="sp-ovr-bar"><div class="sp-ovr-bar__fill" style="width:${pwNum}%; background:${powerColor(pwNum)};"></div></div>
+                    <span style="color:${powerColor(pwNum)};">${pw}</span>
+                   </div>`
+                : `<div class="sp-ovr"><span>-</span></div>`;
+            return `<div class="swap-player-row" data-swap-id="${p.id}">
+                <span class="sp-no">#${p.number != null ? p.number : '-'}</span>
+                <span class="sp-name">${p.name}${p.isForeign ? ' <span style="color:#B3A177;font-size:10px;">외</span>' : ''}</span>
+                <span class="sp-pos">${p.position || '-'}</span>
+                <span class="sp-tb">${p.throwBat || '-'}</span>
+                ${ovrBar}
+                <span class="sp-salary">${sal}</span>
+            </div>`;
+        }).join('');
+
+    listEl.innerHTML = soloBtn + divider + header + rows;
+
+    // 단독 버튼 이벤트
+    const soloProm = document.getElementById('btnSoloPromote');
+    if (soloProm) {
+        soloProm.addEventListener('click', () => {
+            if (!confirm(`${player.name}을(를) 말소 없이 1군에 등록합니다.\n진행하시겠습니까?`)) return;
+            const result = promotePlayerSimple(state, teamCode, playerId);
+            if (result.success) {
+                updateAllPowerScores();
+                showToast(result.msg, 'success');
+                closeSwapModal();
+                renderRoster();
+            } else {
+                showToast(result.msg, 'error');
+            }
+        });
+    }
+    const soloDem = document.getElementById('btnSoloDemote');
+    if (soloDem) {
+        soloDem.addEventListener('click', () => {
+            if (!confirm(`${player.name}을(를) 등록 없이 2군으로 말소합니다.\n진행하시겠습니까?`)) return;
+            const result = demotePlayer(state, teamCode, playerId);
+            if (result.success) {
+                updateAllPowerScores();
+                showToast(result.msg, 'success');
+                closeSwapModal();
+                renderRoster();
+            } else {
+                showToast(result.msg, 'error');
+            }
+        });
+    }
 }
 
 function closeSwapModal() {
@@ -1137,8 +1267,29 @@ function showPlayerModal(player) {
         </div>
     `;
 
-    // 레이팅 (20-80)
+    // 투수: 구종 프로필 요약 / 야수: 포지션 다이아몬드
     const ratingsEl = document.getElementById('playerModalRatings');
+    let profileHTML = '';
+    if (p.position === 'P' && p.realStats && p.realStats.pitches && p.realStats.pitches.length) {
+        const pitches = p.realStats.pitches;
+        const fb = pitches.find(pt => pt.name === '포심' || pt.name === '투심');
+        const avgVelo = fb ? fb.velo : (pitches[0] ? pitches[0].velo : 0);
+        const pitchColor = n => n.includes('포심') || n.includes('투심') ? '#ED1C24' : n.includes('슬라이더') ? '#00AEEF' : n.includes('커브') ? '#22c55e' : n.includes('체인지업') ? '#B3A177' : n.includes('커터') ? '#f97316' : n.includes('포크') ? '#a855f7' : n.includes('싱커') ? '#92400e' : '#6b7280';
+        profileHTML = `
+            <div class="pm-pitch-profile">
+                <div class="pm-pitch-profile__velo">
+                    <div class="pm-pitch-profile__velo-num">${avgVelo}</div>
+                    <div class="pm-pitch-profile__velo-label">km/h 평균구속</div>
+                </div>
+                <div class="pm-pitch-profile__arsenal">
+                    ${pitches.map(pt => `<span class="pm-pitch-tag" style="background:${pitchColor(pt.name)}">${pt.name} ${pt.velo}</span>`).join('')}
+                </div>
+            </div>`;
+    } else if (p.position !== 'P') {
+        profileHTML = renderPositionDiamond(p);
+    }
+
+    // 레이팅 (20-80)
     if (p.ratings && p.position !== 'P') {
         const r = p.ratings;
         const tools = [
@@ -1148,7 +1299,7 @@ function showPlayerModal(player) {
             { label: '스피드', val: r.speed },
             { label: '수비', val: r.defense },
         ];
-        ratingsEl.innerHTML = `
+        ratingsEl.innerHTML = profileHTML + `
             <div class="pm-ratings-title">20-80 스카우팅 레이팅</div>
             ${tools.map(t => `
                 <div class="pm-rating-row">
@@ -1173,7 +1324,8 @@ function showPlayerModal(player) {
             { label: '효율', val: r.effectiveness },
             { label: '안정', val: r.consistency },
         ];
-        ratingsEl.innerHTML = `
+        const pitchSection = (p.realStats && p.realStats.pitches) ? `<div class="pm-ratings-title" style="margin-top:12px;">구종</div>${renderPitcherPitchTypes(p.realStats)}` : '';
+        ratingsEl.innerHTML = profileHTML + `
             <div class="pm-ratings-title">20-80 스카우팅 레이팅</div>
             ${tools.map(t => `
                 <div class="pm-rating-row">
@@ -1188,10 +1340,11 @@ function showPlayerModal(player) {
                 <span class="pm-ovr-label">OVR</span>
                 <span class="pm-ovr-value" style="color:${ratingColor(p.ovr)};">${p.ovr}</span>
             </div>
+            ${pitchSection}
         `;
     } else if (p.position === 'P') {
         const pw = calcPlayerPower(p);
-        ratingsEl.innerHTML = `
+        ratingsEl.innerHTML = profileHTML + `
             <div class="pm-ratings-title">투수 능력치</div>
             <div class="pm-rating-row">
                 <span class="pm-rating-label">파워</span>
@@ -1202,7 +1355,7 @@ function showPlayerModal(player) {
             </div>
         `;
     } else {
-        ratingsEl.innerHTML = '';
+        ratingsEl.innerHTML = profileHTML;
     }
 
     // 시즌 성적 (3탭)
@@ -1241,16 +1394,12 @@ function showPlayerModal(player) {
             <div class="pm-tabs">
                 <button class="pm-tab active" data-pm-tab="p-classic">클래식</button>
                 <button class="pm-tab" data-pm-tab="p-saber">세이버메트릭스</button>
-                <button class="pm-tab" data-pm-tab="p-pitch">구종</button>
             </div>
             <div class="pm-tab-content" id="pmTabPClassic">
                 ${renderPitcherClassicStats(rs)}
             </div>
             <div class="pm-tab-content" id="pmTabPSaber" style="display:none;">
                 ${renderPitcherSaberStats(rs)}
-            </div>
-            <div class="pm-tab-content" id="pmTabPPitch" style="display:none;">
-                ${renderPitcherPitchTypes(rs)}
             </div>
         `;
         statsEl.querySelectorAll('.pm-tab').forEach(tab => {
@@ -1259,7 +1408,6 @@ function showPlayerModal(player) {
                 tab.classList.add('active');
                 document.getElementById('pmTabPClassic').style.display = tab.dataset.pmTab === 'p-classic' ? 'block' : 'none';
                 document.getElementById('pmTabPSaber').style.display = tab.dataset.pmTab === 'p-saber' ? 'block' : 'none';
-                document.getElementById('pmTabPPitch').style.display = tab.dataset.pmTab === 'p-pitch' ? 'block' : 'none';
             });
         });
     } else {
@@ -1283,6 +1431,7 @@ function renderClassicStats(rs) {
         { label: '경기', value: rs.G },
         { label: '타석', value: rs.PA },
         { label: '타수', value: rs.AB },
+        { label: '타율', value: rs.AVG.toFixed(3) },
         { label: '안타', value: rs.H },
         { label: '2루타', value: rs['2B'] },
         { label: '3루타', value: rs['3B'] },
@@ -1293,7 +1442,6 @@ function renderClassicStats(rs) {
         { label: '도실', value: rs.CS },
         { label: '볼넷', value: rs.BB },
         { label: '삼진', value: rs.SO },
-        { label: '타율', value: rs.AVG.toFixed(3) },
     ];
     return `<div class="pm-stats-grid">${items.map(s =>
         `<div class="pm-stat-cell">
@@ -1654,33 +1802,57 @@ let simRunning = false;
 
 function setupSimulatorView() {
     document.getElementById('btnSimulate').addEventListener('click', runSimulation);
+    // 탭 전환
+    document.querySelectorAll('.sim-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.sim-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.sim-panel').forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById('simPanel' + capitalize(tab.dataset.simTab)).classList.add('active');
+            if (tab.dataset.simTab === 'batter-records') renderBatterRecords();
+            if (tab.dataset.simTab === 'pitcher-records') renderPitcherRecords();
+            if (tab.dataset.simTab === 'team-records') renderTeamRecords();
+        });
+    });
+}
+function capitalize(str) {
+    return str.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('');
 }
 
 function renderSimulator() {
     const currentQ = getCurrentQuarter(state);
     const completedQ = getCompletedQuarters(state);
 
-    // Quarter buttons
+    // Quarter buttons - 총 경기 기반
+    const played = getTotalGamesPlayed(state);
     document.querySelectorAll('.quarter-btn').forEach(btn => {
         const q = parseInt(btn.dataset.q);
+        const qStart = (q - 1) * 36;
+        const qEnd = q * 36;
         btn.classList.remove('current', 'completed');
-        if (q < currentQ && completedQ >= q) btn.classList.add('completed');
-        if (q === currentQ && currentQ <= 4) btn.classList.add('current');
+        if (played >= qEnd) btn.classList.add('completed');
+        else if (played >= qStart) btn.classList.add('current');
     });
 
     // Sim button
     const btn = document.getElementById('btnSimulate');
     const lockMsg = document.getElementById('simLockMsg');
 
-    if (currentQ > 4) {
+    // 현재 진행된 총 경기 수 계산
+    const totalPlayed = getTotalGamesPlayed(state);
+    const totalGames = 144;
+    const remaining = totalGames - totalPlayed;
+
+    if (remaining <= 0) {
         btn.disabled = true;
         btn.textContent = '시즌 종료';
         btn.classList.remove('pulse');
         lockMsg.style.display = 'none';
     } else {
         const canSim = canSimulateAll(state);
+        const batch = Math.min(5, remaining);
         btn.disabled = !canSim.valid || simRunning;
-        btn.textContent = simRunning ? '시뮬레이션 중...' : `${currentQ}Q 시뮬레이션 실행`;
+        btn.textContent = simRunning ? '시뮬레이션 중...' : `${batch}경기 진행 (${totalPlayed}/${totalGames})`;
 
         if (!canSim.valid) {
             btn.classList.remove('pulse');
@@ -1727,9 +1899,11 @@ function renderStandings() {
 }
 
 async function runSimulation() {
-    const currentQ = getCurrentQuarter(state);
-    if (currentQ > 4 || simRunning) return;
+    const totalPlayed = getTotalGamesPlayed(state);
+    const remaining = 144 - totalPlayed;
+    if (remaining <= 0 || simRunning) return;
 
+    const batch = Math.min(5, remaining);
     simRunning = true;
     const btn = document.getElementById('btnSimulate');
     btn.disabled = true;
@@ -1739,7 +1913,7 @@ async function runSimulation() {
     const progress = document.getElementById('simProgress');
     progress.style.display = 'flex';
 
-    await simulateQuarter(state, currentQ, (game, total) => {
+    await simulateBatch(state, batch, (game, total) => {
         const pct = (game / total) * 100;
         document.getElementById('simFill').style.width = pct + '%';
         document.getElementById('simText').textContent = `${game} / ${total} 경기`;
@@ -1750,10 +1924,166 @@ async function runSimulation() {
     progress.style.display = 'none';
     updateQuarterBadge();
     renderSimulator();
-    showToast(`${currentQ}Q 시뮬레이션 완료! (${currentQ * 36}경기 누적)`, 'success');
+    const newTotal = getTotalGamesPlayed(state);
+    showToast(`${batch}경기 완료! (${newTotal}/144 경기 진행)`, 'success');
 
     // Auto-save
     localStorage.setItem('kbo-sim-state', JSON.stringify(state));
+}
+
+// ══════════════════════════════════════════
+// ██ RECORDS (기록실)
+// ══════════════════════════════════════════
+
+function getAllBattersWithStats() {
+    return Object.values(state.players).filter(p => p.position !== 'P' && p.realStats && p.realStats.PA >= 100);
+}
+function getAllPitchersWithStats() {
+    return Object.values(state.players).filter(p => p.position === 'P' && p.realStats && p.realStats.IP >= 30);
+}
+
+function renderRecordCard(title, players, valueFn, formatFn, moreCallback) {
+    const top5 = [...players].sort((a, b) => valueFn(b) - valueFn(a)).slice(0, 5);
+    return `<div class="record-card">
+        <div class="record-card__title">${title}<button class="record-card__more" onclick="${moreCallback}">자세히 &gt;</button></div>
+        <ul class="record-card__list">${top5.map((p, i) => `
+            <li class="record-card__item">
+                <span class="record-card__rank ${i < 3 ? 'rank-' + (i + 1) : ''}">${i + 1}</span>
+                <img class="record-card__team-logo" src="${teamLogo(p.team)}" alt="">
+                <span class="record-card__name">${p.name}</span>
+                <span class="record-card__value">${formatFn(valueFn(p))}</span>
+            </li>
+        `).join('')}</ul>
+    </div>`;
+}
+
+function renderRecordCardAsc(title, players, valueFn, formatFn, moreCallback) {
+    const top5 = [...players].sort((a, b) => valueFn(a) - valueFn(b)).slice(0, 5);
+    return `<div class="record-card">
+        <div class="record-card__title">${title}<button class="record-card__more" onclick="${moreCallback}">자세히 &gt;</button></div>
+        <ul class="record-card__list">${top5.map((p, i) => `
+            <li class="record-card__item">
+                <span class="record-card__rank ${i < 3 ? 'rank-' + (i + 1) : ''}">${i + 1}</span>
+                <img class="record-card__team-logo" src="${teamLogo(p.team)}" alt="">
+                <span class="record-card__name">${p.name}</span>
+                <span class="record-card__value">${formatFn(valueFn(p))}</span>
+            </li>
+        `).join('')}</ul>
+    </div>`;
+}
+
+const fmt3 = v => v.toFixed(3);
+const fmt2 = v => v.toFixed(2);
+const fmt1 = v => v.toFixed(1);
+const fmtInt = v => Math.round(v);
+
+function renderBatterRecords() {
+    const batters = getAllBattersWithStats();
+    const grid = document.getElementById('batterTop5Grid');
+    if (!batters.length) { grid.innerHTML = '<div class="pm-no-data">규정타석(100PA) 이상 타자가 없습니다.</div>'; return; }
+
+    grid.innerHTML = [
+        renderRecordCard('타율 (AVG)', batters, p => p.realStats.AVG, fmt3, "showFullBatterRecord('AVG')"),
+        renderRecordCard('홈런 (HR)', batters, p => p.realStats.HR, fmtInt, "showFullBatterRecord('HR')"),
+        renderRecordCard('타점 (RBI)', batters, p => p.realStats.RBI, fmtInt, "showFullBatterRecord('RBI')"),
+        renderRecordCard('도루 (SB)', batters, p => p.realStats.SB, fmtInt, "showFullBatterRecord('SB')"),
+        renderRecordCard('OPS', batters, p => p.realStats.OPS, fmt3, "showFullBatterRecord('OPS')"),
+        renderRecordCard('wRC+', batters, p => p.realStats['wRC+'], fmt1, "showFullBatterRecord('wRC+')"),
+        renderRecordCard('WAR', batters, p => p.realStats.WAR, fmt2, "showFullBatterRecord('WAR')"),
+        renderRecordCard('안타 (H)', batters, p => p.realStats.H, fmtInt, "showFullBatterRecord('H')"),
+        renderRecordCard('출루율 (OBP)', batters, p => p.realStats.OBP, fmt3, "showFullBatterRecord('OBP')"),
+        renderRecordCard('장타율 (SLG)', batters, p => p.realStats.SLG, fmt3, "showFullBatterRecord('SLG')"),
+    ].join('');
+}
+
+function renderPitcherRecords() {
+    const pitchers = getAllPitchersWithStats();
+    const grid = document.getElementById('pitcherTop5Grid');
+    if (!pitchers.length) { grid.innerHTML = '<div class="pm-no-data">규정이닝(30IP) 이상 투수가 없습니다.</div>'; return; }
+
+    grid.innerHTML = [
+        renderRecordCardAsc('평균자책 (ERA)', pitchers, p => p.realStats.ERA, fmt2, "showFullPitcherRecord('ERA')"),
+        renderRecordCard('승리 (W)', pitchers, p => p.realStats.W, fmtInt, "showFullPitcherRecord('W')"),
+        renderRecordCard('삼진 (SO)', pitchers, p => p.realStats.SO, fmtInt, "showFullPitcherRecord('SO')"),
+        renderRecordCard('세이브 (S)', pitchers, p => p.realStats.S, fmtInt, "showFullPitcherRecord('S')"),
+        renderRecordCard('홀드 (HLD)', pitchers, p => p.realStats.HLD, fmtInt, "showFullPitcherRecord('HLD')"),
+        renderRecordCardAsc('WHIP', pitchers, p => p.realStats.WHIP, fmt2, "showFullPitcherRecord('WHIP')"),
+        renderRecordCardAsc('FIP', pitchers, p => p.realStats.FIP, fmt2, "showFullPitcherRecord('FIP')"),
+        renderRecordCard('WAR', pitchers, p => p.realStats.WAR, fmt2, "showFullPitcherRecord('WAR')"),
+        renderRecordCard('이닝 (IP)', pitchers, p => p.realStats.IP, fmt1, "showFullPitcherRecord('IP')"),
+        renderRecordCard('WPA', pitchers, p => p.realStats.WPA, fmt2, "showFullPitcherRecord('WPA')"),
+    ].join('');
+}
+
+function showFullBatterRecord(stat) {
+    const batters = getAllBattersWithStats();
+    const asc = false;
+    const sorted = [...batters].sort((a, b) => asc ? (a.realStats[stat] - b.realStats[stat]) : (b.realStats[stat] - a.realStats[stat]));
+    const container = document.getElementById('batterFullRecords');
+    const formatVal = v => typeof v === 'number' ? (v < 1 && v > -1 && stat !== 'WAR' && stat !== 'wRC+' ? v.toFixed(3) : Number.isInteger(v) ? v : v.toFixed(2)) : v;
+
+    container.innerHTML = `
+        <h3 style="margin-bottom:8px;">${stat} 순위</h3>
+        <button class="btn btn--sm" onclick="document.getElementById('batterFullRecords').style.display='none'" style="margin-bottom:12px;">닫기</button>
+        <table class="player-table records-full-table">
+            <thead><tr><th>순위</th><th>팀</th><th>이름</th><th>포지션</th><th>${stat}</th><th>G</th><th>PA</th><th>AVG</th><th>HR</th><th>OPS</th></tr></thead>
+            <tbody>${sorted.map((p, i) => {
+                const rs = p.realStats;
+                return `<tr><td>${i + 1}</td><td><img src="${teamLogo(p.team)}" style="width:18px;height:18px;vertical-align:middle"></td><td style="font-weight:600">${p.name}</td><td>${p.position}</td><td style="font-weight:700;color:var(--accent)">${formatVal(rs[stat])}</td><td>${rs.G}</td><td>${rs.PA}</td><td>${rs.AVG.toFixed(3)}</td><td>${rs.HR}</td><td>${rs.OPS.toFixed(3)}</td></tr>`;
+            }).join('')}</tbody>
+        </table>`;
+    container.style.display = 'block';
+    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function showFullPitcherRecord(stat) {
+    const pitchers = getAllPitchersWithStats();
+    const asc = ['ERA', 'WHIP', 'FIP'].includes(stat);
+    const sorted = [...pitchers].sort((a, b) => asc ? (a.realStats[stat] - b.realStats[stat]) : (b.realStats[stat] - a.realStats[stat]));
+    const container = document.getElementById('pitcherFullRecords');
+    const formatVal = v => typeof v === 'number' ? (Number.isInteger(v) ? v : v.toFixed(2)) : v;
+
+    container.innerHTML = `
+        <h3 style="margin-bottom:8px;">${stat} 순위</h3>
+        <button class="btn btn--sm" onclick="document.getElementById('pitcherFullRecords').style.display='none'" style="margin-bottom:12px;">닫기</button>
+        <table class="player-table records-full-table">
+            <thead><tr><th>순위</th><th>팀</th><th>이름</th><th>역할</th><th>${stat}</th><th>G</th><th>IP</th><th>ERA</th><th>SO</th><th>WHIP</th></tr></thead>
+            <tbody>${sorted.map((p, i) => {
+                const rs = p.realStats;
+                return `<tr><td>${i + 1}</td><td><img src="${teamLogo(p.team)}" style="width:18px;height:18px;vertical-align:middle"></td><td style="font-weight:600">${p.name}</td><td>${p.role || '-'}</td><td style="font-weight:700;color:var(--accent)">${formatVal(rs[stat])}</td><td>${rs.G}</td><td>${rs.IP}</td><td>${rs.ERA.toFixed(2)}</td><td>${rs.SO}</td><td>${rs.WHIP.toFixed(2)}</td></tr>`;
+            }).join('')}</tbody>
+        </table>`;
+    container.style.display = 'block';
+    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function renderTeamRecords() {
+    const standings = getStandings(state);
+    const container = document.getElementById('teamRecordsContent');
+    // 팀 공격/수비 기록
+    const teamStats = standings.map(s => {
+        const batters = Object.values(state.players).filter(p => p.team === s.code && p.position !== 'P' && p.realStats);
+        const pitchers = Object.values(state.players).filter(p => p.team === s.code && p.position === 'P' && p.realStats);
+        const avgAVG = batters.length ? batters.reduce((sum, b) => sum + (b.realStats.AVG || 0), 0) / batters.length : 0;
+        const totalHR = batters.reduce((sum, b) => sum + (b.realStats.HR || 0), 0);
+        const totalSB = batters.reduce((sum, b) => sum + (b.realStats.SB || 0), 0);
+        const avgOPS = batters.length ? batters.reduce((sum, b) => sum + (b.realStats.OPS || 0), 0) / batters.length : 0;
+        const avgERA = pitchers.filter(p => p.realStats.IP > 0).length ? pitchers.filter(p => p.realStats.IP > 0).reduce((sum, p) => sum + p.realStats.ERA, 0) / pitchers.filter(p => p.realStats.IP > 0).length : 0;
+        return { ...s, avgAVG, totalHR, totalSB, avgOPS, avgERA };
+    });
+
+    container.innerHTML = `
+        <h3 style="margin-bottom:12px;">공격 기록</h3>
+        <table class="player-table"><thead><tr><th>순위</th><th>팀</th><th>타율</th><th>홈런</th><th>도루</th><th>OPS</th></tr></thead>
+        <tbody>${[...teamStats].sort((a, b) => b.avgAVG - a.avgAVG).map((s, i) => `
+            <tr><td>${i + 1}</td><td><div class="team-name-cell"><img class="team-logo-sm" src="${teamLogo(s.code)}" alt="">${s.name}</div></td><td>${s.avgAVG.toFixed(3)}</td><td>${s.totalHR}</td><td>${s.totalSB}</td><td>${s.avgOPS.toFixed(3)}</td></tr>
+        `).join('')}</tbody></table>
+        <h3 style="margin:20px 0 12px;">수비 기록</h3>
+        <table class="player-table"><thead><tr><th>순위</th><th>팀</th><th>평균자책</th><th>승</th><th>패</th><th>승률</th></tr></thead>
+        <tbody>${[...teamStats].sort((a, b) => a.avgERA - b.avgERA).map((s, i) => `
+            <tr><td>${i + 1}</td><td><div class="team-name-cell"><img class="team-logo-sm" src="${teamLogo(s.code)}" alt="">${s.name}</div></td><td>${s.avgERA.toFixed(2)}</td><td>${s.wins}</td><td>${s.losses}</td><td>${formatRate(s.rate)}</td></tr>
+        `).join('')}</tbody></table>
+    `;
 }
 
 // ══════════════════════════════════════════
@@ -1900,6 +2230,405 @@ async function runKS() {
 
     // Auto-save
     localStorage.setItem('kbo-sim-state', JSON.stringify(state));
+}
+
+// ══════════════════════════════════════════
+// ██ SCOUT VIEW
+// ══════════════════════════════════════════
+
+let scoutInitialized = false;
+let scoutMode = 'pitcher'; // 'pitcher' or 'batter'
+let scoutSortKey = 'ovr';
+let scoutSortDir = -1; // -1 = desc
+let scoutResults = [];
+
+function setupScoutView() {
+    // 팀 셀렉트 채우기
+    document.querySelectorAll('.scout-filters select.scout-f[data-f="team"]').forEach(sel => {
+        if (sel.options.length <= 1) {
+            for (const code of Object.keys(state.teams)) {
+                const opt = document.createElement('option');
+                opt.value = code; opt.textContent = state.teams[code].name;
+                sel.appendChild(opt);
+            }
+        }
+    });
+
+    if (!scoutInitialized) {
+        scoutInitialized = true;
+
+        // 모드 탭 전환
+        document.querySelectorAll('.scout-mode-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                scoutMode = tab.dataset.scoutMode;
+                document.querySelectorAll('.scout-mode-tab').forEach(t => t.classList.toggle('active', t === tab));
+                document.getElementById('scoutPitcherFilters').style.display = scoutMode === 'pitcher' ? '' : 'none';
+                document.getElementById('scoutBatterFilters').style.display = scoutMode === 'batter' ? '' : 'none';
+                scoutSortKey = 'ovr'; scoutSortDir = -1;
+                runScoutSearch();
+            });
+        });
+
+        document.getElementById('btnScoutSearchP').addEventListener('click', runScoutSearch);
+        document.getElementById('btnScoutSearchB').addEventListener('click', runScoutSearch);
+        document.getElementById('btnScoutResetP').addEventListener('click', () => resetScoutPanel('scoutPitcherFilters'));
+        document.getElementById('btnScoutResetB').addEventListener('click', () => resetScoutPanel('scoutBatterFilters'));
+
+        // Enter 키
+        document.querySelectorAll('.scout-filters').forEach(el => {
+            el.addEventListener('keydown', e => { if (e.key === 'Enter') runScoutSearch(); });
+        });
+    }
+
+    runScoutSearch();
+}
+
+function resetScoutPanel(panelId) {
+    const panel = document.getElementById(panelId);
+    panel.querySelectorAll('input.scout-f').forEach(i => { i.value = ''; if (i.type === 'checkbox') i.checked = false; });
+    panel.querySelectorAll('select.scout-f').forEach(s => s.value = '');
+    runScoutSearch();
+}
+
+function getScoutFilters() {
+    const panelId = scoutMode === 'pitcher' ? 'scoutPitcherFilters' : 'scoutBatterFilters';
+    const panel = document.getElementById(panelId);
+    const f = {};
+    panel.querySelectorAll('.scout-f').forEach(el => {
+        const key = el.dataset.f;
+        if (el.type === 'checkbox') {
+            if (el.checked) { if (!f[key]) f[key] = []; f[key].push(el.value); }
+        } else {
+            const v = el.value.trim();
+            if (v !== '') f[key] = v;
+        }
+    });
+    return f;
+}
+
+function runScoutSearch() {
+    const f = getScoutFilters();
+    const results = [];
+
+    for (const [id, p] of Object.entries(state.players)) {
+        const isPitcher = p.position === 'P';
+        if (scoutMode === 'pitcher' && !isPitcher) continue;
+        if (scoutMode === 'batter' && isPitcher) continue;
+
+        if (f.name && !p.name.includes(f.name)) continue;
+        if (f.team && p.team !== f.team) continue;
+
+        const tb = p.throwBat || '';
+        if (f.throw && !tb.includes(f.throw)) continue;
+        if (f.bat && !tb.includes(f.bat)) continue;
+
+        const ageMin = parseFloat(f.ageMin); if (!isNaN(ageMin) && (p.age == null || p.age < ageMin)) continue;
+        const ageMax = parseFloat(f.ageMax); if (!isNaN(ageMax) && (p.age == null || p.age > ageMax)) continue;
+        const salMin = parseFloat(f.salMin); if (!isNaN(salMin) && (p.salary == null || p.salary < salMin)) continue;
+        const salMax = parseFloat(f.salMax); if (!isNaN(salMax) && (p.salary == null || p.salary > salMax)) continue;
+
+        const r = p.ratings || {};
+        const ovr = p.ovr || p.powerScore || 0;
+
+        // OVR 범위
+        const ovrMin = parseFloat(f.ovrMin); if (!isNaN(ovrMin) && ovr < ovrMin) continue;
+        const ovrMax = parseFloat(f.ovrMax); if (!isNaN(ovrMax) && ovr > ovrMax) continue;
+
+        if (scoutMode === 'pitcher') {
+            // 역할 멀티
+            if (f.role && f.role.length > 0 && !f.role.includes(p.role)) continue;
+            // 레이팅 범위
+            const checks = ['stuff','command','stamina','effectiveness','consistency'];
+            let skip = false;
+            for (const c of checks) {
+                const mn = parseFloat(f[c + 'Min']); if (!isNaN(mn) && (r[c] || 0) < mn) { skip = true; break; }
+                const mx = parseFloat(f[c + 'Max']); if (!isNaN(mx) && (r[c] || 0) > mx) { skip = true; break; }
+            }
+            if (skip) continue;
+            // 구속
+            if (p.realStats && p.realStats.pitches) {
+                const pitches = p.realStats.pitches;
+                const veloMin = parseFloat(f.veloMin); const veloMax = parseFloat(f.veloMax);
+                if (!isNaN(veloMin) || !isNaN(veloMax)) {
+                    const fb = pitches.find(pt => pt.name === '포심' || pt.name === '투심');
+                    const v = fb ? fb.velo : 0;
+                    if (!isNaN(veloMin) && v < veloMin) continue;
+                    if (!isNaN(veloMax) && v > veloMax) continue;
+                }
+                if (f.pitchType && !pitches.some(pt => pt.name === f.pitchType)) continue;
+            } else if (f.pitchType || !isNaN(parseFloat(f.veloMin)) || !isNaN(parseFloat(f.veloMax))) {
+                continue; // 구종 데이터 없으면 구속/구종 필터 시 제외
+            }
+        } else {
+            // 포지션 멀티
+            if (f.pos && f.pos.length > 0 && !f.pos.includes(p.position)) continue;
+            const checks = ['contact','power','eye','speed','defense'];
+            let skip = false;
+            for (const c of checks) {
+                const mn = parseFloat(f[c + 'Min']); if (!isNaN(mn) && (r[c] || 0) < mn) { skip = true; break; }
+                const mx = parseFloat(f[c + 'Max']); if (!isNaN(mx) && (r[c] || 0) > mx) { skip = true; break; }
+            }
+            if (skip) continue;
+        }
+
+        results.push(p);
+    }
+
+    scoutResults = results;
+    sortScoutResults();
+    const countEl = scoutMode === 'pitcher' ? 'scoutCountP' : 'scoutCountB';
+    document.getElementById(countEl).textContent = `${results.length}명`;
+    renderScoutTable();
+}
+
+function sortScoutResults() {
+    scoutResults.sort((a, b) => {
+        let va, vb;
+        const ra = a.ratings || {}, rb = b.ratings || {};
+        switch (scoutSortKey) {
+            case 'name': va = a.name || ''; vb = b.name || ''; return scoutSortDir * va.localeCompare(vb);
+            case 'team': va = a.team || ''; vb = b.team || ''; return scoutSortDir * va.localeCompare(vb);
+            case 'age': va = a.age || 0; vb = b.age || 0; break;
+            case 'salary': va = a.salary || 0; vb = b.salary || 0; break;
+            case 'ovr': va = a.ovr || a.powerScore || 0; vb = b.ovr || b.powerScore || 0; break;
+            case 'number': va = a.number || 999; vb = b.number || 999; break;
+            case 'stuff': va = ra.stuff || 0; vb = rb.stuff || 0; break;
+            case 'command': va = ra.command || 0; vb = rb.command || 0; break;
+            case 'stamina': va = ra.stamina || 0; vb = rb.stamina || 0; break;
+            case 'effectiveness': va = ra.effectiveness || 0; vb = rb.effectiveness || 0; break;
+            case 'consistency': va = ra.consistency || 0; vb = rb.consistency || 0; break;
+            case 'contact': va = ra.contact || 0; vb = rb.contact || 0; break;
+            case 'power': va = ra.power || 0; vb = rb.power || 0; break;
+            case 'eye': va = ra.eye || 0; vb = rb.eye || 0; break;
+            case 'speed': va = ra.speed || 0; vb = rb.speed || 0; break;
+            case 'defense': va = ra.defense || 0; vb = rb.defense || 0; break;
+            default: va = 0; vb = 0;
+        }
+        return scoutSortDir * (va - vb);
+    });
+}
+
+function renderScoutTable() {
+    const thead = document.getElementById('scoutResultHead');
+    const tbody = document.getElementById('scoutResultBody');
+
+    const arrow = key => `<span class="sort-arrow ${scoutSortKey === key ? 'active' : ''}">${scoutSortKey === key ? (scoutSortDir > 0 ? '▲' : '▼') : '▽'}</span>`;
+    const sh = (label, key) => `<th data-sort="${key}">${label}${arrow(key)}</th>`;
+
+    let cols;
+    if (scoutMode === 'pitcher') {
+        cols = `<tr>${sh('팀','team')}${sh('#','number')}${sh('이름','name')}<th>역할</th><th>투타</th>${sh('나이','age')}${sh('구위','stuff')}${sh('제구','command')}${sh('체력','stamina')}${sh('효율','effectiveness')}${sh('안정','consistency')}${sh('OVR','ovr')}${sh('연봉','salary')}</tr>`;
+    } else {
+        cols = `<tr>${sh('팀','team')}${sh('#','number')}${sh('이름','name')}<th>포지션</th><th>투타</th>${sh('나이','age')}${sh('컨택','contact')}${sh('파워','power')}${sh('선구','eye')}${sh('스피드','speed')}${sh('수비','defense')}${sh('OVR','ovr')}${sh('연봉','salary')}</tr>`;
+    }
+    thead.innerHTML = cols;
+
+    // 정렬 클릭 이벤트
+    thead.querySelectorAll('th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+            if (scoutSortKey === th.dataset.sort) scoutSortDir *= -1;
+            else { scoutSortKey = th.dataset.sort; scoutSortDir = -1; }
+            sortScoutResults();
+            renderScoutTable();
+        });
+    });
+
+    if (!scoutResults.length) {
+        tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;padding:32px;color:var(--text-dim);">검색 결과가 없습니다</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = scoutResults.slice(0, 300).map(p => {
+        const r = p.ratings || {};
+        const ovr = p.ovr || p.powerScore || 0;
+        const ovrStyle = ovr >= 70 ? 'color:#16a34a;font-weight:700' : ovr >= 55 ? 'color:var(--accent);font-weight:600' : ovr < 40 ? 'color:var(--danger)' : '';
+        let row = `<tr class="scout-row-selectable" style="cursor:pointer" onclick="selectScoutRow(this,'${p.id}')">`;
+        row += `<td><img src="${teamLogo(p.team)}" style="width:20px;height:20px;vertical-align:middle" alt="${p.team}"></td>`;
+        row += `<td>${p.number || '-'}</td>`;
+        row += `<td style="font-weight:600">${p.name}${p.isForeign ? '<sup style="color:var(--danger)">F</sup>' : ''}</td>`;
+        if (scoutMode === 'pitcher') {
+            row += `<td>${p.role || '-'}</td><td style="font-size:11px">${p.throwBat || '-'}</td><td>${p.age || '-'}</td>`;
+            row += `<td>${ratingCell(r.stuff)}</td><td>${ratingCell(r.command)}</td><td>${ratingCell(r.stamina)}</td><td>${ratingCell(r.effectiveness)}</td><td>${ratingCell(r.consistency)}</td>`;
+        } else {
+            row += `<td>${p.position || '-'}</td><td style="font-size:11px">${p.throwBat || '-'}</td><td>${p.age || '-'}</td>`;
+            row += `<td>${ratingCell(r.contact)}</td><td>${ratingCell(r.power)}</td><td>${ratingCell(r.eye)}</td><td>${ratingCell(r.speed)}</td><td>${ratingCell(r.defense)}</td>`;
+        }
+        row += `<td style="${ovrStyle}">${Math.round(ovr)}</td><td>${p.salary ? p.salary.toFixed(1) : '-'}</td></tr>`;
+        return row;
+    }).join('');
+}
+
+function showScoutDetailInline(p) {
+    const panel = document.getElementById('scoutDetail');
+    const headerEl = document.getElementById('scoutDetailHeader');
+    const ratingsEl = document.getElementById('scoutDetailRatings');
+    const statsEl = document.getElementById('scoutDetailStats');
+
+    const teamName = state.teams[p.team] ? state.teams[p.team].name : p.team;
+    const teamColor = state.teams[p.team] ? state.teams[p.team].color : '#888';
+    const scoutReport = generateScoutReport(p);
+
+    // 헤더
+    headerEl.innerHTML = `
+        <img src="${teamLogo(p.team)}" style="width:40px;height:40px;" alt="${teamName}">
+        <div style="color:${teamColor};font-size:28px;font-weight:900;">${p.number != null ? '#' + p.number : ''}</div>
+        <div style="flex:1;">
+            <div style="font-size:20px;font-weight:900;color:var(--text);">${p.name}</div>
+            <div style="font-size:13px;color:var(--text-dim);">
+                ${teamName} &nbsp; ${p.position === 'P' ? '투수 (' + (p.role || '') + ')' : p.position}
+                ${p.throwBat ? ' &nbsp; ' + p.throwBat : ''}
+                ${p.age != null ? ' &nbsp; ' + p.age + '세' : ''}
+                ${p.height ? ' &nbsp; ' + p.height + 'cm / ' + p.weight + 'kg' : ''}
+            </div>
+            ${scoutReport ? `<div class="pm-scout-report" style="margin-top:4px;">${scoutReport}</div>` : ''}
+            <div style="margin-top:4px;font-size:13px;">
+                ${p.isFranchiseStar ? '<span class="franchise-star-badge">★ 프랜차이즈 스타</span> ' : ''}
+                ${p.isForeign ? '<span style="padding:1px 6px;background:rgba(179,161,119,0.15);color:#B3A177;border-radius:4px;font-size:11px;">외국인</span> ' : ''}
+                <span style="padding:1px 8px;background:var(--bg-input);border-radius:4px;font-size:12px;font-weight:600;">연봉 ${p.salary}억</span>
+            </div>
+        </div>
+    `;
+
+    // 좌측: 포지션/구종 프로필 + 레이팅
+    let profileHTML = '';
+    if (p.position === 'P' && p.realStats && p.realStats.pitches && p.realStats.pitches.length) {
+        const pitches = p.realStats.pitches;
+        const fb = pitches.find(pt => pt.name === '포심' || pt.name === '투심');
+        const avgVelo = fb ? fb.velo : (pitches[0] ? pitches[0].velo : 0);
+        const pitchColor = n => n.includes('포심') || n.includes('투심') ? '#ED1C24' : n.includes('슬라이더') ? '#00AEEF' : n.includes('커브') ? '#22c55e' : n.includes('체인지업') ? '#B3A177' : n.includes('커터') ? '#f97316' : n.includes('포크') ? '#a855f7' : '#6b7280';
+        profileHTML = `<div class="pm-pitch-profile"><div class="pm-pitch-profile__velo"><div class="pm-pitch-profile__velo-num">${avgVelo}</div><div class="pm-pitch-profile__velo-label">km/h 평균구속</div></div><div class="pm-pitch-profile__arsenal">${pitches.map(pt => `<span class="pm-pitch-tag" style="background:${pitchColor(pt.name)}">${pt.name} ${pt.velo}</span>`).join('')}</div></div>`;
+    } else if (p.position !== 'P') {
+        profileHTML = renderPositionDiamond(p);
+    }
+
+    const r = p.ratings || {};
+    let ratingsHTML = profileHTML;
+    if (p.position === 'P' && r.stuff != null) {
+        const tools = [{label:'구위',val:r.stuff},{label:'제구',val:r.command},{label:'체력',val:r.stamina},{label:'효율',val:r.effectiveness},{label:'안정',val:r.consistency}];
+        const inlinePitch = (p.realStats && p.realStats.pitches) ? `<div class="pm-ratings-title" style="margin-top:12px;">구종</div>${renderPitcherPitchTypes(p.realStats)}` : '';
+        ratingsHTML += `<div class="pm-ratings-title">20-80 스카우팅 레이팅</div>` +
+            tools.map(t => `<div class="pm-rating-row"><span class="pm-rating-label">${t.label}</span><div class="pm-rating-bar"><div class="pm-rating-fill" style="width:${(t.val-20)/60*100}%;background:${ratingColor(t.val)};"></div></div><span class="pm-rating-value" style="color:${ratingColor(t.val)};">${t.val}</span></div>`).join('') +
+            `<div class="pm-ovr-row"><span class="pm-ovr-label">OVR</span><span class="pm-ovr-value" style="color:${ratingColor(p.ovr)};">${p.ovr}</span></div>` + inlinePitch;
+    } else if (p.position !== 'P' && r.contact != null) {
+        const tools = [{label:'컨택',val:r.contact},{label:'파워',val:r.power},{label:'선구안',val:r.eye},{label:'스피드',val:r.speed},{label:'수비',val:r.defense}];
+        ratingsHTML += `<div class="pm-ratings-title">20-80 스카우팅 레이팅</div>` +
+            tools.map(t => `<div class="pm-rating-row"><span class="pm-rating-label">${t.label}</span><div class="pm-rating-bar"><div class="pm-rating-fill" style="width:${(t.val-20)/60*100}%;background:${ratingColor(t.val)};"></div></div><span class="pm-rating-value" style="color:${ratingColor(t.val)};">${t.val}</span></div>`).join('') +
+            `<div class="pm-ovr-row"><span class="pm-ovr-label">OVR</span><span class="pm-ovr-value" style="color:${ratingColor(p.ovr)};">${p.ovr}</span></div>`;
+    }
+    ratingsEl.innerHTML = ratingsHTML;
+
+    // 우측: 시즌 성적
+    const rs = p.realStats;
+    if (rs && p.position !== 'P') {
+        statsEl.innerHTML = `
+            <div class="pm-ratings-title">2025 시즌 성적</div>
+            ${renderClassicStats(rs)}
+            <div class="pm-ratings-title" style="margin-top:12px;">세이버메트릭스</div>
+            ${renderSaberStats(rs)}
+            ${rs.defRAA != null ? `<div class="pm-ratings-title" style="margin-top:12px;">수비</div>${renderDefenseStats(rs, p)}` : ''}
+        `;
+    } else if (rs && p.position === 'P') {
+        statsEl.innerHTML = `
+            <div class="pm-ratings-title">2025 시즌 성적</div>
+            ${renderPitcherClassicStats(rs)}
+            <div class="pm-ratings-title" style="margin-top:12px;">세이버메트릭스</div>
+            ${renderPitcherSaberStats(rs)}
+        `;
+    } else {
+        statsEl.innerHTML = `<div class="pm-no-data">${p.isForeign ? '외국인 선수 — KBO 이전 시즌 기록 없음' : p.isFutures ? '2군 선수 — 1군 시즌 기록 없음' : '시즌 기록 데이터가 등록되지 않았습니다.'}</div>`;
+    }
+
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    // 닫기 버튼
+    document.getElementById('scoutDetailClose').onclick = () => { panel.style.display = 'none'; };
+}
+
+function renderPositionDiamond(p) {
+    const primaryPos = p.primaryPosition || p.position || '';
+    const baseDef = (p.ratings && p.ratings.defense) ? p.ratings.defense : 40;
+
+    // 외야 (상단)
+    const outfield = {
+        LF: { x: 30,  y: 20 },
+        CF: { x: 121, y: 0 },
+        RF: { x: 212, y: 20 },
+    };
+    // 내야 (중단)
+    const infield = {
+        SS:  { x: 75,  y: 90 },
+        '2B': { x: 175, y: 90 },
+        '3B': { x: 40,  y: 140 },
+        '1B': { x: 210, y: 140 },
+        C:   { x: 121, y: 190 },
+    };
+    // DH (바깥)
+    const dhPos = { x: 4, y: 190 };
+
+    // POSITION_GROUPS 기반 penalty → FM 등급 계산
+    function getPosClass(targetPos) {
+        if (targetPos === primaryPos) return 'pos-primary';
+        const config = typeof POSITION_GROUPS !== 'undefined' ? POSITION_GROUPS[primaryPos] : null;
+        if (!config) return 'pos-bad';
+        const penalty = config.penalty[targetPos];
+        if (penalty == null) return 'pos-bad';
+        // 실효 수비력 = baseDef + penalty
+        const effective = baseDef + penalty;
+        if (effective >= 55) return 'pos-good';    // 연두색 — 충분히 가능
+        if (effective >= 45) return 'pos-fair';    // 노란색 — 소화 가능
+        if (effective >= 35) return 'pos-weak';    // 주황색 — 무리하면 가능
+        return 'pos-bad';                           // 회색 — 불가
+    }
+
+    let html = `<div class="pm-position-chart">`;
+    html += `<div class="pm-field-outfield"></div>`;
+    html += `<div class="pm-field-diamond"></div>`;
+    html += `<div class="pm-field-infield"></div>`;
+    html += `<div class="pm-field-mound-mini"></div>`;
+
+    // 외야
+    for (const [key, coord] of Object.entries(outfield)) {
+        const cls = getPosClass(key);
+        html += `<div class="pm-pos-dot ${cls}" style="left:${coord.x}px;top:${coord.y}px;">${key}</div>`;
+    }
+    // 내야
+    for (const [key, coord] of Object.entries(infield)) {
+        const cls = getPosClass(key);
+        html += `<div class="pm-pos-dot ${cls}" style="left:${coord.x}px;top:${coord.y}px;">${key}</div>`;
+    }
+    // DH (다이아몬드 바깥, 왼쪽 아래)
+    const dhClass = primaryPos === 'DH' ? 'pos-primary' : '';
+    html += `<div class="pm-pos-dh ${dhClass}" style="left:${dhPos.x}px;top:${dhPos.y}px;">DH</div>`;
+
+    html += `</div>`;
+    return html;
+}
+
+function selectScoutRow(trEl, id) {
+    // 하이라이트
+    document.querySelectorAll('.scout-row-selectable').forEach(r => r.classList.remove('scout-row-selected'));
+    trEl.classList.add('scout-row-selected');
+    openPlayerDetail(id);
+}
+
+function openPlayerDetail(id) {
+    const p = state.players[id];
+    if (!p) return;
+    // 스카우트 뷰에서는 인라인 패널로 표시
+    const detailPanel = document.getElementById('scoutDetail');
+    if (detailPanel) {
+        showScoutDetailInline(p);
+        return;
+    }
+    showPlayerModal(p);
+}
+
+function ratingCell(val) {
+    if (val == null) return '-';
+    const v = Math.round(val);
+    const color = v >= 70 ? '#16a34a' : v >= 60 ? '#2563eb' : v >= 50 ? 'var(--text)' : v >= 40 ? '#d97706' : '#dc2626';
+    return `<span style="color:${color};font-weight:600">${v}</span>`;
 }
 
 // ── 앱 시작 ──

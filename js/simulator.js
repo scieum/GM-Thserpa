@@ -101,7 +101,54 @@ function getCompletedQuarters(state) {
     return completed;
 }
 
+// 총 진행 경기 수
+function getTotalGamesPlayed(state) {
+    const first = Object.values(state.teams)[0];
+    if (!first) return 0;
+    let total = 0;
+    for (let q = 1; q <= 4; q++) {
+        const r = first.seasonRecord[`q${q}`];
+        total += (r.wins || 0) + (r.losses || 0);
+    }
+    return total;
+}
+
+// 5경기 단위 시뮬레이션
+async function simulateBatch(state, batchSize, onProgress) {
+    const teamCodes = Object.keys(state.teams);
+
+    // 현재 쿼터 파악 및 남은 경기
+    const winRates = {};
+    for (const code of teamCodes) {
+        const pp = calcTeamPitchPower(state, code);
+        const bp = calcTeamBatPower(state, code);
+        winRates[code] = calcWinRate(pp, bp);
+    }
+
+    for (let game = 1; game <= batchSize; game++) {
+        // 현재 총 경기 수로 어느 쿼터인지 결정
+        const totalPlayed = getTotalGamesPlayed(state);
+        const q = Math.min(4, Math.floor(totalPlayed / 36) + 1);
+        const qKey = `q${q}`;
+
+        for (const code of teamCodes) {
+            if (Math.random() < winRates[code]) {
+                state.teams[code].seasonRecord[qKey].wins++;
+            } else {
+                state.teams[code].seasonRecord[qKey].losses++;
+            }
+        }
+
+        if (onProgress) onProgress(game, batchSize);
+        await delay(30);
+    }
+
+    return getStandings(state);
+}
+
 window.simulateQuarter = simulateQuarter;
+window.simulateBatch = simulateBatch;
+window.getTotalGamesPlayed = getTotalGamesPlayed;
 window.getStandings = getStandings;
 window.getCurrentQuarter = getCurrentQuarter;
 window.getCompletedQuarters = getCompletedQuarters;

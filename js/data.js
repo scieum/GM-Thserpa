@@ -67,10 +67,10 @@ const REAL_ROSTERS = {
     },
     '두산': {
         manager: '김원형',
-        P: ['박치국','타무라*','이병헌','양재훈','잭로그*','최지강','이용찬','곽빈','박신지','최준호','최원준','김택연','플렉센*'],
-        C: ['김기연','양의지','윤준호'],
-        IF: ['이유찬','강승호','박지훈','박준순','양석환','오명진','안재석','박찬호'],
-        OF: ['김민석','카메론*','정수빈','김인태','조수행'],
+        P: ['박치국','타무라*','이병헌','양재훈','잭로그*','최지강','이용찬','곽빈','박신지','이영하','최준호','최원준','김택연','플렉센*'],
+        C: ['양의지','김기연'],
+        IF: ['안재석','오명진','강승호','박찬호','양석환','이유찬','박지훈','박준순','임종성','홍성호','김동준'],
+        OF: ['카메론*','정수빈','김인태','조수행'],
     },
     '롯데': {
         manager: '김태형',
@@ -214,6 +214,97 @@ const REAL_SEASON_STATS = {
         '김민수': { pos:'C',  AVG:.182, OBP:.231, SLG:.182, OPS:.413, 'wRC+':4.6, WAR:-0.01, oWAR:-0.01, dWAR:0.00, H:2, '2B':0, '3B':0, HR:0, RBI:1, R:0, SB:0, CS:0, BB:1, SO:4, G:13, PA:13, AB:11, IsoP:.000, salary:0.46, defRAA:-0.09, rangeRAA:0.00, errRAA:0.03, csRAA:-0.17, frmRAA:0.00 },
         '손용준': { pos:'DH', AVG:.111, OBP:.125, SLG:.111, OPS:.236, 'wRC+':15.6, WAR:-0.13, oWAR:-0.13, dWAR:0.00, H:1, '2B':0, '3B':0, HR:0, RBI:0, R:0, SB:0, CS:0, BB:0, SO:5, G:9, PA:16, AB:9, IsoP:.000, salary:0.34 },
     },
+    '두산': {
+        // 2025 시즌 타자 성적 (Statiz 기반) — BB는 OBP에서 역산
+        '양의지': { pos:'C',  AVG:.337, OBP:.406, SLG:.533, OPS:.939, 'wRC+':162.8, WAR:6.79, oWAR:6.60, dWAR:0.20, H:153, '2B':25, '3B':0, HR:22, RBI:76, R:57, SB:2, CS:0, BB:50, SO:63, G:130, PA:517, AB:454, IsoP:.196, salary:42.0 },
+        '김기연': { pos:'C',  AVG:.247, OBP:.307, SLG:.315, OPS:.622, 'wRC+':72.6, WAR:0.30, oWAR:-0.21, dWAR:0.51, H:56, '2B':8, '3B':0, HR:2, RBI:19, R:14, SB:0, CS:0, BB:14, SO:44, G:100, PA:245, AB:225, IsoP:.068, salary:0.95 },
+        '안재석': { pos:'SS', AVG:.319, OBP:.370, SLG:.541, OPS:.911, 'wRC+':149.4, WAR:1.77, oWAR:1.77, dWAR:0.00, H:43, '2B':7, '3B':1, HR:6, RBI:27, R:20, SB:1, CS:0, BB:10, SO:27, G:35, PA:147, AB:135, IsoP:.222, salary:0.67 },
+        '오명진': { pos:'2B', AVG:.263, OBP:.321, SLG:.366, OPS:.687, 'wRC+':89.8, WAR:1.80, oWAR:1.15, dWAR:0.65, H:95, '2B':18, '3B':1, HR:7, RBI:45, R:40, SB:5, CS:1, BB:21, SO:94, G:107, PA:371, AB:363, IsoP:.103, salary:1.12 },
+        '강승호': { pos:'1B', AVG:.236, OBP:.302, SLG:.372, OPS:.674, 'wRC+':82.3, WAR:1.55, oWAR:0.96, dWAR:0.59, H:85, '2B':15, '3B':1, HR:10, RBI:51, R:40, SB:24, CS:11, BB:32, SO:113, G:134, PA:400, AB:360, IsoP:.136, salary:2.98 },
+        '양석환': { pos:'1B', AVG:.248, OBP:.320, SLG:.401, OPS:.721, 'wRC+':98.5, WAR:1.24, oWAR:0.77, dWAR:0.47, H:64, '2B':12, '3B':1, HR:8, RBI:38, R:24, SB:1, CS:0, BB:26, SO:82, G:72, PA:294, AB:260, IsoP:.153, salary:3.0 },
+        '이유찬': { pos:'SS', AVG:.242, OBP:.328, SLG:.290, OPS:.618, 'wRC+':79.0, WAR:0.84, oWAR:0.24, dWAR:0.60, H:70, '2B':10, '3B':2, HR:1, RBI:25, R:33, SB:4, CS:6, BB:28, SO:66, G:89, PA:311, AB:290, IsoP:.048, salary:1.12 },
+        '박지훈': { pos:'3B', AVG:.417, OBP:.563, SLG:1.028, OPS:1.591, 'wRC+':203.7, WAR:0.82, oWAR:0.82, dWAR:0.00, H:15, '2B':5, '3B':0, HR:5, RBI:12, R:10, SB:0, CS:0, BB:13, SO:6, G:37, PA:55, AB:36, IsoP:.611, salary:0.52 },
+        '박준순': { pos:'3B', AVG:.277, OBP:.307, SLG:.398, OPS:.705, 'wRC+':82.2, WAR:0.65, oWAR:0.27, dWAR:0.38, H:23, '2B':4, '3B':0, HR:3, RBI:14, R:8, SB:0, CS:0, BB:3, SO:23, G:33, PA:89, AB:83, IsoP:.121, salary:0.69 },
+        '홍성호': { pos:'RF', AVG:.346, OBP:.370, SLG:.615, OPS:.985, 'wRC+':150.7, WAR:0.23, oWAR:0.23, dWAR:0.00, H:9, '2B':2, '3B':0, HR:2, RBI:6, R:4, SB:0, CS:0, BB:1, SO:4, G:9, PA:28, AB:26, IsoP:.269, salary:0.35 },
+        '카메론': { pos:'RF', AVG:.280, OBP:.340, SLG:.440, OPS:.780, 'wRC+':115.0, WAR:1.50, oWAR:1.30, dWAR:0.20, H:60, '2B':12, '3B':1, HR:8, RBI:35, R:28, SB:3, CS:1, BB:18, SO:50, G:55, PA:200, AB:178, IsoP:.160, salary:7.0 },
+        '정수빈': { pos:'CF', AVG:.256, OBP:.355, SLG:.348, OPS:.703, 'wRC+':104.8, WAR:2.83, oWAR:1.32, dWAR:1.51, H:124, '2B':20, '3B':2, HR:5, RBI:45, R:60, SB:14, CS:4, BB:64, SO:88, G:132, PA:546, AB:483, IsoP:.092, salary:6.0 },
+        '김인태': { pos:'LF', AVG:.290, OBP:.346, SLG:.391, OPS:.737, 'wRC+':107.2, WAR:0.80, oWAR:0.63, dWAR:0.17, H:59, '2B':10, '3B':1, HR:4, RBI:25, R:20, SB:6, CS:2, BB:16, SO:36, G:106, PA:225, AB:202, IsoP:.101, salary:0.87 },
+        '조수행': { pos:'LF', AVG:.236, OBP:.302, SLG:.308, OPS:.610, 'wRC+':74.0, WAR:0.65, oWAR:-0.06, dWAR:0.71, H:30, '2B':5, '3B':1, HR:1, RBI:12, R:15, SB:3, CS:1, BB:10, SO:28, G:85, PA:140, AB:127, IsoP:.072, salary:2.0 },
+        // FA 영입 (KIA → 두산, 2025 성적 없음 — KIA 기준 추정)
+        '박찬호': { pos:'SS', AVG:.270, OBP:.340, SLG:.380, OPS:.720, 'wRC+':105.0, WAR:2.0, oWAR:1.50, dWAR:0.50, H:100, '2B':18, '3B':2, HR:5, RBI:40, R:45, SB:8, CS:3, BB:35, SO:65, G:120, PA:430, AB:380, IsoP:.110, salary:8.0 },
+        '김동준': { pos:'1B', AVG:.237, OBP:.283, SLG:.333, OPS:.616, 'wRC+':62.4, WAR:-0.65, oWAR:-0.26, dWAR:-0.39, H:22, '2B':3, '3B':0, HR:2, RBI:10, R:8, SB:1, CS:1, BB:5, SO:30, G:36, PA:100, AB:93, IsoP:.096, salary:0.31 },
+        // ─── 투수 연봉 (Statiz 2026 기준) ───
+        '잭로그':  { pos:'P', role:'선발', salary:9.6 },
+        '플렉센':  { pos:'P', role:'선발', salary:9.1 },
+        '이영하':  { pos:'P', role:'중계', salary:6.0 },
+        '최원준':  { pos:'P', role:'선발', salary:4.0 },
+        '곽빈':    { pos:'P', role:'선발', salary:3.05 },
+        '타무라':  { pos:'P', role:'중계', salary:2.65 },
+        '김택연':  { pos:'P', role:'마무리', salary:2.2 },
+        '박치국':  { pos:'P', role:'중계', salary:1.87 },
+        '최승용':  { pos:'P', role:'선발', salary:1.55 },
+        '김명신':  { pos:'P', role:'중계', salary:1.05 },
+        '이병헌':  { pos:'P', role:'중계', salary:1.0 },
+        '이용찬':  { pos:'P', role:'중계', salary:0.94 },
+        '최지강':  { pos:'P', role:'중계', salary:0.87 },
+        '김민석':  { pos:'LF', salary:0.81 },
+        '박성재':  { pos:'1B', salary:0.77 },
+        '박신지':  { pos:'P', role:'중계', salary:0.7 },
+        '박정수':  { pos:'P', role:'중계', salary:0.64 },
+        '최민석':  { pos:'P', role:'선발', salary:0.63 },
+        '양재훈':  { pos:'P', role:'중계', salary:0.47 },
+        '임종성':  { pos:'3B', salary:0.45 },
+        '최준호':  { pos:'P', role:'선발', salary:0.45 },
+        '김호준':  { pos:'P', role:'중계', salary:0.42 },
+        '김유성':  { pos:'P', role:'선발', salary:0.41 },
+        '김정우':  { pos:'P', role:'중계', salary:0.38 },
+        '김민규':  { pos:'P', role:'선발', salary:0.37 },
+        '이교훈':  { pos:'P', role:'중계', salary:0.36 },
+        '김대한':  { pos:'RF', salary:0.36 },
+        '윤태호':  { pos:'P', role:'중계', salary:0.35 },
+        '전다민':  { pos:'LF', salary:0.34 },
+        '김민혁':  { pos:'1B', salary:0.33 },
+        '최종인':  { pos:'P', role:'중계', salary:0.33 },
+        '류현준':  { pos:'C', salary:0.32 },
+        '김한중':  { pos:'P', role:'중계', salary:0.31 },
+        '박민준':  { pos:'C', salary:0.31 },
+        '윤준호':  { pos:'C', salary:0.31 },
+        '박계범':  { pos:'2B', salary:0.31 },
+        // ─── 신인/육성 (0.3억) ───
+        '최주형':  { pos:'P', salary:0.3 },
+        '이주호':  { pos:'P', salary:0.3 },
+        '서준오':  { pos:'P', salary:0.3 },
+        '이주엽':  { pos:'P', salary:0.3 },
+        '정성헌':  { pos:'P', salary:0.3 },
+        '안민겸':  { pos:'P', salary:0.3 },
+        '임종훈':  { pos:'P', salary:0.3 },
+        '안치호':  { pos:'P', salary:0.3 },
+        '이기석':  { pos:'P', salary:0.3 },
+        '박웅':    { pos:'P', salary:0.3 },
+        '제환유':  { pos:'P', salary:0.3 },
+        '양현진':  { pos:'P', salary:0.3 },
+        '최우인':  { pos:'P', salary:0.3 },
+        '김지윤':  { pos:'P', salary:0.3 },
+        '장우진':  { pos:'P', salary:0.3 },
+        '황희천':  { pos:'P', salary:0.3 },
+        '김성재':  { pos:'C', salary:0.3 },
+        '장규빈':  { pos:'C', salary:0.3 },
+        '이희성':  { pos:'C', salary:0.3 },
+        '신민철':  { pos:'SS', salary:0.3 },
+        '지강혁':  { pos:'SS', salary:0.3 },
+        '이선우':  { pos:'SS', salary:0.3 },
+        '한다현':  { pos:'SS', salary:0.3 },
+        '김준상':  { pos:'2B', salary:0.3 },
+        '임현철':  { pos:'SS', salary:0.3 },
+        '심건보':  { pos:'SS', salary:0.3 },
+        '남태웅':  { pos:'SS', salary:0.3 },
+        '신우열':  { pos:'RF', salary:0.3 },
+        '김주오':  { pos:'RF', salary:0.3 },
+        '천현재':  { pos:'CF', salary:0.3 },
+        '김문수':  { pos:'CF', salary:0.3 },
+        '주양준':  { pos:'RF', salary:0.3 },
+        '엄지민':  { pos:'LF', salary:0.3 },
+    },
     'KT': {
         '김현수': { pos:'LF', AVG:.298, OBP:.384, SLG:.422, OPS:.806, 'wRC+':133.1, WAR:3.36, oWAR:3.61, dWAR:-0.24, H:144, '2B':24, '3B':0, HR:12, RBI:90, R:66, SB:4, CS:0, BB:64, SO:73, G:140, PA:552, AB:483, IsoP:.124, salary:5.0, defRAA:-1.35, rangeRAA:-0.14, errRAA:0.46 },
     },
@@ -247,10 +338,10 @@ const FUTURES_ROSTERS = {
         OF: ['임병욱','주성원','원성준','박주홍','박채울'],
     },
     '두산': {
-        P: ['최주형','김정우','박정수','김민규','이교훈','김명신','김호준','윤태호','김한중','황희천'],
-        C: ['김성재','박민준','류현준'],
-        IF: ['임종성','박성재','김민혁','지강혁','이선우','한다현','남태웅'],
-        OF: ['전다민','김대한','홍성호','천현재','김주오','김문수'],
+        P: ['최주형','김정우','박정수','김민규','최승용','이주호','이교훈','최종인','서준오','이주엽','김명신','김유성','김호준','박웅','윤태호','최민석','제환유','김한중','양현진','최우인','김지윤','장우진','황희천','임종훈','정성헌','안치호','안민겸','이기석'],
+        C: ['김성재','박민준','윤준호','장규빈','류현준','이희성'],
+        IF: ['박성재','김민혁','박계범','신민철','지강혁','이선우','한다현','김준상','임현철','심건보','남태웅'],
+        OF: ['김민석','전다민','김대한','신우열','천현재','김주오','김문수','주양준','엄지민'],
     },
     'KT': {
         P: ['임준형','최동환','이채호','문용익','김태오','박건우','김정운','원상현','이원재','한지웅'],
@@ -429,32 +520,64 @@ const FUTURES_DETAILS = {
         '박채울':  { no: 108, tb: '우투우타', birth: '2004-11-20', h: 185, w: 86 },
     },
     '두산': {
+        // ─── 투수 ───
         '최주형':  { no: 15,  tb: '좌투좌타', birth: '2006-08-19', h: 174, w: 70 },
         '김정우':  { no: 16,  tb: '우투우타', birth: '1999-05-15', h: 183, w: 87 },
         '박정수':  { no: 17,  tb: '우언좌타', birth: '1996-01-29', h: 178, w: 74 },
         '김민규':  { no: 19,  tb: '우투좌타', birth: '1999-05-07', h: 183, w: 90 },
+        '최승용':  { no: 28,  tb: '좌투좌타', birth: '2001-05-11', h: 183, w: 82 },
+        '이주호':  { no: 35,  tb: '좌투좌타', birth: '2006-11-21', h: 180, w: 78 },
         '이교훈':  { no: 36,  tb: '좌투좌타', birth: '2000-05-29', h: 181, w: 83 },
+        '최종인':  { no: 40,  tb: '우투우타', birth: '2001-05-01', h: 183, w: 82 },
+        '서준오':  { no: 41,  tb: '우투우타', birth: '2005-03-05', h: 185, w: 85 },
+        '이주엽':  { no: 43,  tb: '우투우타', birth: '2001-03-26', h: 183, w: 82 },
         '김명신':  { no: 46,  tb: '우투우타', birth: '1993-11-29', h: 178, w: 90 },
+        '김유성':  { no: 55,  tb: '우투우타', birth: '2002-01-01', h: 183, w: 82 },
         '김호준':  { no: 56,  tb: '좌투좌타', birth: '1998-05-17', h: 180, w: 82 },
+        '박웅':    { no: 57,  tb: '우투우타', birth: '1997-11-12', h: 183, w: 82 },
         '윤태호':  { no: 65,  tb: '우투우타', birth: '2003-10-10', h: 190, w: 88 },
+        '최민석':  { no: 68,  tb: '우투우타', birth: '2006-07-02', h: 185, w: 82 },
+        '제환유':  { no: 93,  tb: '우투좌타', birth: '2000-09-30', h: 183, w: 82 },
         '김한중':  { no: 95,  tb: '우투우타', birth: '2004-11-03', h: 183, w: 89 },
+        '양현진':  { no: 100, tb: '우투우타', birth: '2002-01-03', h: 183, w: 82 },
+        '최우인':  { no: 101, tb: '우투우타', birth: '2002-08-09', h: 183, w: 82 },
+        '김지윤':  { no: 104, tb: '우투우타', birth: '2004-01-13', h: 183, w: 82 },
+        '장우진':  { no: 106, tb: '우투우타', birth: '2004-03-20', h: 183, w: 82 },
         '황희천':  { no: 107, tb: '좌투좌타', birth: '2006-11-06', h: 190, w: 93 },
+        '임종훈':  { no: 115, tb: '우투좌타', birth: '2007-05-07', h: 183, w: 80 },
+        '정성헌':  { no: 119, tb: '우투우타', birth: '2006-09-11', h: 185, w: 82 },
+        '안치호':  { no: 120, tb: '좌투좌타', birth: '2004-11-30', h: 183, w: 80 },
+        '안민겸':  { no: 122, tb: '우투우타', birth: '2004-05-17', h: 183, w: 80 },
+        '이기석':  { no: 123, tb: '좌투좌타', birth: '2002-06-07', h: 183, w: 80 },
+        // ─── 포수 ───
         '김성재':  { no: 20,  tb: '우투우타', birth: '2006-05-16', h: 182, w: 98 },
         '박민준':  { no: 26,  tb: '우투우타', birth: '2002-10-21', h: 183, w: 95 },
+        '윤준호':  { no: 27,  tb: '우투우타', birth: '2000-11-14', h: 180, w: 82 },
+        '장규빈':  { no: 44,  tb: '우투우타', birth: '2001-04-21', h: 183, w: 82 },
         '류현준':  { no: 67,  tb: '우투우타', birth: '2005-03-25', h: 182, w: 92 },
-        '임종성':  { no: 3,   tb: '우투우타', birth: '2005-03-03', h: 183, w: 90 },
+        '이희성':  { no: 121, tb: '우투우타', birth: '2004-02-02', h: 180, w: 85 },
+        // ─── 내야수 ───
         '박성재':  { no: 5,   tb: '우투우타', birth: '2002-11-18', h: 186, w: 98 },
         '김민혁':  { no: 10,  tb: '우투우타', birth: '1996-05-03', h: 188, w: 100 },
+        '박계범':  { no: 14,  tb: '우투우타', birth: '1996-01-11', h: 183, w: 80 },
+        '신민철':  { no: 103, tb: '우투우타', birth: '2003-01-13', h: 183, w: 80 },
         '지강혁':  { no: 105, tb: '우투좌타', birth: '2000-08-14', h: 181, w: 83 },
         '이선우':  { no: 108, tb: '우투좌타', birth: '2006-04-04', h: 182, w: 80 },
         '한다현':  { no: 109, tb: '우투좌타', birth: '2006-08-25', h: 181, w: 85 },
+        '김준상':  { no: 110, tb: '우투좌타', birth: '2004-08-02', h: 180, w: 78 },
+        '임현철':  { no: 116, tb: '우투좌타', birth: '2007-10-21', h: 180, w: 78 },
+        '심건보':  { no: 117, tb: '우투좌타', birth: '2003-11-17', h: 182, w: 82 },
         '남태웅':  { no: 118, tb: '우투우타', birth: '2007-01-08', h: 175, w: 78 },
+        // ─── 외야수 ───
+        '김민석':  { no: 2,   tb: '우투좌타', birth: '2004-05-09', h: 183, w: 80 },
         '전다민':  { no: 9,   tb: '우투좌타', birth: '2001-08-21', h: 177, w: 75 },
         '김대한':  { no: 32,  tb: '우투우타', birth: '2000-12-06', h: 185, w: 83 },
-        '홍성호':  { no: 34,  tb: '우투좌타', birth: '1997-07-15', h: 187, w: 98 },
+        '신우열':  { no: 38,  tb: '우투우타', birth: '2001-12-30', h: 183, w: 82 },
         '천현재':  { no: 58,  tb: '우투좌타', birth: '1999-07-05', h: 183, w: 90 },
         '김주오':  { no: 66,  tb: '우투우타', birth: '2007-09-14', h: 178, w: 95 },
         '김문수':  { no: 102, tb: '우투좌타', birth: '2004-03-29', h: 188, w: 94 },
+        '주양준':  { no: 111, tb: '우투우타', birth: '2006-04-09', h: 183, w: 82 },
+        '엄지민':  { no: 114, tb: '우투좌타', birth: '2005-11-22', h: 182, w: 80 },
     },
     'KT': {
         '임준형':  { no: 14,  tb: '좌투좌타', birth: '2000-11-16', h: 180, w: 82 },
@@ -637,15 +760,16 @@ const PLAYER_DETAILS = {
         '이용찬':  { no: 45, tb: '우투우타', birth: '1989-01-02', h: 185, w: 85 },
         '곽빈':    { no: 47, tb: '우투우타', birth: '1999-05-28', h: 187, w: 95 },
         '박신지':  { no: 49, tb: '우투우타', birth: '1999-07-16', h: 185, w: 75 },
+        '이영하':  { no: 50, tb: '우투우타', birth: '1997-11-01', h: 183, w: 82 },
         '최준호':  { no: 59, tb: '우투우타', birth: '2004-06-03', h: 188, w: 90 },
         '최원준':  { no: 61, tb: '우언우타', birth: '1994-12-21', h: 182, w: 91 },
         '김택연':  { no: 63, tb: '우투우타', birth: '2005-06-03', h: 181, w: 88 },
         '플렉센':  { no: 77, tb: '우투우타', birth: '1994-07-01', h: 190, w: 99 },
         // 포수
-        '김기연':  { no: 22, tb: '우투우타', birth: '1997-09-07', h: 178, w: 106 },
         '양의지':  { no: 25, tb: '우투우타', birth: '1987-06-05', h: 180, w: 95 },
-        '윤준호':  { no: 27, tb: '우투우타', birth: '2000-11-14', h: 179, w: 90 },
+        '김기연':  { no: 22, tb: '우투우타', birth: '1997-09-07', h: 178, w: 106 },
         // 내야수
+        '임종성':  { no: 3,  tb: '우투우타', birth: '2005-03-03', h: 183, w: 90 },
         '오명진':  { no: 6,  tb: '우투좌타', birth: '2001-09-04', h: 179, w: 79 },
         '박찬호':  { no: 7,  tb: '우투우타', birth: '1995-06-05', h: 178, w: 72 },
         '이유찬':  { no: 13, tb: '우투우타', birth: '1998-08-05', h: 175, w: 68 },
@@ -655,10 +779,11 @@ const PLAYER_DETAILS = {
         '양석환':  { no: 53, tb: '우투우타', birth: '1991-07-15', h: 185, w: 90 },
         '안재석':  { no: 62, tb: '우투좌타', birth: '2002-02-15', h: 185, w: 75 },
         // 외야수
-        '김민석':  { no: 2,  tb: '우투좌타', birth: '2004-05-09', h: 185, w: 83 },
+        '김동준':  { no: 11, tb: '좌투좌타', birth: '2002-09-03', h: 193, w: 100 },
         '카메론':  { no: 24, tb: '우투우타', birth: '1997-01-15', h: 183, w: 83 },
-        '정수빈':  { no: 31, tb: '좌투좌타', birth: '1990-10-07', h: 175, w: 70 },
+        '정수빈':  { no: 31, tb: '좌투좌타', birth: '1990-10-07', h: 178, w: 72 },
         '김인태':  { no: 33, tb: '좌투좌타', birth: '1994-07-03', h: 178, w: 78 },
+        '홍성호':  { no: 34, tb: '우투좌타', birth: '1997-07-15', h: 183, w: 95 },
         '조수행':  { no: 51, tb: '우투좌타', birth: '1993-08-30', h: 178, w: 73 },
     },
     '롯데': {
@@ -1323,6 +1448,32 @@ function generateSampleData() {
             teamRoster.push(id);
         }
 
+        // ── 지명타자 (DH) ──
+        if (roster.DH) {
+            for (let i = 0; i < roster.DH.length; i++) {
+                const raw = roster.DH[i];
+                const isForeign = raw.endsWith('*');
+                const name = isForeign ? raw.slice(0, -1) : raw;
+                const id = `b_${String(playerId++).padStart(3, '0')}`;
+                const stats = genBatterStats(rng, weakness.batMod, code);
+                const salary = genSalary(rng, tempBatterPower(stats));
+                const detail = getPlayerDetail(code, name);
+
+                players[id] = {
+                    id, name, team: code, position: 'DH', role: null,
+                    salary, isForeign, isFranchiseStar: false,
+                    stats, powerScore: null,
+                    number: detail ? detail.no : null,
+                    throwBat: detail ? detail.tb : null,
+                    birth: detail ? detail.birth : null,
+                    age: detail ? calcAge(detail.birth) : null,
+                    height: detail ? detail.h : null,
+                    weight: detail ? detail.w : null,
+                };
+                teamRoster.push(id);
+            }
+        }
+
         // 연봉 스케일링 (감사보고서 기준)
         scaleTeamSalaries(players, teamRoster, teamDef.finance.playerSalary);
 
@@ -1363,7 +1514,15 @@ function generateSampleData() {
                     p.stats.OPS = real.OPS;
                     p.stats.WAR = real.WAR;
                     if (real.salary) p.salary = real.salary;
+                    // 표본 크기 보정: PA < 400이면 리그 평균(50)으로 회귀
                     p.ratings = calcBatterRatings(real);
+                    const pa = real.PA || 400;
+                    const sampleWeight = Math.min(pa / 400, 1.0);
+                    if (sampleWeight < 1.0) {
+                        for (const key of Object.keys(p.ratings)) {
+                            p.ratings[key] = Math.round(p.ratings[key] * sampleWeight + 50 * (1 - sampleWeight));
+                        }
+                    }
                     p.ovr = calcBatterOVR(p.ratings);
                 }
             }

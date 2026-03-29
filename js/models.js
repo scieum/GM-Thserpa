@@ -264,7 +264,6 @@ function promotePlayer(state, teamCode, futuresPlayerId, demotePlayerId) {
 function promotePlayerSimple(state, teamCode, futuresPlayerId) {
     const team = state.teams[teamCode];
     if (!team.futuresRoster.includes(futuresPlayerId)) return { success: false, msg: '2군에 없는 선수입니다.' };
-    if (team.roster.length >= 29) return { success: false, msg: '1군이 29명 꽉 찼습니다. 말소할 선수를 선택하세요.' };
 
     const up = state.players[futuresPlayerId];
     team.futuresRoster = team.futuresRoster.filter(id => id !== futuresPlayerId);
@@ -301,15 +300,17 @@ function changePitcherRole(state, playerId, newRole) {
 
 // 야수 포지션 변경 (유틸리티)
 // primaryPosition: 원래 포지션 (최초 생성 시), assignedPosition: 현재 배정 포지션
+// 포지션 패널티 (현실 반영)
+// SS→2B 쉬움, CF→코너OF 쉬움, RF→LF 쉬움, LF→RF/CF 어려움
 const POSITION_GROUPS = {
-    'C':  { group: 'C',  penalty: { 'C': 0, '1B': -15, '2B': -25, '3B': -20, 'SS': -30, 'LF': -15, 'CF': -25, 'RF': -15 } },
-    '1B': { group: 'IF', penalty: { 'C': -35, '1B': 0, '2B': -15, '3B': -10, 'SS': -20, 'LF': -10, 'CF': -20, 'RF': -10 } },
-    '2B': { group: 'IF', penalty: { 'C': -30, '1B': -5, '2B': 0, '3B': -8, 'SS': -10, 'LF': -10, 'CF': -15, 'RF': -10 } },
-    '3B': { group: 'IF', penalty: { 'C': -30, '1B': -5, '2B': -10, '3B': 0, 'SS': -12, 'LF': -8, 'CF': -18, 'RF': -10 } },
-    'SS': { group: 'IF', penalty: { 'C': -25, '1B': -3, '2B': -5, '3B': -5, 'SS': 0, 'LF': -8, 'CF': -12, 'RF': -8 } },
-    'LF': { group: 'OF', penalty: { 'C': -35, '1B': -8, '2B': -15, '3B': -12, 'SS': -20, 'LF': 0, 'CF': -8, 'RF': -3 } },
-    'CF': { group: 'OF', penalty: { 'C': -35, '1B': -10, '2B': -12, '3B': -15, 'SS': -18, 'LF': -5, 'CF': 0, 'RF': -5 } },
-    'RF': { group: 'OF', penalty: { 'C': -35, '1B': -8, '2B': -15, '3B': -12, 'SS': -20, 'LF': -3, 'CF': -8, 'RF': 0 } },
+    'C':  { group: 'C',  penalty: { 'C': 0, '1B': -10, '2B': -25, '3B': -20, 'SS': -30, 'LF': -15, 'CF': -25, 'RF': -15 } },
+    '1B': { group: 'IF', penalty: { 'C': -35, '1B': 0, '2B': -15, '3B': -10, 'SS': -22, 'LF': -10, 'CF': -20, 'RF': -10 } },
+    '2B': { group: 'IF', penalty: { 'C': -30, '2B': 0, 'SS': -8, '3B': -6, '1B': -3, 'LF': -12, 'CF': -18, 'RF': -12 } },
+    '3B': { group: 'IF', penalty: { 'C': -30, '3B': 0, '1B': -3, 'SS': -10, '2B': -8, 'LF': -10, 'CF': -20, 'RF': -12 } },
+    'SS': { group: 'IF', penalty: { 'SS': 0, '2B': -2, '3B': -3, '1B': -2, 'C': -25, 'LF': -8, 'CF': -10, 'RF': -8 } },
+    'LF': { group: 'OF', penalty: { 'LF': 0, 'RF': -8, 'CF': -15, '1B': -8, '2B': -18, '3B': -15, 'SS': -25, 'C': -35 } },
+    'CF': { group: 'OF', penalty: { 'CF': 0, 'LF': -1, 'RF': -1, '1B': -10, '2B': -12, '3B': -15, 'SS': -18, 'C': -35 } },
+    'RF': { group: 'OF', penalty: { 'RF': 0, 'LF': -2, 'CF': -6, '1B': -8, '2B': -18, '3B': -15, 'SS': -22, 'C': -35 } },
 };
 
 function getPositionPenalty(primaryPos, assignedPos) {
