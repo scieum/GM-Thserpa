@@ -437,16 +437,11 @@ const FOREIGN_PITCHER_POOL = [
 
     // === 한국계 선수 ===
     { name: 'Dane Dunning', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', role: '선발',
-      salary: 100, age: 30, throwBat: '우투우타', height: 193, weight: 100,
+      salary: 100, age: 32, throwBat: '우투우타', height: 193, weight: 100,
       stats: { ERA: 4.50, FIP: 4.20, xFIP: 4.10, BABIP: 0.305, IVB: 34, VAA: -4.6, 'CSW%': 27, IP: 155, SO: 125, BB: 42, HR: 20 },
       ratings: { stuff: 52, command: 58, stamina: 60, effectiveness: 55, consistency: 55 },
       scouting: '전 TEX. 한국계 미국인. 이닝이터 타입. 싱커/슬라이더 조합. 안정적' },
 
-    { name: 'Shea Whitcomb', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '중계',
-      salary: 55, age: 26, throwBat: '우투우타', height: 185, weight: 88,
-      stats: { ERA: 3.60, FIP: 3.40, xFIP: 3.50, BABIP: 0.295, IVB: 38, VAA: -4.0, 'CSW%': 30, IP: 60, SO: 65, BB: 20, HR: 5 },
-      ratings: { stuff: 55, command: 52, stamina: 35, effectiveness: 52, consistency: 50 },
-      scouting: '한국계 미국인. AAA 릴리버. 직구+슬라이더 조합 좋음. 성장 가능성' },
 ];
 
 // ── 외국인 타자 후보 풀 (티어별 실제 기반 데이터) ──
@@ -788,8 +783,14 @@ const FOREIGN_BATTER_POOL = [
       scouting: 'AA 홈런 2위. 순수 파워형 DH. Barrel% 높으나 삼진 극히 많음' },
 
     // === 한국계 선수 ===
+    { name: 'Shea Whitcomb', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', position: '2B',
+      salary: 55, age: 28, throwBat: '우투우타', height: 180, weight: 82,
+      stats: { AVG: 0.265, OBP: 0.335, SLG: 0.430, OPS: 0.765, 'wRC+': 112, 'Barrel%': 9.5, HR: 14, BB: 32, SB: 8, PA: 490 },
+      ratings: { contact: 52, power: 50, eye: 48, speed: 45, defense: 52 },
+      scouting: '한국계 미국인. AAA 내야수(2B/SS). 밸런스형. 파워+수비 겸비. HOU 유망주' },
+
     { name: 'Jermaine Jones', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', position: 'SS',
-      salary: 60, age: 25, throwBat: '우투우타', height: 183, weight: 82,
+      salary: 60, age: 29, throwBat: '우투우타', height: 183, weight: 82,
       stats: { AVG: 0.270, OBP: 0.340, SLG: 0.420, OPS: 0.760, 'wRC+': 112, 'Barrel%': 8.0, HR: 12, BB: 35, SB: 15, PA: 500 },
       ratings: { contact: 55, power: 48, eye: 48, speed: 55, defense: 55 },
       scouting: '한국계 미국인. AAA 유격수. 밸런스형 5툴. 수비+주루 좋고 발전 가능성' },
