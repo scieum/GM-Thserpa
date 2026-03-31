@@ -789,11 +789,11 @@ const FOREIGN_BATTER_POOL = [
       ratings: { contact: 52, power: 50, eye: 48, speed: 45, defense: 52 },
       scouting: '한국계 미국인. AAA 내야수(2B/SS). 밸런스형. 파워+수비 겸비. HOU 유망주' },
 
-    { name: 'Jermaine Jones', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', position: 'SS',
+    { name: 'Jermaine Jones', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', position: 'RF',
       salary: 60, age: 29, throwBat: '우투우타', height: 183, weight: 82,
       stats: { AVG: 0.270, OBP: 0.340, SLG: 0.420, OPS: 0.760, 'wRC+': 112, 'Barrel%': 8.0, HR: 12, BB: 35, SB: 15, PA: 500 },
       ratings: { contact: 55, power: 48, eye: 48, speed: 55, defense: 55 },
-      scouting: '한국계 미국인. AAA 유격수. 밸런스형 5툴. 수비+주루 좋고 발전 가능성' },
+      scouting: '한국계 미국인. 주로 RF 출전, 내야 유틸리티도 가능. 밸런스형 5툴 플레이어' },
 ];
 
 // ── 미션 상태 관리 ──
