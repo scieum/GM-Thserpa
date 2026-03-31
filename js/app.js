@@ -1400,7 +1400,8 @@ function showPlayerModal(player) {
             { label: '효율', val: r.effectiveness },
             { label: '안정', val: r.consistency },
         ];
-        const pitchSection = (p.realStats && p.realStats.pitches) ? `<div class="pm-ratings-title" style="margin-top:12px;">구종</div>${renderPitcherPitchTypes(p.realStats)}` : '';
+        const pitchData = (p.realStats && p.realStats.pitches) ? p.realStats : (p.pitches ? { pitches: p.pitches } : null);
+        const pitchSection = pitchData ? `<div class="pm-ratings-title" style="margin-top:12px;">구종</div>${renderPitcherPitchTypes(pitchData)}` : '';
         ratingsEl.innerHTML = `
             <div class="pm-ratings-title">20-80 스카우팅 레이팅</div>
             ${tools.map(t => `
@@ -2785,7 +2786,8 @@ function showScoutDetailInline(p) {
     let ratingsHTML = '';
     if (p.position === 'P' && r.stuff != null) {
         const tools = [{label:'구위',val:r.stuff},{label:'제구',val:r.command},{label:'체력',val:r.stamina},{label:'효율',val:r.effectiveness},{label:'안정',val:r.consistency}];
-        const inlinePitch = (p.realStats && p.realStats.pitches) ? `<div class="pm-ratings-title" style="margin-top:12px;">구종</div>${renderPitcherPitchTypes(p.realStats)}` : '';
+        const inlinePitchData = (p.realStats && p.realStats.pitches) ? p.realStats : (p.pitches ? { pitches: p.pitches } : null);
+        const inlinePitch = inlinePitchData ? `<div class="pm-ratings-title" style="margin-top:12px;">구종</div>${renderPitcherPitchTypes(inlinePitchData)}` : '';
         ratingsHTML = `<div class="pm-ratings-title">20-80 스카우팅 레이팅</div>` +
             tools.map(t => `<div class="pm-rating-row"><span class="pm-rating-label">${t.label}</span><div class="pm-rating-bar"><div class="pm-rating-fill" style="width:${(t.val-20)/60*100}%;background:${ratingColor(t.val)};"></div></div><span class="pm-rating-value" style="color:${ratingColor(t.val)};">${t.val}</span></div>`).join('') + inlinePitch;
     } else if (p.position !== 'P' && r.contact != null) {
