@@ -3380,6 +3380,45 @@ body {
 .fs-rating-box span { display: block; font-size: 10px; color: var(--text-muted); }
 .fs-rating-box strong { font-size: 16px; color: var(--text-primary); }
 
+/* ===== DETAILED SCOUTING REPORT ===== */
+.fs-report-section { margin-bottom: 16px; }
+.fs-report-title {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+}
+.fs-report-box {
+    background: var(--bg-main);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+.fs-report-strength {
+    background: rgba(34,197,94,0.08);
+    border-left: 3px solid #22c55e;
+    padding: 8px 12px;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 6px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+.fs-report-weakness {
+    background: rgba(239,68,68,0.08);
+    border-left: 3px solid #ef4444;
+    padding: 8px 12px;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 6px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
 /* ===== PRINT ===== */
 @media print {
     .top-bar, .sim-controls, .trade-center button, .bracket button { display: none !important; }

@@ -486,10 +486,11 @@
 
                 <!-- 우측: 결과 테이블 -->
                 <div class="scout-results" id="fsResultsArea">
-                    <div style="display:flex;align-items:center;gap:16px;margin-bottom:10px;">
+                    <div style="display:flex;align-items:center;gap:16px;margin-bottom:10px;flex-wrap:wrap;">
                         <span id="fsResultCount" style="font-size:13px;font-weight:700;">후보 0명</span>
                         <button class="btn btn--sm btn--primary" id="btnFsCompare">선수 비교 (<span id="fsCompareCount">0</span>명 선택)</button>
-                        <div class="fs-team-budget" id="fsTeamBudget" style="font-size:12px;color:var(--text-muted);"></div>
+                        <span id="fsScoutingRemain" style="font-size:12px;font-weight:600;color:#fbbf24;">상세 스카우팅: 1회 남음</span>
+                        <div class="fs-team-budget" id="fsTeamBudget" style="font-size:12px;color:var(--text-muted);margin-left:auto;"></div>
                     </div>
                     <table class="player-table scout-table" id="fsResultTable">
                         <thead><tr></tr></thead>

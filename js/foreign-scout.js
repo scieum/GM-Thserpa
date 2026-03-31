@@ -552,6 +552,7 @@ let foreignScoutState = {
     missionShown: false,
     missionChoice: null,
     recruited: [],
+    detailedReport: null, // 상세 스카우팅 사용한 선수 이름 (팀당 1회)
 };
 
 // localStorage에서 복원
@@ -872,6 +873,227 @@ function filterForeignBatters() {
     });
 }
 
+// ── 상세 스카우팅 리포트 생성 ──
+function generateDetailedReport(p, type) {
+    const r = p.ratings;
+    const s = p.stats;
+    const isPitcher = type === 'pitcher';
+
+    // ── 종합 요약 ──
+    let summary = '';
+    if (isPitcher) {
+        const avgR = (r.stuff + r.command + r.stamina + r.effectiveness + r.consistency) / 5;
+        if (avgR >= 58) summary = `${p.origin} 출신으로 검증된 실력을 갖춘 투수다. 현재 보여주는 것이 곧 이 선수의 실체라고 봐도 무방하다. KBO 리그에서 로테이션의 핵심 자원으로 활용 가능하며, 팀의 투수진 안정화에 크게 기여할 수 있다.`;
+        else if (avgR >= 50) summary = `${p.origin}에서 일정 수준의 성적을 보여준 투수다. 뚜렷한 강점과 약점이 공존하며, KBO 적응 여부에 따라 성적 편차가 클 수 있다. 보강 포인트가 명확한 팀이라면 고려해볼 만하다.`;
+        else summary = `아직 검증이 부족한 투수다. 잠재력에 베팅하는 영입이 될 수 있으며, 성공 시 가성비가 뛰어나지만 실패 리스크도 상당하다. 충분한 적응 기간이 필요할 것으로 보인다.`;
+
+        if (s.ERA > 5.0 && s.FIP < 4.5) summary += ' 다만, ERA와 FIP의 괴리가 크다는 점은 주목할 만하다. 불운의 영향이 있었을 가능성이 있다.';
+        if (s.IVB >= 40) summary += ' 직구의 수직 무브먼트가 인상적이어서 헛스윙을 유도하는 능력이 뛰어나다.';
+    } else {
+        const avgR = (r.contact + r.power + r.eye + r.speed + r.defense) / 5;
+        if (avgR >= 55) summary = `${p.origin} 출신의 검증된 타자다. 복수의 도구에서 평균 이상의 능력을 보유하고 있으며, KBO 리그에서 중심 타선을 구성할 수 있는 자원이다.`;
+        else if (avgR >= 45) summary = `${p.origin}에서 활동한 타자로, 특정 영역에서 강점을 가지고 있다. KBO 투수진 상대로 적응 기간이 필요하나, 자신의 강점을 살리면 기여할 수 있다.`;
+        else summary = `아직 상위 리그에서의 검증이 부족한 타자다. 성장 가능성에 기대하는 영입이며, 적응에 시간이 필요할 것으로 예상된다.`;
+
+        if (s.OPS >= 0.800) summary += ' 출루+장타 생산력이 우수한 편이다.';
+        if (s['Barrel%'] >= 12) summary += ' 타구 질이 뛰어나 장타 생산 능력이 검증되어 있다.';
+    }
+
+    // ── 강점 ──
+    const strengths = [];
+    if (isPitcher) {
+        if (r.stuff >= 58) strengths.push('구위가 인상적이며 삼진을 잡아낼 수 있는 구종을 보유하고 있다');
+        if (r.stuff >= 62) strengths.push('패스트볼의 무브먼트가 상급이며 타자들이 컨택하기 어려워한다');
+        if (r.command >= 58) strengths.push('뛰어난 제구력으로 볼넷을 효과적으로 억제한다');
+        if (r.command >= 65) strengths.push('코너워크가 정교하며 유리한 카운트를 만드는 능력이 탁월하다');
+        if (r.stamina >= 58) strengths.push('이닝 소화 능력이 우수하여 선발 로테이션 안정화에 기여한다');
+        if (r.stamina >= 65) strengths.push('시즌 후반까지 체력이 유지되는 이닝이터 타입이다');
+        if (r.effectiveness >= 58) strengths.push('실전에서의 효율이 높아 실제 성적이 기대치를 상회하는 경향이 있다');
+        if (r.consistency >= 58) strengths.push('등판마다 안정적인 퍼포먼스를 보여주어 신뢰할 수 있다');
+        if (s['CSW%'] >= 30) strengths.push('스트라이크+헛스윙 비율이 높아 카운트 장악력이 뛰어나다');
+        if (s.FIP < 3.5) strengths.push('수비와 무관한 순수 투구 능력이 상위권이다');
+    } else {
+        if (r.contact >= 58) strengths.push('컨택 능력이 뛰어나 다양한 구종에 대응하는 능력이 우수하다');
+        if (r.contact >= 65) strengths.push('배트 컨트롤이 최상급으로 꾸준한 안타 생산이 가능하다');
+        if (r.power >= 58) strengths.push('임팩트 순간의 폭발력이 인상적이며 장타 생산 능력이 우수하다');
+        if (r.power >= 68) strengths.push('순수 파워가 최상급이며 한 방으로 경기 흐름을 바꿀 수 있다');
+        if (r.eye >= 55) strengths.push('선구안이 좋아 출루율이 높고 투수를 지치게 만든다');
+        if (r.eye >= 62) strengths.push('볼 선별 능력이 뛰어나 볼넷을 잘 골라내는 출루 머신이다');
+        if (r.speed >= 55) strengths.push('주루 능력이 우수하여 도루와 진루에서 가치를 더한다');
+        if (r.speed >= 65) strengths.push('리그 최상위급 스피드로 수비 범위와 주루에서 압도적이다');
+        if (r.defense >= 58) strengths.push('수비 안정성이 높아 포지션에서 믿음직한 플레이를 보여준다');
+        if (r.defense >= 65) strengths.push('수비 범위와 송구가 출중하며 골드글러브급 수비 가치를 지닌다');
+        if (s['wRC+'] >= 120) strengths.push('득점 생산력이 리그 평균 대비 월등히 높다');
+    }
+    if (strengths.length === 0) strengths.push('특별히 두드러지는 강점보다는 밸런스형 선수로 평가된다');
+
+    // ── 약점 ──
+    const weaknesses = [];
+    if (isPitcher) {
+        if (r.stuff <= 48) weaknesses.push('구위에 한계가 있어 KBO 상위 타선 상대로 고전할 수 있다');
+        if (r.command <= 48) weaknesses.push('제구 불안이 있어 볼넷으로 인한 자멸 가능성이 존재한다');
+        if (r.command <= 42) weaknesses.push('제구력이 심각하게 부족하여 이닝 초반부터 주자를 내보낼 수 있다');
+        if (r.stamina <= 40) weaknesses.push('체력적 한계로 선발 풀이닝 소화가 어려울 수 있다');
+        if (r.effectiveness <= 45) weaknesses.push('실전 효율이 낮아 기대 이하의 성적을 낼 가능성이 있다');
+        if (r.consistency <= 45) weaknesses.push('등판별 편차가 커서 안정적인 성적을 기대하기 어렵다');
+        if (s.HR >= 20 && s.IP < 150) weaknesses.push('피홈런 비율이 높아 한 방에 무너질 수 있는 리스크가 있다');
+    } else {
+        if (r.contact <= 45) weaknesses.push('삼진이 많아 찬스 상황에서 생산성이 떨어질 수 있다');
+        if (r.power <= 38) weaknesses.push('장타력이 부족하여 클린업 타선에는 적합하지 않다');
+        if (r.eye <= 40) weaknesses.push('볼 선별 능력이 부족하여 투수 유리한 카운트에 자주 몰린다');
+        if (r.speed <= 28) weaknesses.push('주루와 수비 범위에서 한계가 뚜렷하다');
+        if (r.defense <= 35) weaknesses.push('프로 수준의 수비력에 도달하려면 개선이 필요하다');
+        if (r.defense <= 25) weaknesses.push('수비 포지션이 DH로 제한될 가능성이 높다');
+    }
+    if (weaknesses.length === 0) weaknesses.push('뚜렷한 약점은 발견되지 않았으나, 모든 영역에서 압도적이지는 않다');
+
+    // ── 역할 전망 ──
+    let roleForecast = '';
+    if (isPitcher) {
+        if (r.stamina >= 55 && r.command >= 50) {
+            if (r.stuff >= 58) roleForecast = `[에이스/핵심 선발] 로테이션의 1~2선발로 기대할 수 있다. 중요한 경기에서 믿고 맡길 수 있는 투수다.`;
+            else roleForecast = `[이닝이터/로테이션 선발] 매 경기 안정적인 이닝을 소화하며 불펜 부담을 줄여주는 역할이 기대된다.`;
+        } else if (r.stuff >= 58 && r.stamina < 50) {
+            roleForecast = `[불펜 핵심/셋업맨] 짧은 이닝에서 구위를 극대화할 수 있다. 7~8회를 책임질 수 있는 자원이다.`;
+        } else if (p.role === '마무리') {
+            roleForecast = `[마무리/고레버리지] 9회 마운드를 맡길 수 있는 마무리 자원이다. 심장이 강한 타입인지가 관건이다.`;
+        } else {
+            roleForecast = `[로테이션 하위/롱릴리프] 5선발 또는 롱릴리프로 활용 가능하다. 선발진 부상 시 백업으로서의 가치가 있다.`;
+        }
+    } else {
+        if (r.power >= 60 && r.contact >= 50) roleForecast = `[클린업 타자] 4번 타자 또는 중심 타선에 배치하여 장타력을 활용할 수 있다.`;
+        else if (r.contact >= 58 && r.eye >= 50) roleForecast = `[출루형/상위 타선] 1~2번 타자로 출루율을 높이고 득점 기회를 만드는 역할이 적합하다.`;
+        else if (r.speed >= 58 && r.defense >= 55) roleForecast = `[수비형/리드오프] 수비와 주루로 팀에 기여하며, 리드오프나 하위 타선에서 활용 가능하다.`;
+        else if (r.power >= 65) roleForecast = `[파워 전문/DH] 순수 파워를 활용한 DH 또는 대타 요원으로 가치가 높다.`;
+        else roleForecast = `[유틸리티/밸런스형] 여러 역할을 소화할 수 있는 범용 자원이다. 팀 상황에 맞춰 유연하게 활용 가능하다.`;
+    }
+
+    // ── 비교 선수 (KBO 역대 외국인) ──
+    let compPlayer = '';
+    if (isPitcher) {
+        if (r.stuff >= 62 && r.command >= 55) compPlayer = '에릭 해커(NC)처럼 구위와 제구를 겸비한 안정적인 에이스 타입이다.';
+        else if (r.command >= 62 && r.stuff <= 50) compPlayer = '닉 킹엄(삼성)처럼 구속보다 제구와 경험으로 승부하는 연식 투수 타입이다.';
+        else if (r.stuff >= 58 && r.command <= 48) compPlayer = '윌리엄스(롯데)처럼 구위는 좋으나 제구가 불안한 잠재력 타입이다. 코칭스태프의 관리가 관건이다.';
+        else if (r.stamina >= 62) compPlayer = '플럿코(삼성)처럼 이닝을 묵묵히 소화하는 워크호스 타입이다.';
+        else compPlayer = 'KBO 중위권 외국인 투수와 유사한 프로필이다. 적응 여부에 따라 성적 편차가 클 수 있다.';
+    } else {
+        if (r.power >= 68) compPlayer = '로하스(KT)처럼 KBO에서 40홈런 이상을 노릴 수 있는 순수 파워 타입이다.';
+        else if (r.contact >= 60 && r.eye >= 55) compPlayer = '헤이스(KIA)처럼 안타와 출루를 꾸준히 생산하는 컨택형 타자 타입이다.';
+        else if (r.speed >= 60 && r.defense >= 55) compPlayer = '피렐라(삼성)처럼 주루와 수비로 팀에 활력을 불어넣는 타입이다.';
+        else if (r.power >= 55 && r.contact >= 50) compPlayer = '오스틴(LG)처럼 파워와 컨택을 겸비한 밸런스형 타자 타입이다.';
+        else compPlayer = 'KBO 중위권 외국인 타자와 유사한 프로필이다. 팀 맞춤형 영입이 될 수 있다.';
+    }
+
+    // ── KBO 적응 전망 ──
+    let adaptForecast = '';
+    const originAdapt = { 'MLB': '높음', 'AAA': '보통~높음', 'NPB': '높음', 'CPBL': '보통', 'AA': '보통~낮음', '쿠바': '미지수', '중남미': '보통', '독립리그': '보통~낮음', 'ABL': '보통~낮음' };
+    const adaptLevel = originAdapt[p.origin] || '미지수';
+
+    if (p.age >= 33) adaptForecast = `적응 가능성: ${adaptLevel}. ${p.origin} 경험이 있으나 나이(${p.age}세)를 고려하면 체력 관리가 관건이다. 시즌 후반 컨디션 저하 가능성을 대비해야 한다.`;
+    else if (p.age <= 25) adaptForecast = `적응 가능성: ${adaptLevel}. 젊은 나이(${p.age}세)로 성장 가능성이 있으나, ${p.origin} 수준에서 KBO로의 전환에 적응 기간이 필요할 수 있다.`;
+    else adaptForecast = `적응 가능성: ${adaptLevel}. ${p.origin} 경험과 적정 나이(${p.age}세)를 고려하면 비교적 안정적인 적응이 기대된다.`;
+
+    if (p.origin === 'NPB' || p.origin === 'CPBL') adaptForecast += ' 아시아 야구 경험이 있어 타이밍 적응에 유리하다.';
+    if (p.origin === 'MLB') adaptForecast += ' MLB 경험은 큰 자산이지만, KBO 특유의 좁은 존과 느린 경기 템포에 적응해야 한다.';
+
+    return { summary, strengths, weaknesses, roleForecast, compPlayer, adaptForecast };
+}
+
+function showDetailedReport(type, name) {
+    if (foreignScoutState.detailedReport) {
+        showToast(`이미 상세 스카우팅을 사용했습니다. (${foreignScoutState.detailedReport})`, 'warning');
+        return;
+    }
+
+    const pool = type === 'pitcher' ? FOREIGN_PITCHER_POOL : FOREIGN_BATTER_POOL;
+    const p = pool.find(x => x.name === name);
+    if (!p) return;
+
+    foreignScoutState.detailedReport = p.name;
+    saveForeignScoutState();
+
+    const report = generateDetailedReport(p, type);
+    const isAsia = p.type === '아시아쿼터';
+
+    const modal = document.getElementById('playerModal');
+    const header = document.getElementById('playerModalHeader');
+    const ratings = document.getElementById('playerModalRatings');
+    const statsEl = document.getElementById('playerModalStats');
+
+    header.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px;">
+            <div style="line-height:1;">${getFlagImg(p.nationality, 32)}</div>
+            <div>
+                <h3 style="margin:0;font-size:18px;">${p.name} <span style="font-size:12px;color:var(--text-muted);font-weight:400;margin-left:4px;">${p.origin}</span></h3>
+                <div style="font-size:13px;color:var(--text-muted);">
+                    ${p.nationality} · ${type === 'pitcher' ? p.role : p.position} · ${p.throwBat} · ${p.age}세 · ${p.height}cm/${p.weight}kg
+                </div>
+                <div style="margin-top:4px;font-size:13px;color:#fbbf24;">
+                    연봉: ${p.salary}만$ ${isAsia ? '(아시아쿼터)' : ''}
+                </div>
+                <div style="margin-top:6px;padding:3px 10px;background:var(--accent);color:#fff;border-radius:4px;display:inline-block;font-size:11px;font-weight:700;">
+                    DETAILED SCOUTING REPORT
+                </div>
+            </div>
+        </div>`;
+
+    ratings.innerHTML = `
+        <div class="fs-report-section">
+            <div class="fs-report-title">종합 요약</div>
+            <div class="fs-report-box">${report.summary}</div>
+        </div>
+
+        <div class="fs-report-section">
+            <div class="fs-report-title">강점</div>
+            ${report.strengths.map(s => `<div class="fs-report-strength">${s}</div>`).join('')}
+        </div>
+
+        <div class="fs-report-section">
+            <div class="fs-report-title">약점</div>
+            ${report.weaknesses.map(w => `<div class="fs-report-weakness">${w}</div>`).join('')}
+        </div>
+
+        <div class="fs-report-section">
+            <div class="fs-report-title">역할 전망</div>
+            <div class="fs-report-box">${report.roleForecast}</div>
+        </div>
+
+        <div class="fs-report-section">
+            <div class="fs-report-title">비교 선수</div>
+            <div class="fs-report-box">${report.compPlayer}</div>
+        </div>
+
+        <div class="fs-report-section">
+            <div class="fs-report-title">KBO 적응 전망</div>
+            <div class="fs-report-box">${report.adaptForecast}</div>
+        </div>`;
+
+    statsEl.innerHTML = `
+        <div style="font-size:11px;color:var(--text-muted);margin-top:12px;text-align:center;font-style:italic;">
+            이 리포트는 스카우팅팀의 분석입니다. 최종 판단은 GM의 몫입니다.
+        </div>`;
+
+    modal.style.display = 'flex';
+    const closeBtn = document.getElementById('playerModalClose');
+    if (closeBtn) closeBtn.onclick = () => { modal.style.display = 'none'; };
+    modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+
+    showToast(`${p.name}의 상세 스카우팅 리포트가 도착했습니다.`, 'success');
+    updateScoutingRemaining();
+}
+
+function updateScoutingRemaining() {
+    const el = document.getElementById('fsScoutingRemain');
+    if (!el) return;
+    if (foreignScoutState.detailedReport) {
+        el.textContent = `상세 스카우팅: 사용 완료 (${foreignScoutState.detailedReport})`;
+        el.style.color = 'var(--text-muted)';
+    } else {
+        el.textContent = '상세 스카우팅: 1회 남음';
+        el.style.color = '#fbbf24';
+    }
+}
+
 // ── 선수 상세 (클릭) ──
 function showFsPlayerDetail(type, name) {
     const pool = type === 'pitcher' ? FOREIGN_PITCHER_POOL : FOREIGN_BATTER_POOL;
@@ -932,12 +1154,26 @@ function showFsPlayerDetail(type, name) {
 
     ratings.innerHTML = statsHtml;
 
+    const alreadyUsed = foreignScoutState.detailedReport;
+    const isThisPlayer = alreadyUsed === p.name;
+    let scoutBtnHtml = '';
+    if (isThisPlayer) {
+        scoutBtnHtml = `<button class="btn btn--sm" style="width:100%;margin-top:12px;opacity:0.5;" disabled>상세 스카우팅 리포트 보기</button>`;
+        // 이미 이 선수의 리포트를 본 경우 → 다시 볼 수 있게
+        scoutBtnHtml = `<button class="btn btn--sm btn--primary" style="width:100%;margin-top:12px;" onclick="event.stopPropagation(); showDetailedReport('${type}','${p.name}')">상세 스카우팅 리포트 다시 보기</button>`;
+    } else if (alreadyUsed) {
+        scoutBtnHtml = `<button class="btn btn--sm" style="width:100%;margin-top:12px;opacity:0.4;" disabled>상세 스카우팅 사용 완료 (${alreadyUsed})</button>`;
+    } else {
+        scoutBtnHtml = `<button class="btn btn--sm btn--primary" style="width:100%;margin-top:12px;" onclick="event.stopPropagation(); showDetailedReport('${type}','${p.name}')">상세 스카우팅 요청 (1회 한정)</button>`;
+    }
+
     statsEl.innerHTML = `
         <div style="background:rgba(251,191,36,0.08);border-radius:8px;padding:12px;margin-top:8px;">
             <div style="font-size:12px;font-weight:700;color:#fbbf24;margin-bottom:4px;">스카우팅 리포트</div>
             <div style="font-size:13px;color:var(--text-secondary);line-height:1.5;">${p.scouting}</div>
         </div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">${salaryNote}</div>`;
+        <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">${salaryNote}</div>
+        ${scoutBtnHtml}`;
 
     modal.style.display = 'flex';
 
@@ -1033,6 +1269,9 @@ function recruitForeignPlayer(type, name) {
 // ── 초기화 ──
 function initForeignScout() {
     loadForeignScoutState();
+
+    // 상세 스카우팅 잔여 횟수 표시
+    updateScoutingRemaining();
 
     // 네비게이션 버튼 활성화
     const navBtn = document.getElementById('navForeignScout');
@@ -1378,3 +1617,4 @@ window.updateFsCompareBtn = updateFsCompareBtn;
 window.openFsCompare = openFsCompare;
 window.closeFsCompare = closeFsCompare;
 window.addKboToCompare = addKboToCompare;
+window.showDetailedReport = showDetailedReport;
