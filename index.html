@@ -23,6 +23,7 @@
             <button class="nav-btn nav-btn--futures" data-view="futures">2군 (퓨처스)</button>
             <button class="nav-btn" data-view="depthchart">뎁스 차트</button>
             <button class="nav-btn" data-view="trade">트레이드 마켓</button>
+            <button class="nav-btn" data-view="foreign-scout" id="navForeignScout">외국인 스카우트</button>
             <button class="nav-btn" data-view="simulator">리그 시뮬레이션</button>
             <button class="nav-btn" data-view="postseason">포스트시즌</button>
         </nav>
@@ -112,21 +113,22 @@
             <div class="roster-tables">
                 <div class="roster-col">
                     <h3>투수진</h3>
-                    <table class="player-table" id="pitcherTable">
+                    <table class="player-table roster-table" id="pitcherTable">
                         <thead>
                             <tr>
-                                <th data-sort="number">#</th>
-                                <th data-sort="name">이름</th>
-                                <th data-sort="role">역할</th>
-                                <th data-sort="throwBat">투</th>
-                                <th data-sort="age">나이</th>
-                                <th data-sort="stuff">구위</th>
-                                <th data-sort="command">제구</th>
-                                <th data-sort="stamina">체력</th>
-                                <th data-sort="effectiveness">효율</th>
-                                <th data-sort="consistency">안정</th>
-                                <th data-sort="ovr">OVR</th>
-                                <th data-sort="salary">연봉</th>
+                                <th data-sort="number" style="width:40px">#</th>
+                                <th data-sort="name" style="width:80px">이름</th>
+                                <th data-sort="role" style="width:70px">역할</th>
+                                <th data-sort="throwBat" style="width:50px">투</th>
+                                <th data-sort="age" style="width:45px">나이</th>
+                                <th data-sort="stuff" style="width:50px">구위</th>
+                                <th data-sort="command" style="width:50px">제구</th>
+                                <th data-sort="stamina" style="width:50px">체력</th>
+                                <th data-sort="effectiveness" style="width:50px">효율</th>
+                                <th data-sort="consistency" style="width:50px">안정</th>
+                                <th data-sort="ovr" style="width:70px">OVR</th>
+                                <th data-sort="salary" style="width:60px">연봉</th>
+                                <th style="width:60px"></th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -134,21 +136,22 @@
                 </div>
                 <div class="roster-col">
                     <h3>야수진</h3>
-                    <table class="player-table" id="batterTable">
+                    <table class="player-table roster-table" id="batterTable">
                         <thead>
                             <tr>
-                                <th data-sort="number">#</th>
-                                <th data-sort="name">이름</th>
-                                <th data-sort="position">포지션</th>
-                                <th data-sort="throwBat">투타</th>
-                                <th data-sort="age">나이</th>
-                                <th data-sort="contact">컨택</th>
-                                <th data-sort="power_r">파워</th>
-                                <th data-sort="eye">선구안</th>
-                                <th data-sort="speed_r">스피드</th>
-                                <th data-sort="defense_r">수비</th>
-                                <th data-sort="ovr">OVR</th>
-                                <th data-sort="salary">연봉</th>
+                                <th data-sort="number" style="width:40px">#</th>
+                                <th data-sort="name" style="width:80px">이름</th>
+                                <th data-sort="position" style="width:70px">포지션</th>
+                                <th data-sort="throwBat" style="width:50px">투타</th>
+                                <th data-sort="age" style="width:45px">나이</th>
+                                <th data-sort="contact" style="width:50px">컨택</th>
+                                <th data-sort="power_r" style="width:50px">파워</th>
+                                <th data-sort="eye" style="width:50px">선구안</th>
+                                <th data-sort="speed_r" style="width:50px">스피드</th>
+                                <th data-sort="defense_r" style="width:50px">수비</th>
+                                <th data-sort="ovr" style="width:70px">OVR</th>
+                                <th data-sort="salary" style="width:60px">연봉</th>
+                                <th style="width:60px"></th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -368,20 +371,162 @@
                 </div><!-- /scout-left -->
 
                 <!-- 결과 테이블 -->
-                <div class="scout-results">
+                <div class="scout-results" id="scoutResultsArea">
                     <table class="player-table scout-table" id="scoutResultTable">
                         <thead id="scoutResultHead"></thead>
                         <tbody id="scoutResultBody"></tbody>
                     </table>
-                    <!-- 선수 상세 인라인 패널 -->
-                    <div class="scout-detail" id="scoutDetail" style="display:none;">
-                        <button class="scout-detail__close" id="scoutDetailClose">&times;</button>
+                </div>
+                <!-- 선수 비교 (별도 페이지) -->
+                <div class="scout-detail-page" id="scoutComparePage" style="display:none;">
+                    <button class="scout-detail__back" id="scoutCompareBack">← 검색 결과로 돌아가기</button>
+                    <h3 style="margin-bottom:16px;">선수 비교</h3>
+                    <div id="scoutCompareContent"></div>
+                </div>
+                <!-- 선수 상세 (별도 페이지) -->
+                <div class="scout-detail-page" id="scoutDetailPage" style="display:none;">
+                    <button class="scout-detail__back" id="scoutDetailBack">← 검색 결과로 돌아가기</button>
+                    <div class="scout-detail" id="scoutDetail">
                         <div class="scout-detail__header" id="scoutDetailHeader"></div>
                         <div class="scout-detail__body">
                             <div class="scout-detail__ratings" id="scoutDetailRatings"></div>
                             <div class="scout-detail__stats" id="scoutDetailStats"></div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: Foreign Scout -->
+        <section id="view-foreign-scout" class="view">
+            <h2 class="view__title">외국인 스카우트</h2>
+
+            <!-- 아시아쿼터 규정 배너 -->
+            <div class="fs-rule-banner" id="fsRuleBanner">
+                <div class="fs-rule-banner__icon">📋</div>
+                <div class="fs-rule-banner__text">
+                    <strong>2026 외국인 선수 규정</strong>
+                    <span>기존 외국인 3명 + 아시아쿼터 1명 = 최대 4명 보유 · 전원 동시 출전 가능</span>
+                    <span>아시아쿼터: 신규 영입 최대 20만$ (월 2만$) · 재계약 시 연 10만$ 인상 가능</span>
+                </div>
+            </div>
+
+            <div class="scout-container" id="fsMainContainer">
+                <!-- 좌측: 필터 패널 (280px, scout-left 재활용) -->
+                <div class="scout-left" id="fsLeftPanel">
+                    <div class="scout-mode-tabs">
+                        <button class="scout-mode-tab active" data-fs-tab="pitcher" id="fsTabPitcher">투수 후보</button>
+                        <button class="scout-mode-tab" data-fs-tab="batter" id="fsTabBatter">타자 후보</button>
+                    </div>
+
+                    <!-- 투수 필터 -->
+                    <div class="scout-filters" id="fsPitcherFilters">
+                        <div class="scout-filter-group">
+                            <h4>기본 정보</h4>
+                            <div class="scout-row">
+                                <label>유형</label>
+                                <div class="scout-multi-check">
+                                    <label class="scout-chip"><input type="checkbox" class="fs-f" data-fs="type" value="기존외국인" checked> 외국인</label>
+                                    <label class="scout-chip"><input type="checkbox" class="fs-f" data-fs="type" value="아시아쿼터" checked> 아시아쿼터</label>
+                                </div>
+                            </div>
+                            <div class="scout-row">
+                                <label>역할</label>
+                                <div class="scout-multi-check">
+                                    <label class="scout-chip"><input type="checkbox" class="fs-f" data-fs="role" value="선발"> 선발</label>
+                                    <label class="scout-chip"><input type="checkbox" class="fs-f" data-fs="role" value="중계"> 중계</label>
+                                    <label class="scout-chip"><input type="checkbox" class="fs-f" data-fs="role" value="마무리"> 마무리</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="scout-filter-group">
+                            <h4>연봉 / 나이</h4>
+                            <div class="scout-row scout-range-row"><label>연봉(만$)</label><input type="number" class="scout-input-sm fs-f" data-fs="salMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm fs-f" data-fs="salMax" placeholder="최대"></div>
+                            <div class="scout-row scout-range-row"><label>나이</label><input type="number" class="scout-input-sm fs-f" data-fs="ageMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm fs-f" data-fs="ageMax" placeholder="최대"></div>
+                        </div>
+                        <div class="scout-filter-group">
+                            <h4>능력치 (20-80)</h4>
+                            <div class="scout-row scout-range-row"><label>구위</label><input type="number" class="scout-input-sm fs-f" data-fs="stuffMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm fs-f" data-fs="stuffMax" placeholder="최대"></div>
+                            <div class="scout-row scout-range-row"><label>제구</label><input type="number" class="scout-input-sm fs-f" data-fs="commandMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm fs-f" data-fs="commandMax" placeholder="최대"></div>
+                            <div class="scout-row scout-range-row"><label>체력</label><input type="number" class="scout-input-sm fs-f" data-fs="staminaMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm fs-f" data-fs="staminaMax" placeholder="최대"></div>
+                        </div>
+                        <div class="scout-actions">
+                            <button class="btn btn--primary btn--sm" id="btnFsSearch">검색</button>
+                            <button class="btn btn--sm" id="btnFsReset">초기화</button>
+                            <span class="scout-count" id="fsCountP">0명</span>
+                        </div>
+                    </div>
+
+                    <!-- 타자 필터 (기본 숨김) -->
+                    <div class="scout-filters" id="fsBatterFilters" style="display:none;">
+                        <div class="scout-filter-group">
+                            <h4>기본 정보</h4>
+                            <div class="scout-row">
+                                <label>유형</label>
+                                <div class="scout-multi-check">
+                                    <label class="scout-chip"><input type="checkbox" class="fs-fb" data-fs="type" value="기존외국인" checked> 외국인</label>
+                                    <label class="scout-chip"><input type="checkbox" class="fs-fb" data-fs="type" value="아시아쿼터" checked> 아시아쿼터</label>
+                                </div>
+                            </div>
+                            <div class="scout-row">
+                                <label>포지션</label>
+                                <div class="scout-multi-check">
+                                    <label class="scout-chip"><input type="checkbox" class="fs-fb" data-fs="pos" value="C"> C</label>
+                                    <label class="scout-chip"><input type="checkbox" class="fs-fb" data-fs="pos" value="1B"> 1B</label>
+                                    <label class="scout-chip"><input type="checkbox" class="fs-fb" data-fs="pos" value="2B"> 2B</label>
+                                    <label class="scout-chip"><input type="checkbox" class="fs-fb" data-fs="pos" value="3B"> 3B</label>
+                                    <label class="scout-chip"><input type="checkbox" class="fs-fb" data-fs="pos" value="SS"> SS</label>
+                                    <label class="scout-chip"><input type="checkbox" class="fs-fb" data-fs="pos" value="LF"> LF</label>
+                                    <label class="scout-chip"><input type="checkbox" class="fs-fb" data-fs="pos" value="CF"> CF</label>
+                                    <label class="scout-chip"><input type="checkbox" class="fs-fb" data-fs="pos" value="RF"> RF</label>
+                                    <label class="scout-chip"><input type="checkbox" class="fs-fb" data-fs="pos" value="DH"> DH</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="scout-filter-group">
+                            <h4>연봉 / 나이</h4>
+                            <div class="scout-row scout-range-row"><label>연봉(만$)</label><input type="number" class="scout-input-sm fs-fb" data-fs="salMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm fs-fb" data-fs="salMax" placeholder="최대"></div>
+                            <div class="scout-row scout-range-row"><label>나이</label><input type="number" class="scout-input-sm fs-fb" data-fs="ageMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm fs-fb" data-fs="ageMax" placeholder="최대"></div>
+                        </div>
+                        <div class="scout-filter-group">
+                            <h4>능력치 (20-80)</h4>
+                            <div class="scout-row scout-range-row"><label>컨택</label><input type="number" class="scout-input-sm fs-fb" data-fs="contactMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm fs-fb" data-fs="contactMax" placeholder="최대"></div>
+                            <div class="scout-row scout-range-row"><label>파워</label><input type="number" class="scout-input-sm fs-fb" data-fs="powerMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm fs-fb" data-fs="powerMax" placeholder="최대"></div>
+                            <div class="scout-row scout-range-row"><label>수비</label><input type="number" class="scout-input-sm fs-fb" data-fs="defenseMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm fs-fb" data-fs="defenseMax" placeholder="최대"></div>
+                        </div>
+                        <div class="scout-actions">
+                            <button class="btn btn--primary btn--sm" id="btnFsSearchB">검색</button>
+                            <button class="btn btn--sm" id="btnFsResetB">초기화</button>
+                            <span class="scout-count" id="fsCountB">0명</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 우측: 결과 테이블 -->
+                <div class="scout-results" id="fsResultsArea">
+                    <div style="display:flex;align-items:center;gap:16px;margin-bottom:10px;">
+                        <span id="fsResultCount" style="font-size:13px;font-weight:700;">후보 0명</span>
+                        <button class="btn btn--sm btn--primary" id="btnFsCompare">선수 비교 (<span id="fsCompareCount">0</span>명 선택)</button>
+                        <div class="fs-team-budget" id="fsTeamBudget" style="font-size:12px;color:var(--text-muted);"></div>
+                    </div>
+                    <table class="player-table scout-table" id="fsResultTable">
+                        <thead><tr></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                    <div class="fs-empty" id="fsEmpty">검색 버튼을 눌러 외국인 후보를 확인하세요.</div>
+                </div>
+
+                <!-- 비교 페이지 (숨김) -->
+                <div class="scout-detail-page" id="fsComparePage" style="display:none;">
+                    <button class="scout-detail__back" id="fsCompareBack">← 검색 결과로 돌아가기</button>
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+                        <label style="font-size:12px;font-weight:700;color:var(--text-muted);">KBO 선수 추가 비교</label>
+                        <select id="fsKboPlayerSelect" class="scout-select" style="width:auto;min-width:200px;">
+                            <option value="">-- KBO 선수 선택 --</option>
+                        </select>
+                        <button class="btn btn--sm btn--primary" id="btnFsAddKbo">추가</button>
+                    </div>
+                    <div id="fsCompareContent"></div>
                 </div>
             </div>
         </section>
@@ -470,6 +615,43 @@
         </div>
     </div>
 
+    <!-- Mission Card Modal -->
+    <div class="mission-overlay" id="missionModal" style="display:none;">
+        <div class="mission-card">
+            <div class="mission-card__badge">🃏 GM 미션 카드</div>
+            <div class="mission-card__header" id="missionHeader">
+                <div class="mission-card__tag">[판단 요청]</div>
+                <h2 class="mission-card__title">외국인 투수 교체 여부 결정</h2>
+            </div>
+            <div class="mission-card__body" id="missionBody">
+                <div class="mission-card__message">
+                    <div class="mission-card__sender">구단주님의 메시지</div>
+                    <p>"우리 팀 외국인 에이스가 최근 성적이 좋지 않습니다.<br>
+                    팬들은 교체를 요구하고 있지만, 스카우팅팀은 반등 가능성을 주장합니다.<br>
+                    <strong>단장으로서 데이터를 보고 직접 판단하세요.</strong>"</p>
+                </div>
+                <div class="mission-card__data" id="missionData">
+                    <!-- JS로 부진 투수 데이터 채움 -->
+                </div>
+                <div class="mission-card__choices">
+                    <button class="mission-choice mission-choice--replace" id="missionReplace">
+                        <span class="mission-choice__icon">🔄</span>
+                        <span class="mission-choice__label">교체한다</span>
+                        <span class="mission-choice__desc">외국인 스카우트에서 새 투수를 찾는다</span>
+                    </button>
+                    <button class="mission-choice mission-choice--keep" id="missionKeep">
+                        <span class="mission-choice__icon">🛡️</span>
+                        <span class="mission-choice__label">유지한다</span>
+                        <span class="mission-choice__desc">반등 근거 데이터를 분석한다</span>
+                    </button>
+                </div>
+            </div>
+            <div class="mission-card__footer">
+                <span>⚠️ 어떤 선택이든 데이터 근거가 필요합니다</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast -->
     <div class="toast-container" id="toastContainer"></div>
 
@@ -480,6 +662,8 @@
     <script src="js/simulator.js"></script>
     <script src="js/postseason.js"></script>
     <script src="js/trade.js"></script>
+
+    <script src="js/foreign-scout.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/depthchart.js"></script>
     <script src="js/app.js"></script>

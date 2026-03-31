@@ -97,18 +97,21 @@ function dcDropBullpen(e, targetKey) {
     renderPitcherPanel();
 }
 
-// 포지션 적합도 판정 (노란색=fair 이상만 선택 가능)
+// 포지션 적합도 판정 (subPositions 우선, 패널티 기반 보조)
 function canPlayPosition(player, targetPos) {
     if (!player || player.position === 'P') return false;
     if (targetPos === 'DH') return true;
     const primaryPos = player.primaryPosition || player.position;
     if (primaryPos === targetPos) return true;
+    // subPositions에 있으면 무조건 가능
+    if (player.subPositions && player.subPositions.includes(targetPos)) return true;
+    // 패널티 기반
     const config = typeof POSITION_GROUPS !== 'undefined' ? POSITION_GROUPS[primaryPos] : null;
     if (!config) return false;
     const penalty = config.penalty[targetPos];
     if (penalty == null) return false;
     const baseDef = (player.ratings && player.ratings.defense) ? player.ratings.defense : 40;
-    return (baseDef + penalty) >= 35; // pos-weak(주황) 이상
+    return (baseDef + penalty) >= 35;
 }
 
 // ── 초기화 ──
@@ -229,12 +232,13 @@ function autoAssignDepthChart(teamCode) {
 
 // ── 메인 렌더 ──
 function renderDepthChart() {
+    const sel = document.getElementById('dcTeamSelect');
+    if (!sel.options.length) populateDcTeamSelect();
     if (!dcTeam) {
-        const sel = document.getElementById('dcTeamSelect');
-        if (!sel.options.length) populateDcTeamSelect();
         dcTeam = sel.value;
         if (!dcTeam) return;
     }
+    if (sel.value !== dcTeam) sel.value = dcTeam;
     ensureDepthChart(dcTeam);
 
     document.getElementById('dcEmblem').src = teamEmblem(dcTeam);
