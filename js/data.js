@@ -178,7 +178,7 @@ function genForeignPitcherRatingsByTier(rng, tierKey) {
 // HR: 홈런, H: 안타, 2B: 2루타, 3B: 3루타, E: 실책, FO: 뜬공
 // lighting: 조명 유형 (LED/STD/OLD → 야간 경기 수비 영향)
 const BALLPARK_FACTORS = {
-    '잠실':  { team: 'LG',   teamAlt: '두산', name: '잠실야구장',       HR: 1.18, H: 1.04, '2B': 1.06, '3B': 0.93, E: 1.02, FO: 0.93, lighting: 'LED' },
+    '잠실':  { team: 'LG',   teamAlt: '두산', name: '잠실야구장',       HR: 0.88, H: 1.00, '2B': 1.02, '3B': 0.93, E: 1.02, FO: 1.08, lighting: 'LED' },
     '사직':  { team: '롯데', teamAlt: null,    name: '사직야구장',       HR: 1.12, H: 1.02, '2B': 0.99, '3B': 0.95, E: 1.01, FO: 0.97, lighting: 'LED' },
     '울산':  { team: '롯데', teamAlt: null,    name: '울산문수야구장',   HR: 1.08, H: 1.02, '2B': 1.02, '3B': 0.95, E: 1.05, FO: 0.97, lighting: 'OLD' },
     '광주':  { team: 'KIA',  teamAlt: null,    name: '광주-기아 챔피언스필드', HR: 1.05, H: 1.02, '2B': 1.01, '3B': 0.97, E: 1.00, FO: 0.98, lighting: 'LED' },
