@@ -897,13 +897,6 @@ function showFsPlayerDetail(type, name) {
                 <div class="fs-stat-box"><div class="fs-stat-label">IP</div><div class="fs-stat-val">${p.stats.IP}</div></div>
                 <div class="fs-stat-box"><div class="fs-stat-label">SO</div><div class="fs-stat-val">${p.stats.SO}</div></div>
                 <div class="fs-stat-box"><div class="fs-stat-label">BB</div><div class="fs-stat-val">${p.stats.BB}</div></div>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:8px 0;">
-                <div class="fs-rating-box"><span>구위</span><strong>${p.ratings.stuff}</strong></div>
-                <div class="fs-rating-box"><span>제구</span><strong>${p.ratings.command}</strong></div>
-                <div class="fs-rating-box"><span>체력</span><strong>${p.ratings.stamina}</strong></div>
-                <div class="fs-rating-box"><span>효율</span><strong>${p.ratings.effectiveness}</strong></div>
-                <div class="fs-rating-box"><span>안정</span><strong>${p.ratings.consistency}</strong></div>
             </div>`;
     } else {
         statsHtml = `
@@ -914,13 +907,6 @@ function showFsPlayerDetail(type, name) {
                 <div class="fs-stat-box"><div class="fs-stat-label">Barrel%</div><div class="fs-stat-val">${p.stats['Barrel%']}</div></div>
                 <div class="fs-stat-box"><div class="fs-stat-label">HR</div><div class="fs-stat-val">${p.stats.HR}</div></div>
                 <div class="fs-stat-box"><div class="fs-stat-label">BB</div><div class="fs-stat-val">${p.stats.BB}</div></div>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:8px 0;">
-                <div class="fs-rating-box"><span>컨택</span><strong>${p.ratings.contact}</strong></div>
-                <div class="fs-rating-box"><span>파워</span><strong>${p.ratings.power}</strong></div>
-                <div class="fs-rating-box"><span>선구</span><strong>${p.ratings.eye}</strong></div>
-                <div class="fs-rating-box"><span>스피드</span><strong>${p.ratings.speed}</strong></div>
-                <div class="fs-rating-box"><span>수비</span><strong>${p.ratings.defense}</strong></div>
             </div>`;
     }
 
@@ -1362,13 +1348,10 @@ function renderFsCompare(foreignPlayers, type) {
     }).join('');
 
     container.innerHTML = `
-        ${radarSvg}
         ${legend}
         <table class="player-table" style="max-width:800px;margin:0 auto;">
             <thead>${tableHeader}</thead>
             <tbody>
-                <tr><td colspan="${allPlayers.length+1}" style="font-weight:700;background:rgba(0,174,239,0.05);padding:6px 10px;">능력치 (20-80)</td></tr>
-                ${ratingRows.join('')}
                 <tr><td colspan="${allPlayers.length+1}" style="font-weight:700;background:rgba(0,174,239,0.05);padding:6px 10px;">주요 기록</td></tr>
                 ${statRows.join('')}
                 ${metaRows}
