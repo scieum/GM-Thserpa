@@ -99,6 +99,15 @@ function setupNav() {
 }
 
 function showView(viewName) {
+    // admin 뷰 처리
+    if (viewName === 'admin') {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('view-admin').classList.add('active');
+        if (typeof renderAdminPanel === 'function') renderAdminPanel();
+        return;
+    }
+
     // "futures" 탭은 roster 뷰를 열고 2군 탭으로 전환
     const isFutures = viewName === 'futures';
     const actualView = isFutures ? 'roster' : viewName;
@@ -926,7 +935,10 @@ function renderRoster() {
     });
 
     // 투수 역할 변경
+    const rosterTeamCode = document.getElementById('rosterTeamSelect')?.value;
+    const isMyTeam = typeof isStudent !== 'function' || !isStudent() || (typeof getMyTeam === 'function' && getMyTeam() === rosterTeamCode);
     document.querySelectorAll('.role-select').forEach(sel => {
+        if (!isMyTeam) { sel.disabled = true; sel.title = '다른 팀은 변경할 수 없습니다'; return; }
         sel.addEventListener('click', e => e.stopPropagation());
         sel.addEventListener('change', (e) => {
             e.stopPropagation();
@@ -942,6 +954,7 @@ function renderRoster() {
 
     // 야수 포지션 변경
     document.querySelectorAll('.pos-select').forEach(sel => {
+        if (!isMyTeam) { sel.disabled = true; sel.title = '다른 팀은 변경할 수 없습니다'; return; }
         sel.addEventListener('click', e => e.stopPropagation());
         sel.addEventListener('change', (e) => {
             e.stopPropagation();
@@ -970,6 +983,8 @@ function renderRoster() {
 let swapModalState = null; // { mode, teamCode, playerId, tab }
 
 function openSwapModal(mode, teamCode, playerId) {
+    // 권한 체크
+    if (typeof guardTeamAction === 'function' && !guardTeamAction(teamCode, '등록/말소')) return;
     // mode: 'promote' (2군→1군 등록, 1군에서 말소 대상 선택)
     //        'demote' (1군→2군 말소, 2군에서 등록 대상 선택)
     const player = state.players[playerId];
@@ -1108,6 +1123,8 @@ function closeSwapModal() {
 function handleSwapSelect(selectedId) {
     if (!swapModalState) return;
     const { mode, teamCode, playerId } = swapModalState;
+    // 권한 체크
+    if (typeof guardTeamAction === 'function' && !guardTeamAction(teamCode, '등록/말소')) { closeSwapModal(); return; }
     const player = state.players[playerId];
     const selected = state.players[selectedId];
 
@@ -1993,6 +2010,11 @@ function renderStandings() {
 }
 
 async function runSimulation() {
+    // 권한 체크: 학생은 시뮬레이션 실행 불가
+    if (typeof isStudent === 'function' && isStudent()) {
+        if (typeof showToast === 'function') showToast('시뮬레이션은 교사만 실행할 수 있습니다.');
+        return;
+    }
     const totalPlayed = getTotalGamesPlayed(state);
     const remaining = 144 - totalPlayed;
     if (remaining <= 0 || simRunning) return;
@@ -3065,4 +3087,5 @@ function editPlayerNumber(playerId, td) {
 }
 
 // ── 앱 시작 ──
-document.addEventListener('DOMContentLoaded', initApp);
+// initApp은 auth.js의 onLoginSuccess()에서 호출됨
+// document.addEventListener('DOMContentLoaded', initApp);

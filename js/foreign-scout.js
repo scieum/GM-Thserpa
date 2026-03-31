@@ -42,137 +42,137 @@ const FOREIGN_PITCHER_POOL = [
     // === T1: MLB 출신 (OVR 55~70, $1M+) ===
     { name: 'Ryan Yarbrough', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', role: '선발',
       salary: 120, age: 33, throwBat: '좌투좌타', height: 196, weight: 93,
-      stats: { ERA: 4.56, FIP: 4.20, xFIP: 4.10, BABIP: 0.305, IVB: 28, VAA: -5.8, 'CSW%': 27, IP: 148, SO: 108, BB: 32, HR: 22 },
+      stats: { ERA: 4.56, FIP: 4.20, xFIP: 4.10, BABIP: 0.305, IVB: 28, VAA: -5.8, 'CSW%': 27, IP: 148, SO: 108, BB: 32, HR: 22, 'K/9': 6.6, 'Putaway%': 21.3 },
       ratings: { stuff: 52, command: 72, stamina: 70, effectiveness: 65, consistency: 62 },
       scouting: '전 TB/KC 좌완 이닝이터. 구속은 낮지만 뛰어난 제구력과 체인지업. KBO에서 이닝 소화 기대' },
 
     { name: 'Drew Smyly', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', role: '선발',
       salary: 150, age: 37, throwBat: '좌투좌타', height: 191, weight: 86,
-      stats: { ERA: 4.85, FIP: 4.50, xFIP: 4.35, BABIP: 0.310, IVB: 32, VAA: -5.2, 'CSW%': 28, IP: 135, SO: 125, BB: 45, HR: 24 },
+      stats: { ERA: 4.85, FIP: 4.50, xFIP: 4.35, BABIP: 0.310, IVB: 32, VAA: -5.2, 'CSW%': 28, IP: 135, SO: 125, BB: 45, HR: 24, 'K/9': 8.3, 'Putaway%': 24.9 },
       ratings: { stuff: 55, command: 65, stamina: 58, effectiveness: 60, consistency: 58 },
       scouting: '전 CHC 베테랑 좌완. 커브볼 스핀레이트 높고 MLB 통산 56승. 노장 리스크 존재' },
 
     { name: 'Michael Lorenzen', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', role: '선발',
       salary: 130, age: 34, throwBat: '우투우타', height: 185, weight: 98,
-      stats: { ERA: 5.20, FIP: 4.60, xFIP: 4.45, BABIP: 0.330, IVB: 38, VAA: -4.5, 'CSW%': 26, IP: 120, SO: 105, BB: 48, HR: 18 },
+      stats: { ERA: 5.20, FIP: 4.60, xFIP: 4.45, BABIP: 0.330, IVB: 38, VAA: -4.5, 'CSW%': 26, IP: 120, SO: 105, BB: 48, HR: 18, 'K/9': 7.9, 'Putaway%': 23.9 },
       ratings: { stuff: 62, command: 55, stamina: 52, effectiveness: 55, consistency: 50 },
       scouting: '전 PHI/DET. 노히트 경험자. MLB에서 부진했으나 구위는 살아있음. 불펜 전환도 가능' },
 
     { name: 'Zach Davies', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', role: '선발',
       salary: 110, age: 33, throwBat: '우투우타', height: 183, weight: 81,
-      stats: { ERA: 5.05, FIP: 4.80, xFIP: 4.65, BABIP: 0.315, IVB: 30, VAA: -5.5, 'CSW%': 24, IP: 140, SO: 95, BB: 38, HR: 25 },
+      stats: { ERA: 5.05, FIP: 4.80, xFIP: 4.65, BABIP: 0.315, IVB: 30, VAA: -5.5, 'CSW%': 24, IP: 140, SO: 95, BB: 38, HR: 25, 'K/9': 6.1, 'Putaway%': 19.8 },
       ratings: { stuff: 45, command: 68, stamina: 65, effectiveness: 58, consistency: 60 },
       scouting: '전 MIL/SD/CHC. 연식 투수 전형. 구속 낮지만 제구력과 이닝 소화 탁월. KBO 적응 빠를 듯' },
 
     { name: 'Wily Peralta', tier: 'T1', nationality: '도미니카', type: '기존외국인', origin: 'MLB', role: '중계',
       salary: 100, age: 36, throwBat: '우투우타', height: 185, weight: 108,
-      stats: { ERA: 3.90, FIP: 3.70, xFIP: 3.85, BABIP: 0.295, IVB: 40, VAA: -4.2, 'CSW%': 29, IP: 68, SO: 55, BB: 25, HR: 8 },
+      stats: { ERA: 3.90, FIP: 3.70, xFIP: 3.85, BABIP: 0.295, IVB: 40, VAA: -4.2, 'CSW%': 29, IP: 68, SO: 55, BB: 25, HR: 8, 'K/9': 7.3, 'Putaway%': 24.3 },
       ratings: { stuff: 58, command: 58, stamina: 40, effectiveness: 58, consistency: 55 },
       scouting: '전 MIL/DET/BOS. 싱커 위주 그라운드볼 투수. 불펜에서 안정적 이닝 소화 가능' },
 
     // === T2: AAA/NPB/KBO복귀 (OVR 110~150, $0.5M~1M) ===
     { name: 'Tobias Myers', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '선발',
       salary: 70, age: 28, throwBat: '우투우타', height: 190, weight: 91,
-      stats: { ERA: 4.10, FIP: 3.85, xFIP: 3.90, BABIP: 0.300, IVB: 36, VAA: -4.5, 'CSW%': 29, IP: 145, SO: 130, BB: 40, HR: 18 },
+      stats: { ERA: 4.10, FIP: 3.85, xFIP: 3.90, BABIP: 0.300, IVB: 36, VAA: -4.5, 'CSW%': 29, IP: 145, SO: 130, BB: 40, HR: 18, 'K/9': 8.1, 'Putaway%': 24.4 },
       ratings: { stuff: 55, command: 58, stamina: 60, effectiveness: 55, consistency: 55 },
       scouting: 'AAA에서 안정적 성적. 패스트볼/슬라이더 조합 좋고 이닝 소화력 우수' },
 
     { name: 'Adrian Martinez', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '선발',
       salary: 65, age: 27, throwBat: '우투우타', height: 196, weight: 100,
-      stats: { ERA: 4.35, FIP: 4.00, xFIP: 3.95, BABIP: 0.315, IVB: 34, VAA: -4.8, 'CSW%': 27, IP: 155, SO: 120, BB: 48, HR: 20 },
+      stats: { ERA: 4.35, FIP: 4.00, xFIP: 3.95, BABIP: 0.315, IVB: 34, VAA: -4.8, 'CSW%': 27, IP: 155, SO: 120, BB: 48, HR: 20, 'K/9': 7.0, 'Putaway%': 24.6 },
       ratings: { stuff: 52, command: 52, stamina: 62, effectiveness: 52, consistency: 52 },
       scouting: '전 OAK 40인 로스터. AAA 이닝이터. 체구 좋고 체력 우수하나 탈삼진 부족' },
 
     { name: '다나카 유키', tier: 'T2', nationality: '일본', type: '아시아쿼터', origin: 'NPB', role: '선발',
       salary: 18, age: 30, throwBat: '우투우타', height: 182, weight: 83,
-      stats: { ERA: 3.45, FIP: 3.50, xFIP: 3.55, BABIP: 0.290, IVB: 36, VAA: -4.3, 'CSW%': 31, IP: 158, SO: 142, BB: 38, HR: 15 },
+      stats: { ERA: 3.45, FIP: 3.50, xFIP: 3.55, BABIP: 0.290, IVB: 36, VAA: -4.3, 'CSW%': 31, IP: 158, SO: 142, BB: 38, HR: 15, 'K/9': 8.1, 'Putaway%': 26.7 },
       ratings: { stuff: 55, command: 62, stamina: 62, effectiveness: 58, consistency: 62 },
       scouting: 'NPB 2군 통산 40승급. 1군 등판 기회 부족. 제구력과 이닝 소화력 우수' },
 
     { name: '사토 켄타', tier: 'T2', nationality: '일본', type: '아시아쿼터', origin: 'NPB', role: '선발',
       salary: 20, age: 31, throwBat: '우투우타', height: 185, weight: 88,
-      stats: { ERA: 3.65, FIP: 3.50, xFIP: 3.45, BABIP: 0.300, IVB: 38, VAA: -4.0, 'CSW%': 30, IP: 145, SO: 135, BB: 40, HR: 16 },
+      stats: { ERA: 3.65, FIP: 3.50, xFIP: 3.45, BABIP: 0.300, IVB: 38, VAA: -4.0, 'CSW%': 30, IP: 145, SO: 135, BB: 40, HR: 16, 'K/9': 8.4, 'Putaway%': 26.3 },
       ratings: { stuff: 55, command: 58, stamina: 58, effectiveness: 56, consistency: 58 },
       scouting: 'NPB 퍼시픽리그 2군 에이스급. 다구종 투수, 변화구 제구 뛰어남. 1군 벽 못 넘음' },
 
     { name: 'Nick Margevicius', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '중계',
       salary: 55, age: 28, throwBat: '좌투좌타', height: 193, weight: 95,
-      stats: { ERA: 3.80, FIP: 3.60, xFIP: 3.70, BABIP: 0.300, IVB: 30, VAA: -5.0, 'CSW%': 26, IP: 70, SO: 62, BB: 22, HR: 8 },
+      stats: { ERA: 3.80, FIP: 3.60, xFIP: 3.70, BABIP: 0.300, IVB: 30, VAA: -5.0, 'CSW%': 26, IP: 70, SO: 62, BB: 22, HR: 8, 'K/9': 8.0, 'Putaway%': 22.6 },
       ratings: { stuff: 48, command: 58, stamina: 42, effectiveness: 52, consistency: 55 },
       scouting: '전 SD/CLE. 좌완 롱릴리프 가능. 구속은 낮지만 좌타자 상대 강점' },
 
     { name: 'Brandon Pfaadt', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '선발',
       salary: 80, age: 27, throwBat: '우투우타', height: 193, weight: 98,
-      stats: { ERA: 4.75, FIP: 4.20, xFIP: 4.00, BABIP: 0.325, IVB: 42, VAA: -3.8, 'CSW%': 30, IP: 160, SO: 155, BB: 50, HR: 22 },
+      stats: { ERA: 4.75, FIP: 4.20, xFIP: 4.00, BABIP: 0.325, IVB: 42, VAA: -3.8, 'CSW%': 30, IP: 160, SO: 155, BB: 50, HR: 22, 'K/9': 8.7, 'Putaway%': 25.3 },
       ratings: { stuff: 62, command: 52, stamina: 58, effectiveness: 55, consistency: 50 },
       scouting: '전 ARI 유망주. MLB에서 피홈런 많았으나 구위 상급. KBO에서 에이스급 기대' },
 
     // === T3: CPBL/중남미 (OVR 100~130, $0.2M~0.5M) ===
     { name: '린청룽', tier: 'T3', nationality: '대만', type: '아시아쿼터', origin: 'CPBL', role: '중계',
       salary: 25, age: 26, throwBat: '좌투좌타', height: 180, weight: 78,
-      stats: { ERA: 2.90, FIP: 3.10, xFIP: 3.20, BABIP: 0.285, IVB: 34, VAA: -4.1, 'CSW%': 29, IP: 62, SO: 68, BB: 18, HR: 5 },
+      stats: { ERA: 2.90, FIP: 3.10, xFIP: 3.20, BABIP: 0.285, IVB: 34, VAA: -4.1, 'CSW%': 29, IP: 62, SO: 68, BB: 18, HR: 5, 'K/9': 9.9, 'Putaway%': 27.7 },
       ratings: { stuff: 52, command: 58, stamina: 35, effectiveness: 55, consistency: 58 },
       scouting: 'CPBL 최우수 중계. 좌완 사이드암, 좌타자 상대 피안타율 .190' },
 
     { name: '왕웨이', tier: 'T3', nationality: '대만', type: '아시아쿼터', origin: 'CPBL', role: '마무리',
-      salary: 30, age: 27, throwBat: '우투우타', height: 183, weight: 85,
-      stats: { ERA: 2.50, FIP: 2.70, xFIP: 2.90, BABIP: 0.270, IVB: 40, VAA: -3.6, 'CSW%': 33, IP: 52, SO: 65, BB: 15, HR: 3 },
+      salary: 30, age: 27, throwBat: '우투우타', height: 183, weight: 85, velocity: 155,
+      stats: { ERA: 2.50, FIP: 2.70, xFIP: 2.90, BABIP: 0.270, IVB: 40, VAA: -3.6, 'CSW%': 33, IP: 52, SO: 65, BB: 15, HR: 3, 'K/9': 11.3, 'Putaway%': 31.7 },
       ratings: { stuff: 58, command: 58, stamina: 30, effectiveness: 60, consistency: 55 },
       scouting: 'CPBL 세이브왕. 155km 직구와 날카로운 슬라이더 보유' },
 
     { name: 'Jose Castillo', tier: 'T3', nationality: '베네수엘라', type: '기존외국인', origin: '중남미', role: '선발',
-      salary: 35, age: 25, throwBat: '좌투좌타', height: 185, weight: 88,
-      stats: { ERA: 3.70, FIP: 3.50, xFIP: 3.60, BABIP: 0.305, IVB: 36, VAA: -4.5, 'CSW%': 28, IP: 130, SO: 115, BB: 42, HR: 14 },
+      salary: 35, age: 25, throwBat: '좌투좌타', height: 185, weight: 88, velocity: 150,
+      stats: { ERA: 3.70, FIP: 3.50, xFIP: 3.60, BABIP: 0.305, IVB: 36, VAA: -4.5, 'CSW%': 28, IP: 130, SO: 115, BB: 42, HR: 14, 'K/9': 8.0, 'Putaway%': 24.5 },
       ratings: { stuff: 55, command: 50, stamina: 52, effectiveness: 50, consistency: 48 },
       scouting: '베네수엘라 윈터리그 MVP. 좌완 150km대 직구. 제구 불안하나 구위 잠재력 큼' },
 
     { name: 'Miguel Diaz', tier: 'T3', nationality: '도미니카', type: '기존외국인', origin: '중남미', role: '중계',
-      salary: 28, age: 28, throwBat: '우투우타', height: 188, weight: 95,
-      stats: { ERA: 3.40, FIP: 3.20, xFIP: 3.35, BABIP: 0.290, IVB: 42, VAA: -3.8, 'CSW%': 31, IP: 58, SO: 65, BB: 22, HR: 5 },
+      salary: 28, age: 28, throwBat: '우투우타', height: 188, weight: 95, velocity: 155,
+      stats: { ERA: 3.40, FIP: 3.20, xFIP: 3.35, BABIP: 0.290, IVB: 42, VAA: -3.8, 'CSW%': 31, IP: 58, SO: 65, BB: 22, HR: 5, 'K/9': 10.1, 'Putaway%': 27.5 },
       ratings: { stuff: 60, command: 48, stamina: 32, effectiveness: 52, consistency: 45 },
       scouting: '전 SD 마이너 출신. 도미니카 윈터리그 활약. 155km 싱커 보유, 제구 불안' },
 
     // === T4: AA/쿠바 (OVR 85~110, $0.1M~0.3M) ===
     { name: 'Yoendrys Gomez', tier: 'T4', nationality: '쿠바', type: '기존외국인', origin: '쿠바', role: '선발',
-      salary: 20, age: 24, throwBat: '우투우타', height: 185, weight: 88,
-      stats: { ERA: 4.20, FIP: 3.80, xFIP: 3.90, BABIP: 0.310, IVB: 38, VAA: -4.2, 'CSW%': 28, IP: 110, SO: 105, BB: 45, HR: 12 },
+      salary: 20, age: 24, throwBat: '우투우타', height: 185, weight: 88, velocity: 152,
+      stats: { ERA: 4.20, FIP: 3.80, xFIP: 3.90, BABIP: 0.310, IVB: 38, VAA: -4.2, 'CSW%': 28, IP: 110, SO: 105, BB: 45, HR: 12, 'K/9': 8.6, 'Putaway%': 24.3 },
       ratings: { stuff: 58, command: 42, stamina: 48, effectiveness: 45, consistency: 42 },
       scouting: '쿠바 탈출 유망주. AA급 구위. 포심 152km, 슬라이더 날카로우나 이닝 소화 미지수' },
 
     { name: 'Elvis Alvarado', tier: 'T4', nationality: '베네수엘라', type: '기존외국인', origin: 'AA', role: '중계',
       salary: 15, age: 23, throwBat: '좌투좌타', height: 183, weight: 82,
-      stats: { ERA: 3.90, FIP: 3.60, xFIP: 3.75, BABIP: 0.300, IVB: 32, VAA: -4.6, 'CSW%': 26, IP: 55, SO: 52, BB: 25, HR: 6 },
+      stats: { ERA: 3.90, FIP: 3.60, xFIP: 3.75, BABIP: 0.300, IVB: 32, VAA: -4.6, 'CSW%': 26, IP: 55, SO: 52, BB: 25, HR: 6, 'K/9': 8.5, 'Putaway%': 22.8 },
       ratings: { stuff: 50, command: 42, stamina: 35, effectiveness: 42, consistency: 40 },
       scouting: 'AA 좌완 유망주. 체인지업 좋으나 전체적 구위 부족. 저렴한 불펜 옵션' },
 
     { name: 'Daysbel Hernandez', tier: 'T4', nationality: '쿠바', type: '기존외국인', origin: '쿠바', role: '마무리',
-      salary: 22, age: 26, throwBat: '우투우타', height: 190, weight: 95,
-      stats: { ERA: 3.50, FIP: 3.30, xFIP: 3.50, BABIP: 0.285, IVB: 44, VAA: -3.5, 'CSW%': 32, IP: 48, SO: 58, BB: 22, HR: 4 },
+      salary: 22, age: 26, throwBat: '우투우타', height: 190, weight: 95, velocity: 156,
+      stats: { ERA: 3.50, FIP: 3.30, xFIP: 3.50, BABIP: 0.285, IVB: 44, VAA: -3.5, 'CSW%': 32, IP: 48, SO: 58, BB: 22, HR: 4, 'K/9': 10.9, 'Putaway%': 29.0 },
       ratings: { stuff: 62, command: 40, stamina: 28, effectiveness: 48, consistency: 38 },
       scouting: '쿠바 국대 출신. 156km 직구와 파워 슬라이더. 제구 불안하나 마무리 잠재력' },
 
     // === T5: 독립리그/ABL (OVR 80~95, $0.1M~0.3M) ===
     { name: 'Jack Murray', tier: 'T5', nationality: '호주', type: '아시아쿼터', origin: 'ABL', role: '선발',
       salary: 15, age: 27, throwBat: '좌투좌타', height: 190, weight: 92,
-      stats: { ERA: 3.80, FIP: 3.55, xFIP: 3.50, BABIP: 0.310, IVB: 36, VAA: -4.4, 'CSW%': 28, IP: 120, SO: 108, BB: 35, HR: 12 },
+      stats: { ERA: 3.80, FIP: 3.55, xFIP: 3.50, BABIP: 0.310, IVB: 36, VAA: -4.4, 'CSW%': 28, IP: 120, SO: 108, BB: 35, HR: 12, 'K/9': 8.1, 'Putaway%': 23.5 },
       ratings: { stuff: 48, command: 50, stamina: 52, effectiveness: 48, consistency: 48 },
       scouting: 'ABL MVP 출신 좌완. WBC 호주 대표, 가성비형. 구위 평범하나 안정적' },
 
     { name: 'Ty Tice', tier: 'T5', nationality: '미국', type: '기존외국인', origin: '독립리그', role: '중계',
       salary: 12, age: 27, throwBat: '우투우타', height: 183, weight: 88,
-      stats: { ERA: 3.50, FIP: 3.40, xFIP: 3.55, BABIP: 0.295, IVB: 34, VAA: -4.3, 'CSW%': 27, IP: 60, SO: 55, BB: 18, HR: 6 },
+      stats: { ERA: 3.50, FIP: 3.40, xFIP: 3.55, BABIP: 0.295, IVB: 34, VAA: -4.3, 'CSW%': 27, IP: 60, SO: 55, BB: 18, HR: 6, 'K/9': 8.3, 'Putaway%': 25.1 },
       ratings: { stuff: 45, command: 48, stamina: 38, effectiveness: 45, consistency: 48 },
       scouting: '독립리그 올스타. 전 TOR 마이너. 저비용 불펜 보강용, 리스크 낮음' },
 
     { name: 'Ryan Burr', tier: 'T5', nationality: '미국', type: '기존외국인', origin: '독립리그', role: '마무리',
       salary: 15, age: 31, throwBat: '우투우타', height: 185, weight: 95,
-      stats: { ERA: 3.20, FIP: 3.10, xFIP: 3.30, BABIP: 0.280, IVB: 38, VAA: -3.9, 'CSW%': 30, IP: 52, SO: 55, BB: 15, HR: 5 },
+      stats: { ERA: 3.20, FIP: 3.10, xFIP: 3.30, BABIP: 0.280, IVB: 38, VAA: -3.9, 'CSW%': 30, IP: 52, SO: 55, BB: 15, HR: 5, 'K/9': 9.5, 'Putaway%': 27.2 },
       ratings: { stuff: 50, command: 50, stamina: 30, effectiveness: 48, consistency: 45 },
       scouting: '전 ARI 마이너, 독립리그 세이브왕. 경험 많고 안정적이나 구위 한계 존재' },
 
     { name: 'Ben Holmes', tier: 'T5', nationality: '호주', type: '아시아쿼터', origin: 'ABL', role: '중계',
       salary: 10, age: 25, throwBat: '우투우타', height: 188, weight: 90,
-      stats: { ERA: 4.10, FIP: 3.90, xFIP: 4.00, BABIP: 0.305, IVB: 30, VAA: -4.7, 'CSW%': 24, IP: 48, SO: 40, BB: 18, HR: 6 },
+      stats: { ERA: 4.10, FIP: 3.90, xFIP: 4.00, BABIP: 0.305, IVB: 30, VAA: -4.7, 'CSW%': 24, IP: 48, SO: 40, BB: 18, HR: 6, 'K/9': 7.5, 'Putaway%': 22.6 },
       ratings: { stuff: 42, command: 42, stamina: 35, effectiveness: 40, consistency: 42 },
       scouting: 'ABL 호주 대표 후보. 최저비용 옵션. 성장 가능성에 베팅하는 영입' },
 
@@ -180,265 +180,456 @@ const FOREIGN_PITCHER_POOL = [
     // T1 추가
     { name: 'Taijuan Walker', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', role: '선발',
       salary: 140, age: 33, throwBat: '우투우타', height: 193, weight: 102,
-      stats: { ERA: 4.80, FIP: 4.40, xFIP: 4.25, BABIP: 0.320, IVB: 36, VAA: -4.3, 'CSW%': 28, IP: 140, SO: 128, BB: 45, HR: 20 },
+      stats: { ERA: 4.80, FIP: 4.40, xFIP: 4.25, BABIP: 0.320, IVB: 36, VAA: -4.3, 'CSW%': 28, IP: 140, SO: 128, BB: 45, HR: 20, 'K/9': 8.2, 'Putaway%': 25.5 },
       ratings: { stuff: 58, command: 55, stamina: 58, effectiveness: 55, consistency: 52 },
       scouting: '전 NYM/PHI. 스플리터 위력적. MLB 통산 ERA 4.20, KBO에서 에이스급 기대' },
 
     { name: 'Jose Urquidy', tier: 'T1', nationality: '멕시코', type: '기존외국인', origin: 'MLB', role: '선발',
       salary: 115, age: 30, throwBat: '우투우타', height: 183, weight: 90,
-      stats: { ERA: 5.00, FIP: 4.55, xFIP: 4.40, BABIP: 0.315, IVB: 32, VAA: -4.8, 'CSW%': 26, IP: 125, SO: 105, BB: 35, HR: 22 },
+      stats: { ERA: 5.00, FIP: 4.55, xFIP: 4.40, BABIP: 0.315, IVB: 32, VAA: -4.8, 'CSW%': 26, IP: 125, SO: 105, BB: 35, HR: 22, 'K/9': 7.6, 'Putaway%': 21.7 },
       ratings: { stuff: 52, command: 60, stamina: 55, effectiveness: 52, consistency: 55 },
       scouting: '전 HOU WS 우승 멤버. 제구력 우수하나 구위 하락 추세. 이닝 소화형' },
 
     { name: 'Matt Boyd', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', role: '선발',
       salary: 105, age: 34, throwBat: '좌투좌타', height: 185, weight: 95,
-      stats: { ERA: 5.30, FIP: 4.70, xFIP: 4.50, BABIP: 0.325, IVB: 34, VAA: -5.0, 'CSW%': 27, IP: 115, SO: 110, BB: 38, HR: 24 },
+      stats: { ERA: 5.30, FIP: 4.70, xFIP: 4.50, BABIP: 0.325, IVB: 34, VAA: -5.0, 'CSW%': 27, IP: 115, SO: 110, BB: 38, HR: 24, 'K/9': 8.6, 'Putaway%': 24.5 },
       ratings: { stuff: 55, command: 52, stamina: 50, effectiveness: 50, consistency: 48 },
       scouting: '전 DET/CLE 좌완. 체인지업이 주무기. MLB에서 피홈런 많았으나 KBO 적응 기대' },
 
     { name: 'Trevor Williams', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', role: '선발',
       salary: 100, age: 33, throwBat: '우투우타', height: 191, weight: 100,
-      stats: { ERA: 4.60, FIP: 4.35, xFIP: 4.20, BABIP: 0.300, IVB: 30, VAA: -5.2, 'CSW%': 25, IP: 150, SO: 115, BB: 40, HR: 18 },
+      stats: { ERA: 4.60, FIP: 4.35, xFIP: 4.20, BABIP: 0.300, IVB: 30, VAA: -5.2, 'CSW%': 25, IP: 150, SO: 115, BB: 40, HR: 18, 'K/9': 6.9, 'Putaway%': 20.7 },
       ratings: { stuff: 48, command: 62, stamina: 62, effectiveness: 55, consistency: 58 },
       scouting: '전 PIT/CHC/WSH. 이닝이터 전형. 구속 낮지만 제구력과 경험 풍부' },
 
     // T2 추가
     { name: 'Daniel Lynch', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '선발',
       salary: 75, age: 28, throwBat: '좌투좌타', height: 198, weight: 98,
-      stats: { ERA: 4.50, FIP: 4.10, xFIP: 4.00, BABIP: 0.320, IVB: 34, VAA: -4.6, 'CSW%': 28, IP: 135, SO: 125, BB: 50, HR: 16 },
+      stats: { ERA: 4.50, FIP: 4.10, xFIP: 4.00, BABIP: 0.320, IVB: 34, VAA: -4.6, 'CSW%': 28, IP: 135, SO: 125, BB: 50, HR: 16, 'K/9': 8.3, 'Putaway%': 25.9 },
       ratings: { stuff: 58, command: 48, stamina: 55, effectiveness: 52, consistency: 48 },
       scouting: '전 KC 유망주. 좌완 198cm 장신. 구위 좋으나 제구 불안정. 잠재력 높음' },
 
     { name: 'Konnor Pilkington', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '선발',
       salary: 60, age: 28, throwBat: '좌투좌타', height: 191, weight: 95,
-      stats: { ERA: 4.25, FIP: 4.00, xFIP: 3.95, BABIP: 0.305, IVB: 30, VAA: -5.0, 'CSW%': 27, IP: 140, SO: 118, BB: 42, HR: 18 },
+      stats: { ERA: 4.25, FIP: 4.00, xFIP: 3.95, BABIP: 0.305, IVB: 30, VAA: -5.0, 'CSW%': 27, IP: 140, SO: 118, BB: 42, HR: 18, 'K/9': 7.6, 'Putaway%': 23.5 },
       ratings: { stuff: 52, command: 55, stamina: 58, effectiveness: 52, consistency: 52 },
       scouting: '전 CLE AAA. 좌완 연식 투수. 체인지업 우수, 이닝 소화력 좋음' },
 
     { name: '스즈키 료', tier: 'T2', nationality: '일본', type: '아시아쿼터', origin: 'NPB', role: '중계',
       salary: 16, age: 25, throwBat: '우투우타', height: 178, weight: 80,
-      stats: { ERA: 3.30, FIP: 3.15, xFIP: 3.25, BABIP: 0.295, IVB: 42, VAA: -3.9, 'CSW%': 31, IP: 55, SO: 60, BB: 16, HR: 4 },
+      stats: { ERA: 3.30, FIP: 3.15, xFIP: 3.25, BABIP: 0.295, IVB: 42, VAA: -3.9, 'CSW%': 31, IP: 55, SO: 60, BB: 16, HR: 4, 'K/9': 9.8, 'Putaway%': 27.9 },
       ratings: { stuff: 58, command: 55, stamina: 35, effectiveness: 56, consistency: 52 },
       scouting: 'NPB 퓨처스 출신. IVB 높은 라이징 패스트볼, 성장 가능성 큼' },
 
     { name: '모리타 히로시', tier: 'T2', nationality: '일본', type: '아시아쿼터', origin: 'NPB', role: '마무리',
-      salary: 18, age: 27, throwBat: '우투우타', height: 180, weight: 82,
-      stats: { ERA: 2.80, FIP: 2.90, xFIP: 3.10, BABIP: 0.275, IVB: 40, VAA: -3.6, 'CSW%': 33, IP: 50, SO: 58, BB: 18, HR: 4 },
+      salary: 18, age: 27, throwBat: '우투우타', height: 180, weight: 82, velocity: 152,
+      stats: { ERA: 2.80, FIP: 2.90, xFIP: 3.10, BABIP: 0.275, IVB: 40, VAA: -3.6, 'CSW%': 33, IP: 50, SO: 58, BB: 18, HR: 4, 'K/9': 10.4, 'Putaway%': 29.6 },
       ratings: { stuff: 60, command: 55, stamina: 30, effectiveness: 58, consistency: 52 },
       scouting: 'NPB 2군 세이브왕. 152km 직구와 포크볼 조합. 마무리 적합' },
 
     { name: 'Cole Irvin', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '선발',
       salary: 65, age: 31, throwBat: '좌투좌타', height: 193, weight: 95,
-      stats: { ERA: 4.40, FIP: 4.20, xFIP: 4.15, BABIP: 0.300, IVB: 28, VAA: -5.5, 'CSW%': 25, IP: 155, SO: 110, BB: 35, HR: 22 },
+      stats: { ERA: 4.40, FIP: 4.20, xFIP: 4.15, BABIP: 0.300, IVB: 28, VAA: -5.5, 'CSW%': 25, IP: 155, SO: 110, BB: 35, HR: 22, 'K/9': 6.4, 'Putaway%': 20.6 },
       ratings: { stuff: 45, command: 62, stamina: 62, effectiveness: 55, consistency: 58 },
       scouting: '전 OAK/BAL 좌완. 이닝이터. 구속 낮지만 뛰어난 제구력. KBO 적응 빠를 듯' },
 
     // T3 추가
     { name: 'Pedro Fernandez', tier: 'T3', nationality: '도미니카', type: '기존외국인', origin: '중남미', role: '선발',
-      salary: 35, age: 24, throwBat: '우투우타', height: 190, weight: 92,
-      stats: { ERA: 3.60, FIP: 3.40, xFIP: 3.50, BABIP: 0.300, IVB: 38, VAA: -4.2, 'CSW%': 29, IP: 120, SO: 110, BB: 40, HR: 12 },
+      salary: 35, age: 24, throwBat: '우투우타', height: 190, weight: 92, velocity: 153,
+      stats: { ERA: 3.60, FIP: 3.40, xFIP: 3.50, BABIP: 0.300, IVB: 38, VAA: -4.2, 'CSW%': 29, IP: 120, SO: 110, BB: 40, HR: 12, 'K/9': 8.3, 'Putaway%': 24.0 },
       ratings: { stuff: 58, command: 48, stamina: 50, effectiveness: 48, consistency: 45 },
       scouting: '도미니카 윈터리그 신인왕. 153km 직구, 슬라이더 날카로움. 제구 불안' },
 
     { name: '황웨이한', tier: 'T3', nationality: '대만', type: '아시아쿼터', origin: 'CPBL', role: '선발',
       salary: 20, age: 28, throwBat: '좌투좌타', height: 183, weight: 85,
-      stats: { ERA: 3.20, FIP: 3.30, xFIP: 3.40, BABIP: 0.290, IVB: 32, VAA: -4.8, 'CSW%': 28, IP: 140, SO: 120, BB: 35, HR: 14 },
+      stats: { ERA: 3.20, FIP: 3.30, xFIP: 3.40, BABIP: 0.290, IVB: 32, VAA: -4.8, 'CSW%': 28, IP: 140, SO: 120, BB: 35, HR: 14, 'K/9': 7.7, 'Putaway%': 22.9 },
       ratings: { stuff: 50, command: 58, stamina: 58, effectiveness: 55, consistency: 55 },
       scouting: 'CPBL 다승왕. 좌완 제구형. 이닝 소화력 우수하고 안정적' },
 
     { name: 'Luis Medina', tier: 'T3', nationality: '도미니카', type: '기존외국인', origin: '중남미', role: '중계',
-      salary: 25, age: 25, throwBat: '우투우타', height: 185, weight: 88,
-      stats: { ERA: 3.80, FIP: 3.50, xFIP: 3.60, BABIP: 0.305, IVB: 44, VAA: -3.5, 'CSW%': 30, IP: 55, SO: 62, BB: 28, HR: 5 },
+      salary: 25, age: 25, throwBat: '우투우타', height: 185, weight: 88, velocity: 156,
+      stats: { ERA: 3.80, FIP: 3.50, xFIP: 3.60, BABIP: 0.305, IVB: 44, VAA: -3.5, 'CSW%': 30, IP: 55, SO: 62, BB: 28, HR: 5, 'K/9': 10.1, 'Putaway%': 29.1 },
       ratings: { stuff: 62, command: 42, stamina: 32, effectiveness: 48, consistency: 40 },
       scouting: '전 OAK 마이너. 156km 직구 보유. 삼진 능력 뛰어나나 볼넷 많음' },
 
     { name: 'Ricardo Sanchez', tier: 'T3', nationality: '베네수엘라', type: '기존외국인', origin: '중남미', role: '선발',
       salary: 30, age: 26, throwBat: '좌투좌타', height: 178, weight: 82,
-      stats: { ERA: 3.50, FIP: 3.40, xFIP: 3.50, BABIP: 0.295, IVB: 30, VAA: -4.9, 'CSW%': 27, IP: 130, SO: 108, BB: 38, HR: 14 },
+      stats: { ERA: 3.50, FIP: 3.40, xFIP: 3.50, BABIP: 0.295, IVB: 30, VAA: -4.9, 'CSW%': 27, IP: 130, SO: 108, BB: 38, HR: 14, 'K/9': 7.5, 'Putaway%': 24.8 },
       ratings: { stuff: 50, command: 52, stamina: 55, effectiveness: 50, consistency: 50 },
       scouting: '베네수엘라 리그 좌완. 커브+체인지업 조합. 무난한 이닝 소화형' },
 
     // T4 추가
     { name: 'Osiel Rodriguez', tier: 'T4', nationality: '쿠바', type: '기존외국인', origin: '쿠바', role: '선발',
-      salary: 22, age: 23, throwBat: '우투우타', height: 188, weight: 90,
-      stats: { ERA: 4.00, FIP: 3.70, xFIP: 3.80, BABIP: 0.310, IVB: 40, VAA: -4.0, 'CSW%': 29, IP: 100, SO: 98, BB: 42, HR: 10 },
+      salary: 22, age: 23, throwBat: '우투우타', height: 188, weight: 90, velocity: 154,
+      stats: { ERA: 4.00, FIP: 3.70, xFIP: 3.80, BABIP: 0.310, IVB: 40, VAA: -4.0, 'CSW%': 29, IP: 100, SO: 98, BB: 42, HR: 10, 'K/9': 8.8, 'Putaway%': 26.7 },
       ratings: { stuff: 60, command: 42, stamina: 45, effectiveness: 45, consistency: 40 },
       scouting: '쿠바 세리에 유망주. 154km 직구+커브. 제구 미완성이나 구위 잠재력 높음' },
 
     { name: 'Junior Garcia', tier: 'T4', nationality: '도미니카', type: '기존외국인', origin: 'AA', role: '중계',
       salary: 12, age: 24, throwBat: '좌투좌타', height: 180, weight: 78,
-      stats: { ERA: 3.70, FIP: 3.50, xFIP: 3.60, BABIP: 0.300, IVB: 32, VAA: -4.5, 'CSW%': 27, IP: 50, SO: 48, BB: 20, HR: 5 },
+      stats: { ERA: 3.70, FIP: 3.50, xFIP: 3.60, BABIP: 0.300, IVB: 32, VAA: -4.5, 'CSW%': 27, IP: 50, SO: 48, BB: 20, HR: 5, 'K/9': 8.6, 'Putaway%': 24.6 },
       ratings: { stuff: 50, command: 45, stamina: 32, effectiveness: 44, consistency: 42 },
       scouting: 'AA 좌완 릴리버. 좌타자 상대 피안타율 .200. 원포인트 가치' },
 
     { name: 'Prelander Berroa', tier: 'T4', nationality: '도미니카', type: '기존외국인', origin: 'AA', role: '선발',
       salary: 18, age: 25, throwBat: '우투우타', height: 185, weight: 85,
-      stats: { ERA: 4.30, FIP: 3.90, xFIP: 4.00, BABIP: 0.315, IVB: 36, VAA: -4.3, 'CSW%': 28, IP: 105, SO: 100, BB: 48, HR: 12 },
+      stats: { ERA: 4.30, FIP: 3.90, xFIP: 4.00, BABIP: 0.315, IVB: 36, VAA: -4.3, 'CSW%': 28, IP: 105, SO: 100, BB: 48, HR: 12, 'K/9': 8.6, 'Putaway%': 25.9 },
       ratings: { stuff: 55, command: 40, stamina: 48, effectiveness: 42, consistency: 38 },
       scouting: '전 CHW 유망주. 구위 좋으나 제구 극도로 불안. 하이리스크 하이리턴' },
 
     // T5 추가
     { name: 'Matt Tabor', tier: 'T5', nationality: '호주', type: '아시아쿼터', origin: 'ABL', role: '선발',
       salary: 12, age: 26, throwBat: '우투우타', height: 190, weight: 88,
-      stats: { ERA: 3.90, FIP: 3.70, xFIP: 3.80, BABIP: 0.305, IVB: 34, VAA: -4.5, 'CSW%': 26, IP: 110, SO: 90, BB: 32, HR: 12 },
+      stats: { ERA: 3.90, FIP: 3.70, xFIP: 3.80, BABIP: 0.305, IVB: 34, VAA: -4.5, 'CSW%': 26, IP: 110, SO: 90, BB: 32, HR: 12, 'K/9': 7.4, 'Putaway%': 23.2 },
       ratings: { stuff: 48, command: 48, stamina: 50, effectiveness: 46, consistency: 45 },
       scouting: 'ABL 올스타. 전 ARI 마이너. 가성비 이닝이터, 리스크 낮음' },
 
     { name: 'Kevin Magee', tier: 'T5', nationality: '미국', type: '기존외국인', origin: '독립리그', role: '중계',
       salary: 10, age: 28, throwBat: '우투우타', height: 183, weight: 85,
-      stats: { ERA: 3.40, FIP: 3.20, xFIP: 3.40, BABIP: 0.290, IVB: 36, VAA: -4.2, 'CSW%': 28, IP: 55, SO: 50, BB: 15, HR: 5 },
+      stats: { ERA: 3.40, FIP: 3.20, xFIP: 3.40, BABIP: 0.290, IVB: 36, VAA: -4.2, 'CSW%': 28, IP: 55, SO: 50, BB: 15, HR: 5, 'K/9': 8.2, 'Putaway%': 24.3 },
       ratings: { stuff: 48, command: 50, stamina: 35, effectiveness: 46, consistency: 46 },
       scouting: '독립리그 최우수 중계. 제구 안정적. 저비용 불펜 보강 옵션' },
 
     { name: 'Dylan File', tier: 'T5', nationality: '미국', type: '기존외국인', origin: '독립리그', role: '선발',
       salary: 12, age: 29, throwBat: '우투우타', height: 185, weight: 90,
-      stats: { ERA: 3.70, FIP: 3.60, xFIP: 3.70, BABIP: 0.300, IVB: 30, VAA: -5.0, 'CSW%': 25, IP: 125, SO: 95, BB: 30, HR: 14 },
+      stats: { ERA: 3.70, FIP: 3.60, xFIP: 3.70, BABIP: 0.300, IVB: 30, VAA: -5.0, 'CSW%': 25, IP: 125, SO: 95, BB: 30, HR: 14, 'K/9': 6.8, 'Putaway%': 21.3 },
       ratings: { stuff: 45, command: 52, stamina: 52, effectiveness: 45, consistency: 48 },
       scouting: '전 MIL 마이너, 독립리그. 이닝 소화력 좋고 볼넷 적음. 가성비형' },
 
     { name: 'Emilio Vargas', tier: 'T3', nationality: '도미니카', type: '기존외국인', origin: '중남미', role: '선발',
       salary: 28, age: 26, throwBat: '우투우타', height: 188, weight: 90,
-      stats: { ERA: 3.45, FIP: 3.30, xFIP: 3.45, BABIP: 0.295, IVB: 36, VAA: -4.3, 'CSW%': 29, IP: 125, SO: 115, BB: 38, HR: 12 },
+      stats: { ERA: 3.45, FIP: 3.30, xFIP: 3.45, BABIP: 0.295, IVB: 36, VAA: -4.3, 'CSW%': 29, IP: 125, SO: 115, BB: 38, HR: 12, 'K/9': 8.3, 'Putaway%': 24.8 },
       ratings: { stuff: 55, command: 50, stamina: 52, effectiveness: 50, consistency: 48 },
       scouting: '전 OAK 마이너. 도미니카 윈터리그 활약. 직구+슬라이더 조합 좋음' },
 
     { name: 'Anderson Espinoza', tier: 'T4', nationality: '베네수엘라', type: '기존외국인', origin: 'AA', role: '선발',
       salary: 18, age: 27, throwBat: '우투우타', height: 185, weight: 88,
-      stats: { ERA: 4.10, FIP: 3.80, xFIP: 3.90, BABIP: 0.310, IVB: 38, VAA: -4.1, 'CSW%': 28, IP: 95, SO: 90, BB: 35, HR: 10 },
+      stats: { ERA: 4.10, FIP: 3.80, xFIP: 3.90, BABIP: 0.310, IVB: 38, VAA: -4.1, 'CSW%': 28, IP: 95, SO: 90, BB: 35, HR: 10, 'K/9': 8.5, 'Putaway%': 24.6 },
       ratings: { stuff: 55, command: 42, stamina: 42, effectiveness: 45, consistency: 40 },
       scouting: '전 SD 탑유망주. 부상 후 AA 복귀. 구위 살아있으나 체력/제구 불안' },
 
     { name: '가토 쇼고', tier: 'T2', nationality: '일본', type: '아시아쿼터', origin: 'NPB', role: '선발',
       salary: 18, age: 29, throwBat: '좌투좌타', height: 180, weight: 78,
-      stats: { ERA: 3.55, FIP: 3.40, xFIP: 3.45, BABIP: 0.295, IVB: 30, VAA: -5.0, 'CSW%': 28, IP: 140, SO: 115, BB: 35, HR: 14 },
+      stats: { ERA: 3.55, FIP: 3.40, xFIP: 3.45, BABIP: 0.295, IVB: 30, VAA: -5.0, 'CSW%': 28, IP: 140, SO: 115, BB: 35, HR: 14, 'K/9': 7.4, 'Putaway%': 24.5 },
       ratings: { stuff: 48, command: 60, stamina: 58, effectiveness: 55, consistency: 58 },
       scouting: 'NPB 2군 좌완 에이스. 제구력 우수, 이닝 소화 탁월. 구위 평범' },
 
     { name: 'Jason Alexander', tier: 'T5', nationality: '미국', type: '기존외국인', origin: '독립리그', role: '선발',
       salary: 10, age: 30, throwBat: '우투우타', height: 180, weight: 88,
-      stats: { ERA: 4.00, FIP: 3.80, xFIP: 3.90, BABIP: 0.305, IVB: 28, VAA: -5.2, 'CSW%': 24, IP: 130, SO: 85, BB: 28, HR: 16 },
+      stats: { ERA: 4.00, FIP: 3.80, xFIP: 3.90, BABIP: 0.305, IVB: 28, VAA: -5.2, 'CSW%': 24, IP: 130, SO: 85, BB: 28, HR: 16, 'K/9': 5.9, 'Putaway%': 19.9 },
       ratings: { stuff: 40, command: 52, stamina: 55, effectiveness: 45, consistency: 48 },
       scouting: '전 MIL. 독립리그 이닝왕. 구속 낮지만 볼넷 적고 이닝 소화력 좋음' },
 
     // === 추가 투수 (20명) ===
     { name: 'Marco Gonzales', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', role: '선발',
       salary: 110, age: 34, throwBat: '좌투좌타', height: 185, weight: 90,
-      stats: { ERA: 4.70, FIP: 4.40, xFIP: 4.30, BABIP: 0.310, IVB: 28, VAA: -5.4, 'CSW%': 25, IP: 145, SO: 105, BB: 35, HR: 22 },
+      stats: { ERA: 4.70, FIP: 4.40, xFIP: 4.30, BABIP: 0.310, IVB: 28, VAA: -5.4, 'CSW%': 25, IP: 145, SO: 105, BB: 35, HR: 22, 'K/9': 6.5, 'Putaway%': 20.1 },
       ratings: { stuff: 45, command: 65, stamina: 62, effectiveness: 55, consistency: 58 },
       scouting: '전 SEA/PIT 좌완. 구속 낮지만 제구력 최상급. 이닝이터 전형' },
 
     { name: 'Aaron Sanchez', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', role: '선발',
       salary: 100, age: 33, throwBat: '우투우타', height: 191, weight: 95,
-      stats: { ERA: 5.10, FIP: 4.60, xFIP: 4.50, BABIP: 0.325, IVB: 38, VAA: -4.3, 'CSW%': 27, IP: 110, SO: 95, BB: 48, HR: 16 },
+      stats: { ERA: 5.10, FIP: 4.60, xFIP: 4.50, BABIP: 0.325, IVB: 38, VAA: -4.3, 'CSW%': 27, IP: 110, SO: 95, BB: 48, HR: 16, 'K/9': 7.8, 'Putaway%': 23.9 },
       ratings: { stuff: 58, command: 45, stamina: 48, effectiveness: 48, consistency: 42 },
       scouting: '전 TOR/HOU. 한때 ERA 3.00 기록. 부상 후 부진하나 싱커 여전히 위력적' },
 
-    { name: 'Chris Flexen', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', role: '선발',
-      salary: 115, age: 32, throwBat: '우투우타', height: 191, weight: 102,
-      stats: { ERA: 4.85, FIP: 4.50, xFIP: 4.40, BABIP: 0.315, IVB: 32, VAA: -4.8, 'CSW%': 26, IP: 140, SO: 110, BB: 42, HR: 20 },
-      ratings: { stuff: 52, command: 58, stamina: 58, effectiveness: 52, consistency: 55 },
-      scouting: '전 KBO(두산) 경험자. MLB 복귀 후 부진. KBO 재적응 빠를 수 있음' },
-
     { name: 'Domingo German', tier: 'T1', nationality: '도미니카', type: '기존외국인', origin: 'MLB', role: '선발',
       salary: 105, age: 33, throwBat: '우투우타', height: 188, weight: 93,
-      stats: { ERA: 5.30, FIP: 4.80, xFIP: 4.60, BABIP: 0.320, IVB: 36, VAA: -4.4, 'CSW%': 28, IP: 120, SO: 115, BB: 45, HR: 22 },
+      stats: { ERA: 5.30, FIP: 4.80, xFIP: 4.60, BABIP: 0.320, IVB: 36, VAA: -4.4, 'CSW%': 28, IP: 120, SO: 115, BB: 45, HR: 22, 'K/9': 8.6, 'Putaway%': 24.1 },
       ratings: { stuff: 58, command: 48, stamina: 50, effectiveness: 48, consistency: 42 },
       scouting: '전 NYY. 노히트 경험. 체인지업 위력적이나 일관성 부족' },
 
     { name: 'Tyler Anderson', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '선발',
       salary: 75, age: 36, throwBat: '좌투좌타', height: 188, weight: 98,
-      stats: { ERA: 4.30, FIP: 4.10, xFIP: 4.00, BABIP: 0.300, IVB: 26, VAA: -5.6, 'CSW%': 25, IP: 150, SO: 115, BB: 38, HR: 20 },
+      stats: { ERA: 4.30, FIP: 4.10, xFIP: 4.00, BABIP: 0.300, IVB: 26, VAA: -5.6, 'CSW%': 25, IP: 150, SO: 115, BB: 38, HR: 20, 'K/9': 6.9, 'Putaway%': 21.6 },
       ratings: { stuff: 42, command: 62, stamina: 62, effectiveness: 55, consistency: 58 },
       scouting: '전 LAD/LAA. 좌완 이닝이터. 구속 낮지만 이닝 소화력 발군' },
 
     { name: '오카모토 다이키', tier: 'T2', nationality: '일본', type: '아시아쿼터', origin: 'NPB', role: '중계',
-      salary: 18, age: 26, throwBat: '우투우타', height: 183, weight: 85,
-      stats: { ERA: 2.90, FIP: 3.00, xFIP: 3.15, BABIP: 0.285, IVB: 42, VAA: -3.7, 'CSW%': 32, IP: 58, SO: 65, BB: 18, HR: 5 },
+      salary: 18, age: 26, throwBat: '우투우타', height: 183, weight: 85, velocity: 155,
+      stats: { ERA: 2.90, FIP: 3.00, xFIP: 3.15, BABIP: 0.285, IVB: 42, VAA: -3.7, 'CSW%': 32, IP: 58, SO: 65, BB: 18, HR: 5, 'K/9': 10.1, 'Putaway%': 28.4 },
       ratings: { stuff: 60, command: 55, stamina: 35, effectiveness: 58, consistency: 52 },
       scouting: 'NPB 2군 최우수 중계. 155km 직구와 슬라이더. 1군 기회 부족' },
 
     { name: 'Hayden Wesneski', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '선발',
       salary: 70, age: 27, throwBat: '우투우타', height: 191, weight: 95,
-      stats: { ERA: 4.60, FIP: 4.20, xFIP: 4.10, BABIP: 0.315, IVB: 36, VAA: -4.4, 'CSW%': 29, IP: 130, SO: 125, BB: 40, HR: 18 },
+      stats: { ERA: 4.60, FIP: 4.20, xFIP: 4.10, BABIP: 0.315, IVB: 36, VAA: -4.4, 'CSW%': 29, IP: 130, SO: 125, BB: 40, HR: 18, 'K/9': 8.7, 'Putaway%': 24.9 },
       ratings: { stuff: 58, command: 52, stamina: 55, effectiveness: 52, consistency: 48 },
       scouting: '전 CHC. 스플리터 우수. MLB에서 롱릴리프 → KBO 선발 전환 가능' },
 
     { name: '나카지마 류', tier: 'T2', nationality: '일본', type: '아시아쿼터', origin: 'NPB', role: '선발',
       salary: 20, age: 28, throwBat: '좌투좌타', height: 178, weight: 75,
-      stats: { ERA: 3.40, FIP: 3.30, xFIP: 3.40, BABIP: 0.295, IVB: 30, VAA: -5.0, 'CSW%': 28, IP: 145, SO: 120, BB: 35, HR: 14 },
+      stats: { ERA: 3.40, FIP: 3.30, xFIP: 3.40, BABIP: 0.295, IVB: 30, VAA: -5.0, 'CSW%': 28, IP: 145, SO: 120, BB: 35, HR: 14, 'K/9': 7.4, 'Putaway%': 22.8 },
       ratings: { stuff: 50, command: 60, stamina: 58, effectiveness: 55, consistency: 58 },
       scouting: 'NPB 퍼시픽리그 2군 좌완. 제구형. 체인지업이 주무기' },
 
     { name: 'Carlos Hernandez', tier: 'T3', nationality: '베네수엘라', type: '기존외국인', origin: '중남미', role: '선발',
-      salary: 35, age: 27, throwBat: '우투우타', height: 196, weight: 105,
-      stats: { ERA: 3.80, FIP: 3.60, xFIP: 3.70, BABIP: 0.305, IVB: 38, VAA: -4.2, 'CSW%': 28, IP: 115, SO: 105, BB: 40, HR: 12 },
+      salary: 35, age: 27, throwBat: '우투우타', height: 196, weight: 105, velocity: 155,
+      stats: { ERA: 3.80, FIP: 3.60, xFIP: 3.70, BABIP: 0.305, IVB: 38, VAA: -4.2, 'CSW%': 28, IP: 115, SO: 105, BB: 40, HR: 12, 'K/9': 8.2, 'Putaway%': 26.2 },
       ratings: { stuff: 58, command: 48, stamina: 50, effectiveness: 50, consistency: 45 },
       scouting: '전 KC. 155km 싱커 보유. 그라운드볼 투수. 제구 불안이 약점' },
 
     { name: '천진웨이', tier: 'T3', nationality: '대만', type: '아시아쿼터', origin: 'CPBL', role: '마무리',
-      salary: 22, age: 27, throwBat: '우투우타', height: 185, weight: 88,
-      stats: { ERA: 2.60, FIP: 2.80, xFIP: 3.00, BABIP: 0.275, IVB: 42, VAA: -3.5, 'CSW%': 34, IP: 48, SO: 58, BB: 15, HR: 3 },
+      salary: 22, age: 27, throwBat: '우투우타', height: 185, weight: 88, velocity: 152,
+      stats: { ERA: 2.60, FIP: 2.80, xFIP: 3.00, BABIP: 0.275, IVB: 42, VAA: -3.5, 'CSW%': 34, IP: 48, SO: 58, BB: 15, HR: 3, 'K/9': 10.9, 'Putaway%': 31.0 },
       ratings: { stuff: 60, command: 58, stamina: 28, effectiveness: 58, consistency: 52 },
       scouting: 'CPBL 올스타 마무리. 152km 직구+스플리터. 9회 적합' },
 
     { name: 'Reiver Sanmartin', tier: 'T3', nationality: '베네수엘라', type: '기존외국인', origin: '중남미', role: '선발',
       salary: 28, age: 28, throwBat: '좌투좌타', height: 183, weight: 82,
-      stats: { ERA: 3.60, FIP: 3.50, xFIP: 3.60, BABIP: 0.300, IVB: 30, VAA: -5.0, 'CSW%': 27, IP: 120, SO: 100, BB: 35, HR: 14 },
+      stats: { ERA: 3.60, FIP: 3.50, xFIP: 3.60, BABIP: 0.300, IVB: 30, VAA: -5.0, 'CSW%': 27, IP: 120, SO: 100, BB: 35, HR: 14, 'K/9': 7.5, 'Putaway%': 22.3 },
       ratings: { stuff: 48, command: 55, stamina: 52, effectiveness: 50, consistency: 50 },
       scouting: '전 CIN. 좌완 제구형. 베네수엘라 윈터리그에서 부활. 가성비 좋음' },
 
     { name: 'Abel Taveras', tier: 'T4', nationality: '도미니카', type: '기존외국인', origin: 'AA', role: '중계',
-      salary: 15, age: 24, throwBat: '우투우타', height: 188, weight: 92,
-      stats: { ERA: 3.50, FIP: 3.30, xFIP: 3.45, BABIP: 0.295, IVB: 44, VAA: -3.4, 'CSW%': 31, IP: 52, SO: 60, BB: 20, HR: 4 },
+      salary: 15, age: 24, throwBat: '우투우타', height: 188, weight: 92, velocity: 157,
+      stats: { ERA: 3.50, FIP: 3.30, xFIP: 3.45, BABIP: 0.295, IVB: 44, VAA: -3.4, 'CSW%': 31, IP: 52, SO: 60, BB: 20, HR: 4, 'K/9': 10.4, 'Putaway%': 29.9 },
       ratings: { stuff: 62, command: 42, stamina: 30, effectiveness: 48, consistency: 40 },
       scouting: 'AA 불펜 유망주. 157km 직구. 삼진 능력 뛰어나나 제구 불안' },
 
     { name: 'Yoimer Camacho', tier: 'T4', nationality: '베네수엘라', type: '기존외국인', origin: 'AA', role: '선발',
       salary: 18, age: 23, throwBat: '좌투좌타', height: 183, weight: 80,
-      stats: { ERA: 4.10, FIP: 3.80, xFIP: 3.90, BABIP: 0.310, IVB: 32, VAA: -4.6, 'CSW%': 27, IP: 100, SO: 92, BB: 38, HR: 10 },
+      stats: { ERA: 4.10, FIP: 3.80, xFIP: 3.90, BABIP: 0.310, IVB: 32, VAA: -4.6, 'CSW%': 27, IP: 100, SO: 92, BB: 38, HR: 10, 'K/9': 8.3, 'Putaway%': 24.0 },
       ratings: { stuff: 52, command: 45, stamina: 48, effectiveness: 45, consistency: 42 },
       scouting: 'AA 좌완 유망주. 성장 가능성 높으나 아직 미완성. 저비용 투자형' },
 
     { name: 'Luis Peralta', tier: 'T4', nationality: '도미니카', type: '기존외국인', origin: '쿠바', role: '마무리',
-      salary: 20, age: 25, throwBat: '우투우타', height: 193, weight: 100,
-      stats: { ERA: 3.20, FIP: 3.00, xFIP: 3.20, BABIP: 0.280, IVB: 46, VAA: -3.2, 'CSW%': 33, IP: 45, SO: 55, BB: 20, HR: 3 },
+      salary: 20, age: 25, throwBat: '우투우타', height: 193, weight: 100, velocity: 158,
+      stats: { ERA: 3.20, FIP: 3.00, xFIP: 3.20, BABIP: 0.280, IVB: 46, VAA: -3.2, 'CSW%': 33, IP: 45, SO: 55, BB: 20, HR: 3, 'K/9': 11.0, 'Putaway%': 30.9 },
       ratings: { stuff: 65, command: 38, stamina: 28, effectiveness: 48, consistency: 35 },
       scouting: '도미니카 윈터리그 마무리. 158km 직구. 구위는 최상급이나 제구 극도로 불안' },
 
     { name: 'James Karinchak', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '마무리',
       salary: 80, age: 30, throwBat: '우투우타', height: 191, weight: 98,
-      stats: { ERA: 3.30, FIP: 3.10, xFIP: 3.20, BABIP: 0.280, IVB: 48, VAA: -3.0, 'CSW%': 35, IP: 55, SO: 80, BB: 25, HR: 5 },
+      stats: { ERA: 3.30, FIP: 3.10, xFIP: 3.20, BABIP: 0.280, IVB: 48, VAA: -3.0, 'CSW%': 35, IP: 55, SO: 80, BB: 25, HR: 5, 'K/9': 13.1, 'Putaway%': 32.3 },
       ratings: { stuff: 68, command: 45, stamina: 32, effectiveness: 58, consistency: 48 },
       scouting: '전 CLE. 커브볼 스핀레이트 MLB 상위 1%. 삼진 머신이나 볼넷 많음' },
 
     { name: 'Liam Hendriks', tier: 'T1', nationality: '호주', type: '아시아쿼터', origin: 'MLB', role: '마무리',
       salary: 100, age: 37, throwBat: '우투우타', height: 183, weight: 95,
-      stats: { ERA: 3.80, FIP: 3.50, xFIP: 3.40, BABIP: 0.290, IVB: 40, VAA: -3.6, 'CSW%': 32, IP: 50, SO: 60, BB: 15, HR: 6 },
+      stats: { ERA: 3.80, FIP: 3.50, xFIP: 3.40, BABIP: 0.290, IVB: 40, VAA: -3.6, 'CSW%': 32, IP: 50, SO: 60, BB: 15, HR: 6, 'K/9': 10.8, 'Putaway%': 29.6 },
       ratings: { stuff: 60, command: 60, stamina: 30, effectiveness: 58, consistency: 55 },
       scouting: '전 CHW/BOS. 호주 국대 에이스. 올스타 마무리. 암 투병 후 복귀. 경험+구위 겸비' },
 
     { name: 'Craig Kimbrel', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', role: '마무리',
       salary: 120, age: 38, throwBat: '우투우타', height: 180, weight: 95,
-      stats: { ERA: 4.20, FIP: 3.80, xFIP: 3.70, BABIP: 0.300, IVB: 44, VAA: -3.3, 'CSW%': 33, IP: 48, SO: 62, BB: 22, HR: 8 },
+      stats: { ERA: 4.20, FIP: 3.80, xFIP: 3.70, BABIP: 0.300, IVB: 44, VAA: -3.3, 'CSW%': 33, IP: 48, SO: 62, BB: 22, HR: 8, 'K/9': 11.6, 'Putaway%': 32.2 },
       ratings: { stuff: 62, command: 50, stamina: 28, effectiveness: 52, consistency: 48 },
       scouting: '전 ATL/CHC/BOS. 통산 400세이브 레전드. 노장 리스크 있으나 커브볼 여전' },
 
     { name: 'Sean Doolittle', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '중계',
       salary: 55, age: 38, throwBat: '좌투좌타', height: 188, weight: 95,
-      stats: { ERA: 3.50, FIP: 3.40, xFIP: 3.50, BABIP: 0.290, IVB: 32, VAA: -4.8, 'CSW%': 28, IP: 45, SO: 48, BB: 12, HR: 5 },
+      stats: { ERA: 3.50, FIP: 3.40, xFIP: 3.50, BABIP: 0.290, IVB: 32, VAA: -4.8, 'CSW%': 28, IP: 45, SO: 48, BB: 12, HR: 5, 'K/9': 9.6, 'Putaway%': 24.9 },
       ratings: { stuff: 48, command: 62, stamina: 30, effectiveness: 52, consistency: 55 },
       scouting: '전 OAK/WSH. 좌완 경험 풍부. 볼넷 적고 안정적. 좌타자 전문' },
 
     { name: 'Brad Keller', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '선발',
       salary: 65, age: 30, throwBat: '우투우타', height: 196, weight: 105,
-      stats: { ERA: 4.50, FIP: 4.20, xFIP: 4.10, BABIP: 0.305, IVB: 30, VAA: -5.0, 'CSW%': 25, IP: 150, SO: 110, BB: 45, HR: 18 },
+      stats: { ERA: 4.50, FIP: 4.20, xFIP: 4.10, BABIP: 0.305, IVB: 30, VAA: -5.0, 'CSW%': 25, IP: 150, SO: 110, BB: 45, HR: 18, 'K/9': 6.6, 'Putaway%': 22.1 },
       ratings: { stuff: 50, command: 55, stamina: 62, effectiveness: 52, consistency: 52 },
       scouting: '전 KC. 이닝이터. 싱커 위주 그라운드볼. 구속 낮지만 체력 우수' },
+
+    // === 강속구 마이너리그 투수 (150km+) ===
+    { name: 'Tanner Bibee', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '선발',
+      salary: 80, age: 26, throwBat: '우투우타', height: 191, weight: 93, velocity: 153,
+      stats: { ERA: 3.80, FIP: 3.50, xFIP: 3.45, BABIP: 0.300, IVB: 42, VAA: -3.6, 'CSW%': 32, IP: 145, SO: 155, BB: 42, HR: 14, 'K/9': 9.6, 'Putaway%': 28.2 },
+      ratings: { stuff: 62, command: 55, stamina: 58, effectiveness: 58, consistency: 52 },
+      scouting: '전 CLE 유망주. 평균 구속 153km, 최고 157km. 슬라이더+체인지업 조합 우수. 탈삼진 능력 상급' },
+
+    { name: 'Roansy Contreras', tier: 'T2', nationality: '도미니카', type: '기존외국인', origin: 'AAA', role: '선발',
+      salary: 65, age: 26, throwBat: '우투우타', height: 183, weight: 82, velocity: 152,
+      stats: { ERA: 4.20, FIP: 3.80, xFIP: 3.75, BABIP: 0.310, IVB: 40, VAA: -3.8, 'CSW%': 30, IP: 130, SO: 135, BB: 48, HR: 14, 'K/9': 9.3, 'Putaway%': 26.8 },
+      ratings: { stuff: 60, command: 48, stamina: 52, effectiveness: 52, consistency: 48 },
+      scouting: '전 PIT. 평균 구속 152km, 최고 156km. 슬라이더 날카로움. 제구 불안이 과제' },
+
+    { name: 'Brayan Bello', tier: 'T2', nationality: '도미니카', type: '기존외국인', origin: 'AAA', role: '선발',
+      salary: 75, age: 27, throwBat: '우투우타', height: 183, weight: 77, velocity: 154,
+      stats: { ERA: 4.00, FIP: 3.70, xFIP: 3.65, BABIP: 0.305, IVB: 38, VAA: -4.0, 'CSW%': 29, IP: 150, SO: 140, BB: 45, HR: 16, 'K/9': 8.4, 'Putaway%': 26.3 },
+      ratings: { stuff: 58, command: 52, stamina: 58, effectiveness: 55, consistency: 50 },
+      scouting: '전 BOS. 평균 구속 154km, 최고 158km. 싱커+체인지업 주무기. 그라운드볼 유도 능력' },
+
+    { name: 'Eury Perez', tier: 'T2', nationality: '도미니카', type: '기존외국인', origin: 'AAA', role: '선발',
+      salary: 85, age: 22, throwBat: '우투우타', height: 203, weight: 95, velocity: 155,
+      stats: { ERA: 3.60, FIP: 3.40, xFIP: 3.50, BABIP: 0.295, IVB: 44, VAA: -3.3, 'CSW%': 33, IP: 120, SO: 135, BB: 38, HR: 12, 'K/9': 10.1, 'Putaway%': 28.6 },
+      ratings: { stuff: 68, command: 50, stamina: 50, effectiveness: 55, consistency: 48 },
+      scouting: '전 MIA 탑유망주. 203cm 장신, 평균 구속 155km, 최고 160km. 구위 포텐셜 최상급. 부상 이력 리스크' },
+
+    { name: 'Hunter Brown', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '선발',
+      salary: 70, age: 27, throwBat: '우투우타', height: 193, weight: 95, velocity: 154,
+      stats: { ERA: 4.40, FIP: 4.00, xFIP: 3.90, BABIP: 0.315, IVB: 40, VAA: -3.7, 'CSW%': 30, IP: 140, SO: 150, BB: 55, HR: 16, 'K/9': 9.6, 'Putaway%': 28.1 },
+      ratings: { stuff: 62, command: 45, stamina: 55, effectiveness: 52, consistency: 45 },
+      scouting: '전 HOU. 평균 구속 154km, 최고 159km. 슬라이더 위력적. 볼넷이 많지만 삼진도 많음' },
+
+    { name: 'Taj Bradley', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '선발',
+      salary: 75, age: 24, throwBat: '우투우타', height: 188, weight: 86, velocity: 153,
+      stats: { ERA: 3.90, FIP: 3.60, xFIP: 3.55, BABIP: 0.305, IVB: 42, VAA: -3.5, 'CSW%': 31, IP: 135, SO: 145, BB: 40, HR: 14, 'K/9': 9.7, 'Putaway%': 28.8 },
+      ratings: { stuff: 62, command: 52, stamina: 55, effectiveness: 55, consistency: 50 },
+      scouting: '전 TB 유망주. 평균 구속 153km, 최고 157km. 커브+체인지업 다구종. KBO 에이스급 잠재력' },
+
+    { name: 'Mason Miller', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '마무리',
+      salary: 90, age: 26, throwBat: '우투좌타', height: 196, weight: 95, velocity: 160,
+      stats: { ERA: 2.50, FIP: 2.30, xFIP: 2.60, BABIP: 0.260, IVB: 50, VAA: -2.8, 'CSW%': 38, IP: 55, SO: 85, BB: 18, HR: 4, 'K/9': 13.9, 'Putaway%': 34.6 },
+      ratings: { stuff: 75, command: 52, stamina: 28, effectiveness: 62, consistency: 52 },
+      scouting: '전 OAK. 평균 구속 160km, 최고 164km. MLB 최고 구속 보유자 중 하나. 마무리 특화' },
+
+    { name: 'Ben Joyce', tier: 'T4', nationality: '미국', type: '기존외국인', origin: 'AA', role: '중계',
+      salary: 22, age: 25, throwBat: '우투우타', height: 198, weight: 102, velocity: 161,
+      stats: { ERA: 3.40, FIP: 3.10, xFIP: 3.30, BABIP: 0.285, IVB: 48, VAA: -2.9, 'CSW%': 34, IP: 50, SO: 68, BB: 22, HR: 4, 'K/9': 12.2, 'Putaway%': 30.4 },
+      ratings: { stuff: 70, command: 40, stamina: 30, effectiveness: 50, consistency: 40 },
+      scouting: '전 LAA 마이너. 평균 구속 161km, 최고 165km. 순수 화력 최상급이나 제구 미완성' },
+
+    { name: 'Yohan Ramirez', tier: 'T3', nationality: '도미니카', type: '기존외국인', origin: '중남미', role: '중계',
+      salary: 28, age: 29, throwBat: '우투우타', height: 188, weight: 88, velocity: 155,
+      stats: { ERA: 3.60, FIP: 3.30, xFIP: 3.50, BABIP: 0.295, IVB: 44, VAA: -3.4, 'CSW%': 31, IP: 55, SO: 65, BB: 28, HR: 5, 'K/9': 10.6, 'Putaway%': 27.5 },
+      ratings: { stuff: 62, command: 42, stamina: 32, effectiveness: 50, consistency: 42 },
+      scouting: '전 SEA/CLE/PIT. 평균 구속 155km, 최고 159km. 파워 슬라이더 보유. 볼넷 리스크' },
+
+    { name: 'Janson Junk', tier: 'T3', nationality: '미국', type: '기존외국인', origin: '중남미', role: '선발',
+      salary: 30, age: 29, throwBat: '우투우타', height: 185, weight: 88, velocity: 150,
+      stats: { ERA: 3.80, FIP: 3.60, xFIP: 3.70, BABIP: 0.300, IVB: 38, VAA: -4.0, 'CSW%': 28, IP: 125, SO: 115, BB: 35, HR: 14, 'K/9': 8.3, 'Putaway%': 25.3 },
+      ratings: { stuff: 55, command: 55, stamina: 55, effectiveness: 52, consistency: 52 },
+      scouting: '전 LAA/MIL. 평균 구속 150km, 최고 154km. 슬라이더+커터 조합. 이닝 소화력과 구속 겸비' },
+
+    { name: 'Victor Vodnik', tier: 'T4', nationality: '미국', type: '기존외국인', origin: 'AA', role: '중계',
+      salary: 18, age: 25, throwBat: '우투우타', height: 185, weight: 95, velocity: 157,
+      stats: { ERA: 3.30, FIP: 3.00, xFIP: 3.20, BABIP: 0.285, IVB: 46, VAA: -3.1, 'CSW%': 33, IP: 52, SO: 62, BB: 22, HR: 4, 'K/9': 10.7, 'Putaway%': 29.7 },
+      ratings: { stuff: 65, command: 42, stamina: 30, effectiveness: 50, consistency: 42 },
+      scouting: '전 COL/ATL 마이너. 평균 구속 157km, 최고 162km. 파워 싱커+슬라이더. 불펜 화력형' },
+
+    { name: 'Angel Zerpa', tier: 'T4', nationality: '베네수엘라', type: '기존외국인', origin: 'AA', role: '선발',
+      salary: 20, age: 26, throwBat: '좌투좌타', height: 183, weight: 82, velocity: 150,
+      stats: { ERA: 3.90, FIP: 3.70, xFIP: 3.80, BABIP: 0.300, IVB: 36, VAA: -4.2, 'CSW%': 28, IP: 115, SO: 108, BB: 35, HR: 12, 'K/9': 8.5, 'Putaway%': 24.2 },
+      ratings: { stuff: 55, command: 50, stamina: 52, effectiveness: 50, consistency: 48 },
+      scouting: '전 KC 마이너. 좌완이면서 평균 구속 150km, 최고 154km. 좌완 강속구 희소 가치' },
+
+    // === 대만(CPBL) 추가 투수 ===
+    { name: '쉬지아룽', tier: 'T3', nationality: '대만', type: '아시아쿼터', origin: 'CPBL', role: '선발',
+      salary: 22, age: 27, throwBat: '우투우타', height: 185, weight: 88, velocity: 148,
+      stats: { ERA: 3.10, FIP: 3.20, xFIP: 3.30, BABIP: 0.290, IVB: 38, VAA: -4.0, 'CSW%': 30, IP: 148, SO: 130, BB: 38, HR: 12, 'K/9': 7.9, 'Putaway%': 25.8 },
+      ratings: { stuff: 55, command: 58, stamina: 60, effectiveness: 55, consistency: 55 },
+      scouting: 'CPBL 라미고 에이스급. 평균 구속 148km, 커터+슬라이더 조합. 이닝 소화력 발군' },
+
+    { name: '린위엔', tier: 'T3', nationality: '대만', type: '아시아쿼터', origin: 'CPBL', role: '선발',
+      salary: 25, age: 26, throwBat: '좌투좌타', height: 180, weight: 82,
+      stats: { ERA: 3.30, FIP: 3.20, xFIP: 3.35, BABIP: 0.295, IVB: 34, VAA: -4.5, 'CSW%': 29, IP: 140, SO: 125, BB: 35, HR: 14, 'K/9': 8.0, 'Putaway%': 25.3 },
+      ratings: { stuff: 52, command: 58, stamina: 58, effectiveness: 55, consistency: 58 },
+      scouting: 'CPBL 좌완 에이스. 체인지업+커브 조합 우수. 좌타 상대 피안타율 .210. 제구형' },
+
+    { name: '천쿤위', tier: 'T3', nationality: '대만', type: '아시아쿼터', origin: 'CPBL', role: '중계',
+      salary: 18, age: 25, throwBat: '우투우타', height: 183, weight: 85, velocity: 152,
+      stats: { ERA: 2.70, FIP: 2.90, xFIP: 3.10, BABIP: 0.280, IVB: 42, VAA: -3.5, 'CSW%': 32, IP: 58, SO: 65, BB: 18, HR: 4, 'K/9': 10.1, 'Putaway%': 27.7 },
+      ratings: { stuff: 58, command: 55, stamina: 32, effectiveness: 55, consistency: 52 },
+      scouting: 'CPBL 최우수 셋업맨. 평균 구속 152km, 슬라이더 피안타율 .180. 마무리 전환 가능' },
+
+    { name: '장이', tier: 'T3', nationality: '대만', type: '아시아쿼터', origin: 'CPBL', role: '선발',
+      salary: 20, age: 28, throwBat: '우투우타', height: 188, weight: 90,
+      stats: { ERA: 3.40, FIP: 3.30, xFIP: 3.40, BABIP: 0.300, IVB: 36, VAA: -4.2, 'CSW%': 28, IP: 135, SO: 115, BB: 40, HR: 14, 'K/9': 7.7, 'Putaway%': 25.8 },
+      ratings: { stuff: 52, command: 55, stamina: 58, effectiveness: 52, consistency: 55 },
+      scouting: 'CPBL 통산 50승급. 싱커+체인지업 그라운드볼 투수. 안정적 이닝 소화' },
+
+    { name: '우저하오', tier: 'T3', nationality: '대만', type: '아시아쿼터', origin: 'CPBL', role: '마무리',
+      salary: 22, age: 26, throwBat: '우투우타', height: 182, weight: 83, velocity: 153,
+      stats: { ERA: 2.40, FIP: 2.60, xFIP: 2.85, BABIP: 0.270, IVB: 44, VAA: -3.3, 'CSW%': 35, IP: 48, SO: 62, BB: 14, HR: 3, 'K/9': 11.6, 'Putaway%': 31.6 },
+      ratings: { stuff: 60, command: 60, stamina: 28, effectiveness: 58, consistency: 55 },
+      scouting: 'CPBL 세이브 2위. 평균 구속 153km, 스플리터 공중부양. 제구+구위 겸비 마무리' },
+
+    // === 도미니카 윈터리그 추가 투수 ===
+    { name: 'Franklyn Kilome', tier: 'T3', nationality: '도미니카', type: '기존외국인', origin: '중남미', role: '선발',
+      salary: 30, age: 28, throwBat: '우투우타', height: 198, weight: 102, velocity: 153,
+      stats: { ERA: 3.50, FIP: 3.30, xFIP: 3.45, BABIP: 0.300, IVB: 40, VAA: -3.8, 'CSW%': 29, IP: 120, SO: 115, BB: 42, HR: 12, 'K/9': 8.6, 'Putaway%': 26.5 },
+      ratings: { stuff: 58, command: 45, stamina: 52, effectiveness: 50, consistency: 45 },
+      scouting: '도미니카 윈터리그 활약. 전 NYM/PHI 마이너. 198cm 장신, 평균 구속 153km. 슬라이더 위력적' },
+
+    { name: 'Adonis Medina', tier: 'T3', nationality: '도미니카', type: '기존외국인', origin: '중남미', role: '중계',
+      salary: 25, age: 28, throwBat: '우투우타', height: 185, weight: 88,
+      stats: { ERA: 3.20, FIP: 3.10, xFIP: 3.25, BABIP: 0.290, IVB: 38, VAA: -4.0, 'CSW%': 30, IP: 60, SO: 65, BB: 22, HR: 5, 'K/9': 9.8, 'Putaway%': 26.6 },
+      ratings: { stuff: 55, command: 50, stamina: 35, effectiveness: 52, consistency: 48 },
+      scouting: '도미니카 윈터리그 최우수 중계. 전 PHI 탑유망주. 체인지업 위력적. 불펜 전환 성공' },
+
+    { name: 'Starlin Castillo', tier: 'T3', nationality: '도미니카', type: '기존외국인', origin: '중남미', role: '선발',
+      salary: 28, age: 27, throwBat: '우투우타', height: 190, weight: 95, velocity: 154,
+      stats: { ERA: 3.40, FIP: 3.20, xFIP: 3.35, BABIP: 0.295, IVB: 42, VAA: -3.6, 'CSW%': 31, IP: 110, SO: 108, BB: 38, HR: 10, 'K/9': 8.8, 'Putaway%': 27.7 },
+      ratings: { stuff: 60, command: 48, stamina: 48, effectiveness: 50, consistency: 45 },
+      scouting: '도미니카 윈터리그 탈삼진왕. 평균 구속 154km, 커브 스핀레이트 높음. 제구만 잡으면 에이스급' },
+
+    { name: 'Jose Marte', tier: 'T4', nationality: '도미니카', type: '기존외국인', origin: '중남미', role: '중계',
+      salary: 18, age: 27, throwBat: '우투우타', height: 188, weight: 92, velocity: 156,
+      stats: { ERA: 3.10, FIP: 2.90, xFIP: 3.10, BABIP: 0.285, IVB: 46, VAA: -3.2, 'CSW%': 33, IP: 52, SO: 60, BB: 20, HR: 4, 'K/9': 10.4, 'Putaway%': 31.0 },
+      ratings: { stuff: 62, command: 45, stamina: 30, effectiveness: 52, consistency: 42 },
+      scouting: '도미니카 윈터리그 셋업맨. 평균 구속 156km, 스위퍼 보유. 불펜 화력 보강용' },
+
+    { name: 'Enmanuel De Jesus', tier: 'T4', nationality: '도미니카', type: '기존외국인', origin: '중남미', role: '선발',
+      salary: 15, age: 26, throwBat: '좌투좌타', height: 183, weight: 80, velocity: 148,
+      stats: { ERA: 3.70, FIP: 3.50, xFIP: 3.60, BABIP: 0.300, IVB: 32, VAA: -4.6, 'CSW%': 27, IP: 105, SO: 95, BB: 35, HR: 12, 'K/9': 8.1, 'Putaway%': 23.9 },
+      ratings: { stuff: 50, command: 48, stamina: 50, effectiveness: 48, consistency: 45 },
+      scouting: '도미니카 리그 좌완. 평균 구속 148km, 체인지업 주무기. 좌타 상대 강점. 저비용 선발 옵션' },
+
+    // === 마이너리그(AAA/AA) 추가 투수 ===
+    { name: 'Andrew Painter', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '선발',
+      salary: 70, age: 23, throwBat: '우투우타', height: 196, weight: 95, velocity: 155,
+      stats: { ERA: 3.50, FIP: 3.20, xFIP: 3.30, BABIP: 0.295, IVB: 44, VAA: -3.4, 'CSW%': 33, IP: 110, SO: 130, BB: 32, HR: 10, 'K/9': 10.6, 'Putaway%': 29.8 },
+      ratings: { stuff: 65, command: 52, stamina: 48, effectiveness: 55, consistency: 48 },
+      scouting: '전 PHI 탑유망주. 평균 구속 155km, 최고 159km. TJS 복귀 후 구위 유지. 잠재력 최상급' },
+
+    { name: 'Cade Cavalli', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '선발',
+      salary: 65, age: 27, throwBat: '우투우타', height: 196, weight: 100, velocity: 154,
+      stats: { ERA: 4.10, FIP: 3.70, xFIP: 3.65, BABIP: 0.310, IVB: 40, VAA: -3.7, 'CSW%': 30, IP: 120, SO: 130, BB: 48, HR: 14, 'K/9': 9.8, 'Putaway%': 28.6 },
+      ratings: { stuff: 62, command: 45, stamina: 50, effectiveness: 50, consistency: 42 },
+      scouting: '전 WSH 유망주. 평균 구속 154km, 너클커브 위력적. 부상 복귀 후 잠재력에 베팅' },
+
+    { name: 'Matt Waldron', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '선발',
+      salary: 60, age: 28, throwBat: '우투우타', height: 188, weight: 88, velocity: 150,
+      stats: { ERA: 4.30, FIP: 4.00, xFIP: 3.90, BABIP: 0.305, IVB: 45, VAA: -3.8, 'CSW%': 28, IP: 140, SO: 120, BB: 45, HR: 16, 'K/9': 7.7, 'Putaway%': 24.3 },
+      ratings: { stuff: 55, command: 50, stamina: 58, effectiveness: 52, consistency: 50 },
+      scouting: '전 SD. 너클볼+패스트볼 조합. 평균 구속 150km. 독특한 구종 믹스로 타자 혼란 유도' },
+
+    { name: 'Kyle Harrison', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '선발',
+      salary: 75, age: 24, throwBat: '좌투좌타', height: 188, weight: 93, velocity: 152,
+      stats: { ERA: 3.80, FIP: 3.50, xFIP: 3.45, BABIP: 0.300, IVB: 38, VAA: -4.0, 'CSW%': 31, IP: 130, SO: 145, BB: 45, HR: 14, 'K/9': 10.0, 'Putaway%': 29.6 },
+      ratings: { stuff: 62, command: 48, stamina: 52, effectiveness: 55, consistency: 48 },
+      scouting: '전 SF 유망주. 좌완 평균 구속 152km, 최고 156km. 슬라이더 삼진 능력 탁월' },
+
+    { name: 'Tink Hence', tier: 'T4', nationality: '미국', type: '기존외국인', origin: 'AA', role: '선발',
+      salary: 20, age: 22, throwBat: '우투우타', height: 185, weight: 82, velocity: 153,
+      stats: { ERA: 3.60, FIP: 3.30, xFIP: 3.40, BABIP: 0.295, IVB: 42, VAA: -3.5, 'CSW%': 32, IP: 90, SO: 100, BB: 32, HR: 8, 'K/9': 10.0, 'Putaway%': 28.3 },
+      ratings: { stuff: 60, command: 48, stamina: 42, effectiveness: 48, consistency: 42 },
+      scouting: '전 STL AA 유망주. 평균 구속 153km, 커브+체인지업. 어린 나이에 AA 정복. 성장 가능성 높음' },
+
+    { name: 'Marco Raya', tier: 'T4', nationality: '미국', type: '기존외국인', origin: 'AA', role: '선발',
+      salary: 18, age: 23, throwBat: '우투우타', height: 183, weight: 82, velocity: 152,
+      stats: { ERA: 3.80, FIP: 3.50, xFIP: 3.60, BABIP: 0.305, IVB: 40, VAA: -3.8, 'CSW%': 30, IP: 95, SO: 105, BB: 35, HR: 10, 'K/9': 9.9, 'Putaway%': 28.3 },
+      ratings: { stuff: 58, command: 45, stamina: 45, effectiveness: 48, consistency: 42 },
+      scouting: '전 MIN AA 유망주. 평균 구속 152km, 슬라이더+체인지업. 멕시코계. 성장형 투자' },
+
+    // === ABL(호주) 추가 투수 ===
+    { name: 'Lachlan Wells', tier: 'T5', nationality: '호주', type: '아시아쿼터', origin: 'ABL', role: '선발',
+      salary: 14, age: 26, throwBat: '우투우타', height: 191, weight: 92, velocity: 148,
+      stats: { ERA: 3.50, FIP: 3.30, xFIP: 3.45, BABIP: 0.295, IVB: 38, VAA: -4.0, 'CSW%': 29, IP: 115, SO: 105, BB: 30, HR: 10, 'K/9': 8.2, 'Putaway%': 26.5 },
+      ratings: { stuff: 50, command: 52, stamina: 52, effectiveness: 50, consistency: 50 },
+      scouting: 'ABL 다승왕. 호주 국대 경험. 평균 구속 148km, 커터+체인지업. 안정적 이닝이터' },
+
+    { name: 'Riley Burt', tier: 'T5', nationality: '호주', type: '아시아쿼터', origin: 'ABL', role: '중계',
+      salary: 12, age: 25, throwBat: '좌투좌타', height: 185, weight: 85,
+      stats: { ERA: 3.20, FIP: 3.10, xFIP: 3.30, BABIP: 0.285, IVB: 34, VAA: -4.4, 'CSW%': 28, IP: 55, SO: 52, BB: 18, HR: 5, 'K/9': 8.5, 'Putaway%': 25.7 },
+      ratings: { stuff: 48, command: 52, stamina: 35, effectiveness: 48, consistency: 50 },
+      scouting: 'ABL 좌완 릴리버. 호주 WBC 후보. 좌타 상대 강점. 저비용 불펜 좌완 옵션' },
+
+    { name: 'Todd Van Steensel', tier: 'T5', nationality: '호주', type: '아시아쿼터', origin: 'ABL', role: '마무리',
+      salary: 15, age: 30, throwBat: '우투우타', height: 188, weight: 95, velocity: 150,
+      stats: { ERA: 2.80, FIP: 2.90, xFIP: 3.10, BABIP: 0.275, IVB: 40, VAA: -3.6, 'CSW%': 31, IP: 50, SO: 55, BB: 15, HR: 4, 'K/9': 9.9, 'Putaway%': 28.2 },
+      ratings: { stuff: 52, command: 55, stamina: 30, effectiveness: 52, consistency: 52 },
+      scouting: 'ABL 통산 세이브 1위. 호주 국대 마무리. 평균 구속 150km, 경험+안정감 겸비' },
+
+    { name: 'Dushan Ruzic', tier: 'T5', nationality: '호주', type: '아시아쿼터', origin: 'ABL', role: '선발',
+      salary: 12, age: 24, throwBat: '우투우타', height: 193, weight: 90, velocity: 149,
+      stats: { ERA: 3.70, FIP: 3.50, xFIP: 3.60, BABIP: 0.300, IVB: 36, VAA: -4.2, 'CSW%': 27, IP: 100, SO: 88, BB: 32, HR: 10, 'K/9': 7.9, 'Putaway%': 24.9 },
+      ratings: { stuff: 50, command: 48, stamina: 48, effectiveness: 46, consistency: 45 },
+      scouting: 'ABL 신인왕 후보. 193cm 장신, 평균 구속 149km. 성장 가능성 높은 저비용 투자형' },
 
     // === 한국계 선수 ===
     { name: 'Dane Dunning', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', role: '선발',
       salary: 100, age: 32, throwBat: '우투우타', height: 193, weight: 100,
-      stats: { ERA: 4.50, FIP: 4.20, xFIP: 4.10, BABIP: 0.305, IVB: 34, VAA: -4.6, 'CSW%': 27, IP: 155, SO: 125, BB: 42, HR: 20 },
+      stats: { ERA: 4.50, FIP: 4.20, xFIP: 4.10, BABIP: 0.305, IVB: 34, VAA: -4.6, 'CSW%': 27, IP: 155, SO: 125, BB: 42, HR: 20, 'K/9': 7.3, 'Putaway%': 23.5 },
       ratings: { stuff: 52, command: 58, stamina: 60, effectiveness: 55, consistency: 55 },
       scouting: '전 TEX. 한국계 미국인. 이닝이터 타입. 싱커/슬라이더 조합. 안정적' },
 
@@ -798,12 +989,12 @@ const FOREIGN_BATTER_POOL = [
 
 // ── 미션 상태 관리 ──
 let foreignScoutState = {
-    unlocked: true,           // 기본 활성화
+    unlocked: true,           // 기본 활성화 (교사), 학생은 auth.js에서 잠금
     batterUnlocked: true,     // 기본 활성화
     missionShown: false,
     missionChoice: null,
     recruited: [],
-    detailedReport: null, // 상세 스카우팅 사용한 선수 이름 (팀당 1회)
+    detailedReports: {},      // 팀별 상세 스카우팅 사용 기록: { 'LG': 'PlayerName', '두산': 'PlayerName2', ... }
 };
 
 // localStorage에서 복원
@@ -930,6 +1121,76 @@ const NATIONALITY_CODES = {
     '멕시코': 'mx', '콜롬비아': 'co', '파나마': 'pa', '니카라과': 'ni',
 };
 
+// ── 투수 구종 자동 생성 (선수 특성 기반) ──
+function generatePitchRepertoire(p) {
+    const r = p.ratings;
+    const stuff = r.stuff || 50;
+    const isLefty = p.throwBat && p.throwBat.startsWith('좌');
+    const isSidearm = p.throwBat && (p.throwBat.includes('사') || p.throwBat.includes('언'));
+
+    // 기본 구속: 선수 데이터에 velocity가 있으면 사용, 없으면 stuff 기반 계산
+    const baseVelo = (() => {
+        if (p.velocity) return p.velocity;
+        let v = 140 + (stuff - 50) * 0.4; // stuff 50 = 140km, stuff 70 = 148km
+        if (p.origin === 'MLB') v += 3;
+        else if (p.origin === 'AAA') v += 1;
+        else if (p.origin === 'NPB' || p.origin === 'CPBL') v -= 1;
+        else if (p.origin === '독립리그' || p.origin === 'ABL') v -= 3;
+        if (isLefty) v -= 1;
+        if (isSidearm) v -= 3;
+        return Math.round(v);
+    })();
+
+    // 시드 해시 (이름 기반으로 일관된 결과)
+    let hash = 0;
+    for (let i = 0; i < p.name.length; i++) hash = ((hash << 5) - hash) + p.name.charCodeAt(i);
+    const rng = () => { hash = (hash * 16807 + 0) % 2147483647; return (hash & 0x7fffffff) / 2147483647; };
+
+    const pitches = [];
+    // 포심/싱커 선택
+    const useSinker = rng() < 0.35;
+    if (useSinker) {
+        pitches.push({ name: '싱커', velo: baseVelo - 1, pct: 25 + Math.round(rng() * 15) });
+        if (rng() < 0.5) pitches.push({ name: '포심', velo: baseVelo, pct: 10 + Math.round(rng() * 10) });
+    } else {
+        pitches.push({ name: '포심', velo: baseVelo, pct: 30 + Math.round(rng() * 15) });
+    }
+
+    // 변화구 2~4개 추가
+    const breakingOptions = [
+        { name: '슬라이더', velo: baseVelo - 15 + Math.round(rng() * 4) },
+        { name: '커브', velo: baseVelo - 25 + Math.round(rng() * 4) },
+        { name: '체인지업', velo: baseVelo - 18 + Math.round(rng() * 4) },
+        { name: '커터', velo: baseVelo - 10 + Math.round(rng() * 3) },
+        { name: '스플리터', velo: baseVelo - 16 + Math.round(rng() * 3) },
+        { name: '포크볼', velo: baseVelo - 20 + Math.round(rng() * 3) },
+    ];
+
+    // 셔플
+    for (let i = breakingOptions.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1));
+        [breakingOptions[i], breakingOptions[j]] = [breakingOptions[j], breakingOptions[i]];
+    }
+
+    const numBreaking = p.role === '선발' ? (2 + Math.floor(rng() * 2)) : (1 + Math.floor(rng() * 2));
+    for (let i = 0; i < numBreaking && i < breakingOptions.length; i++) {
+        const pct = i === 0 ? (20 + Math.round(rng() * 10)) : (8 + Math.round(rng() * 12));
+        pitches.push({ ...breakingOptions[i], pct });
+    }
+
+    // pct 합계 100%로 보정
+    const totalPct = pitches.reduce((s, pt) => s + pt.pct, 0);
+    pitches.forEach(pt => pt.pct = Math.round(pt.pct / totalPct * 100));
+    // 반올림 오차 보정
+    const diff = 100 - pitches.reduce((s, pt) => s + pt.pct, 0);
+    if (diff !== 0) pitches[0].pct += diff;
+
+    // pct 내림차순 정렬
+    pitches.sort((a, b) => b.pct - a.pct);
+
+    return pitches;
+}
+
 function getFlagImg(nationality, size = 24) {
     const code = NATIONALITY_CODES[nationality];
     if (!code) return '';
@@ -1001,6 +1262,8 @@ const STAT_TOOLTIPS = {
     'CSW%': 'Called Strike + Whiff %. 스트라이크+헛스윙 비율. 높을수록 투수가 유리 (평균 ~28%)',
     'IP': '투구이닝. 시즌 동안 소화한 이닝 수. 선발은 150+ 이 우수',
     'SO': '탈삼진 수. 시즌 총 삼진 개수. 많을수록 지배적인 투수',
+    'K/9': '9이닝당 탈삼진. SO÷IP×9로 계산. 9.0 이상이면 우수, 11.0+이면 엘리트급',
+    'Putaway%': '결정구 비율. 2스트라이크 후 삼진으로 마무리하는 비율. 28%+ 우수, 33%+ 엘리트급',
     // 타자
     'AVG': '타율. 안타/타수. 높을수록 좋음 (리그평균 ~.260)',
     'OPS': '출루율+장타율. 타자의 종합 생산성. .800 이상이면 우수',
@@ -1040,6 +1303,7 @@ function renderFsPitchers() {
         fsSortHeader('연봉(만$)','salary') + fsSortHeader('나이','age') +
         fsSortHeader('ERA','ERA') + fsSortHeader('FIP','FIP') +
         fsSortHeader('IVB','IVB') + fsSortHeader('CSW%','CSW%') +
+        fsSortHeader('K/9','K/9') + fsSortHeader('Putaway%','Putaway%') +
         fsSortHeader('IP','IP') + fsSortHeader('SO','SO') +
         `<th></th>`;
 
@@ -1058,6 +1322,8 @@ function renderFsPitchers() {
             <td>${p.stats.FIP.toFixed(2)}</td>
             <td>${p.stats.IVB}</td>
             <td>${p.stats['CSW%']}</td>
+            <td>${p.stats['K/9']}</td>
+            <td>${p.stats['Putaway%']}</td>
             <td>${p.stats.IP}</td>
             <td>${p.stats.SO}</td>
             <td><button class="fs-recruit-btn" onclick="event.stopPropagation(); recruitForeignPlayer('pitcher','${p.name}')">영입</button></td>
@@ -1206,6 +1472,8 @@ function generateDetailedReport(p, type) {
         if (r.effectiveness >= 58) strengths.push('실전에서의 효율이 높아 실제 성적이 기대치를 상회하는 경향이 있다');
         if (r.consistency >= 58) strengths.push('등판마다 안정적인 퍼포먼스를 보여주어 신뢰할 수 있다');
         if (s['CSW%'] >= 30) strengths.push('스트라이크+헛스윙 비율이 높아 카운트 장악력이 뛰어나다');
+        if (s['K/9'] >= 10) strengths.push(`K/9 ${s['K/9']}로 탈삼진 능력이 상위권이다. 이닝당 삼진 생산력이 뛰어나다`);
+        if (s['Putaway%'] >= 28) strengths.push(`Putaway% ${s['Putaway%']}%로 결정구의 위력이 인상적이다. 2스트라이크 후 마무리 능력이 탁월하다`);
         if (s.FIP < 3.5) strengths.push('수비와 무관한 순수 투구 능력이 상위권이다');
     } else {
         if (r.contact >= 58) strengths.push('컨택 능력이 뛰어나 다양한 구종에 대응하는 능력이 우수하다');
@@ -1232,6 +1500,8 @@ function generateDetailedReport(p, type) {
         if (r.effectiveness <= 45) weaknesses.push('실전 효율이 낮아 기대 이하의 성적을 낼 가능성이 있다');
         if (r.consistency <= 45) weaknesses.push('등판별 편차가 커서 안정적인 성적을 기대하기 어렵다');
         if (s.HR >= 20 && s.IP < 150) weaknesses.push('피홈런 비율이 높아 한 방에 무너질 수 있는 리스크가 있다');
+        if (s['K/9'] < 7) weaknesses.push(`K/9 ${s['K/9']}로 탈삼진 능력이 부족하다. 타구를 허용하는 빈도가 높아 수비 의존도가 높을 수 있다`);
+        if (s['Putaway%'] < 20) weaknesses.push(`Putaway% ${s['Putaway%']}%로 결정구 위력이 약하다. 2스트라이크 후에도 안타를 허용할 가능성이 높다`);
     } else {
         if (r.contact <= 45) weaknesses.push('삼진이 많아 찬스 상황에서 생산성이 떨어질 수 있다');
         if (r.power <= 38) weaknesses.push('장타력이 부족하여 클린업 타선에는 적합하지 않다');
@@ -1295,17 +1565,24 @@ function generateDetailedReport(p, type) {
 }
 
 function showDetailedReport(type, name) {
-    // [임시 무제한] 1회 제한 해제
-    // if (foreignScoutState.detailedReport) {
-    //     showToast(`이미 상세 스카우팅을 사용했습니다. (${foreignScoutState.detailedReport})`, 'warning');
-    //     return;
-    // }
-
     const pool = type === 'pitcher' ? FOREIGN_PITCHER_POOL : FOREIGN_BATTER_POOL;
     const p = pool.find(x => x.name === name);
     if (!p) return;
 
-    foreignScoutState.detailedReport = p.name;
+    // 교사는 무제한
+    const myTeam = (typeof getMyTeam === 'function') ? getMyTeam() : null;
+    const amAdmin = (typeof isAdmin === 'function') && isAdmin();
+
+    if (!amAdmin && myTeam) {
+        // 이미 이 팀이 다른 선수에게 사용했는지 확인
+        const usedPlayer = foreignScoutState.detailedReports[myTeam];
+        if (usedPlayer && usedPlayer !== p.name) {
+            showToast(`이미 상세 스카우팅을 사용했습니다. (${usedPlayer})`, 'warning');
+            return;
+        }
+        // 이 팀의 사용 기록 저장
+        foreignScoutState.detailedReports[myTeam] = p.name;
+    }
     saveForeignScoutState();
 
     const report = generateDetailedReport(p, type);
@@ -1381,9 +1658,25 @@ function showDetailedReport(type, name) {
 function updateScoutingRemaining() {
     const el = document.getElementById('fsScoutingRemain');
     if (!el) return;
-    // [임시 무제한]
-    el.textContent = '상세 스카우팅: 무제한';
-    el.style.color = '#fbbf24';
+
+    const _amAdmin = (typeof isAdmin === 'function') && isAdmin();
+    if (_amAdmin) {
+        el.textContent = '상세 스카우팅: 무제한 (관리자)';
+        el.style.color = '#fbbf24';
+        return;
+    }
+
+    const _myTeam = (typeof getMyTeam === 'function') ? getMyTeam() : null;
+    if (_myTeam) {
+        const used = foreignScoutState.detailedReports[_myTeam];
+        if (used) {
+            el.textContent = `상세 스카우팅: 사용 완료 (${used})`;
+            el.style.color = 'var(--text-muted)';
+        } else {
+            el.textContent = '상세 스카우팅: 1회 남음';
+            el.style.color = '#fbbf24';
+        }
+    }
 }
 
 // ── 선수 상세 (클릭) ──
@@ -1408,6 +1701,9 @@ function showFsPlayerDetail(type, name) {
                 <div class="fs-stat-box"><div class="fs-stat-label">IVB</div><div class="fs-stat-val">${p.stats.IVB}cm</div></div>
                 <div class="fs-stat-box"><div class="fs-stat-label">VAA</div><div class="fs-stat-val">${p.stats.VAA.toFixed(1)}</div></div>
                 <div class="fs-stat-box"><div class="fs-stat-label">CSW%</div><div class="fs-stat-val">${p.stats['CSW%']}%</div></div>
+                <div class="fs-stat-box"><div class="fs-stat-label">K/9</div><div class="fs-stat-val">${p.stats['K/9']}</div></div>
+                <div class="fs-stat-box"><div class="fs-stat-label">Putaway%</div><div class="fs-stat-val">${p.stats['Putaway%']}%</div></div>
+                <div class="fs-stat-box"><div class="fs-stat-label">BABIP</div><div class="fs-stat-val">${p.stats.BABIP.toFixed(3)}</div></div>
                 <div class="fs-stat-box"><div class="fs-stat-label">IP</div><div class="fs-stat-val">${p.stats.IP}</div></div>
                 <div class="fs-stat-box"><div class="fs-stat-label">SO</div><div class="fs-stat-val">${p.stats.SO}</div></div>
                 <div class="fs-stat-box"><div class="fs-stat-label">BB</div><div class="fs-stat-val">${p.stats.BB}</div></div>
@@ -1444,10 +1740,58 @@ function showFsPlayerDetail(type, name) {
             </div>
         </div>`;
 
+    // 투수: 구종 섹션 추가
+    if (type === 'pitcher') {
+        const pitches = generatePitchRepertoire(p);
+        const fb = pitches.find(pt => pt.name === '포심' || pt.name === '싱커');
+        const avgVelo = fb ? fb.velo : pitches[0].velo;
+        const pitchColors = { '포심':'#ef4444', '싱커':'#dc2626', '투심':'#b91c1c', '슬라이더':'#f59e0b', '커브':'#22c55e', '체인지업':'#3b82f6', '커터':'#f97316', '스플리터':'#8b5cf6', '포크볼':'#6366f1' };
+        const maxPct = Math.max(...pitches.map(pt => pt.pct));
+        statsHtml += `
+            <div style="margin-top:12px;">
+                <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
+                    <span style="font-size:24px;font-weight:900;color:var(--text-primary);">${avgVelo}</span>
+                    <span style="font-size:11px;color:var(--text-muted);">km/h 평균구속</span>
+                    <div style="display:flex;gap:4px;margin-left:auto;flex-wrap:wrap;">
+                        ${pitches.map(pt => `<span style="background:${pitchColors[pt.name]||'#888'};color:#fff;font-size:10px;padding:2px 6px;border-radius:10px;">${pt.name} ${pt.velo}</span>`).join('')}
+                    </div>
+                </div>
+                ${pitches.map(pt => `
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                        <span style="width:52px;font-size:12px;font-weight:600;color:var(--text-secondary);">${pt.name}</span>
+                        <div style="flex:1;height:14px;background:var(--bg-main);border-radius:7px;overflow:hidden;">
+                            <div style="height:100%;width:${pt.pct/maxPct*100}%;background:${pitchColors[pt.name]||'#888'};border-radius:7px;"></div>
+                        </div>
+                        <span style="width:32px;font-size:12px;font-weight:700;text-align:right;">${pt.pct}%</span>
+                        <span style="width:52px;font-size:11px;color:var(--text-muted);text-align:right;">${pt.velo} km/h</span>
+                    </div>
+                `).join('')}
+            </div>`;
+    }
+
     ratings.innerHTML = statsHtml;
 
-    // [임시 무제한] 모든 선수에 대해 항상 버튼 활성화
-    const scoutBtnHtml = `<button class="btn btn--sm btn--primary" style="width:100%;margin-top:12px;" onclick="event.stopPropagation(); showDetailedReport('${type}','${p.name}')">상세 스카우팅 리포트 보기</button>`;
+    // 상세 스카우팅 버튼: 팀별 1회 제한 + 다른 팀 리포트 비공개
+    let scoutBtnHtml = '';
+    const _myTeam = (typeof getMyTeam === 'function') ? getMyTeam() : null;
+    const _amAdmin = (typeof isAdmin === 'function') && isAdmin();
+
+    if (_amAdmin) {
+        // 교사: 무제한
+        scoutBtnHtml = `<button class="btn btn--sm btn--primary" style="width:100%;margin-top:12px;" onclick="event.stopPropagation(); showDetailedReport('${type}','${p.name}')">상세 스카우팅 리포트 보기</button>`;
+    } else if (_myTeam) {
+        const _usedPlayer = foreignScoutState.detailedReports[_myTeam];
+        if (!_usedPlayer) {
+            // 아직 미사용 → 버튼 활성화
+            scoutBtnHtml = `<button class="btn btn--sm btn--primary" style="width:100%;margin-top:12px;" onclick="event.stopPropagation(); showDetailedReport('${type}','${p.name}')">상세 스카우팅 리포트 보기 (1회 기회)</button>`;
+        } else if (_usedPlayer === p.name) {
+            // 이 선수에게 이미 사용 → 다시 보기 가능
+            scoutBtnHtml = `<button class="btn btn--sm btn--primary" style="width:100%;margin-top:12px;" onclick="event.stopPropagation(); showDetailedReport('${type}','${p.name}')">상세 스카우팅 리포트 다시 보기</button>`;
+        } else {
+            // 다른 선수에게 이미 사용함
+            scoutBtnHtml = `<div style="text-align:center;margin-top:12px;font-size:11px;color:var(--text-muted);">상세 스카우팅 기회를 이미 사용했습니다 (${_usedPlayer})</div>`;
+        }
+    }
 
     statsEl.innerHTML = `
         <div style="background:rgba(251,191,36,0.08);border-radius:8px;padding:12px;margin-top:8px;">
@@ -1623,6 +1967,11 @@ function showSlotChoiceModal(type, name) {
 }
 
 function recruitForeignPlayer(type, name) {
+    // 권한 체크: 학생은 자기 팀만 영입 가능
+    if (typeof isStudent === 'function' && isStudent()) {
+        const currentTeam = document.getElementById('rosterTeamSelect')?.value;
+        if (typeof guardTeamAction === 'function' && !guardTeamAction(currentTeam, '외국인 영입')) return;
+    }
     const pool = type === 'pitcher' ? FOREIGN_PITCHER_POOL : FOREIGN_BATTER_POOL;
     const p = pool.find(x => x.name === name);
     if (!p) return;

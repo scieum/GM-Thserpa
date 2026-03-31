@@ -10,13 +10,59 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <!-- ===== TOP NAV ===== -->
-    <header class="top-bar">
-        <div class="top-bar__brand" onclick="showView('dashboard')" style="cursor:pointer;">
-            <span class="top-bar__logo">⚾</span>
-            <h1 class="top-bar__title">나도GM — 데이터로 완성하는 승리의 라인업</h1>
+    <!-- ===== LOGIN SCREEN ===== -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-card">
+            <div class="login-card__logo">⚾</div>
+            <h1 class="login-card__title">나도GM</h1>
+            <p class="login-card__sub">데이터로 완성하는 승리의 라인업</p>
+
+            <!-- 탭 전환 -->
+            <div class="login-tabs">
+                <button class="login-tab active" onclick="switchLoginTab('join')">교실 참가</button>
+                <button class="login-tab" onclick="switchLoginTab('create')">교실 만들기</button>
+            </div>
+
+            <!-- 교실 참가 (학생/교사 공통) -->
+            <div id="loginTabJoin" class="login-tab-content active">
+                <input type="text" id="loginCode" class="login-input" placeholder="접속 코드 입력" autocomplete="off" spellcheck="false">
+                <p class="login-hint">교사: 관리자 코드 / 학생: 팀 코드를 입력하세요</p>
+                <button class="login-btn" onclick="handleLogin()">접속</button>
+            </div>
+
+            <!-- 교실 만들기 (교사 전용) -->
+            <div id="loginTabCreate" class="login-tab-content">
+                <input type="text" id="createName" class="login-input" placeholder="교실 이름 (예: 3학년 2반)" autocomplete="off">
+                <input type="text" id="createAdminCode" class="login-input" placeholder="관리자 코드 설정 (예: ADMIN2026)" autocomplete="off" spellcheck="false">
+                <button class="login-btn" onclick="handleCreateClassroom()">교실 생성</button>
+            </div>
+
+            <div id="loginError" class="login-error"></div>
+            <div id="loginLoading" class="login-loading" style="display:none;">연결 중...</div>
         </div>
-        <span class="top-bar__quarter" id="quarterBadge" onclick="showView('simulator')">시즌 시작 전</span>
+    </div>
+
+    <!-- ===== TOP NAV ===== -->
+    <header class="top-bar" style="display:none;">
+        <div class="top-bar__row1">
+            <div class="top-bar__brand" onclick="showView('dashboard')" style="cursor:pointer;">
+                <span class="top-bar__logo">⚾</span>
+                <h1 class="top-bar__title">나도GM</h1>
+            </div>
+            <span class="top-bar__quarter" id="quarterBadge" onclick="showView('simulator')">시즌 시작 전</span>
+            <div class="top-bar__actions">
+                <div class="search-box" id="searchBox">
+                    <input type="text" class="search-box__input" id="playerSearchInput" placeholder="선수 검색..." autocomplete="off">
+                    <div class="search-box__results" id="searchResults" style="display:none;"></div>
+                </div>
+                <span class="session-badge" id="sessionBadge" style="display:none;"></span>
+                <button class="btn btn--sm" id="btnAdminPanel" style="display:none;" onclick="showView('admin')" title="교실 관리">관리</button>
+                <button class="btn btn--sm" id="btnThemeToggle" title="다크/라이트 모드 전환">라이트</button>
+                <button class="btn btn--sm" id="btnSave" title="현재 상태 저장">저장</button>
+                <button class="btn btn--sm btn--danger" id="btnReset" title="초기 상태로 되돌리기">초기화</button>
+                <button class="btn btn--sm" id="btnLogout" style="display:none;" onclick="logout()" title="로그아웃">나가기</button>
+            </div>
+        </div>
         <nav class="top-bar__nav">
             <button class="nav-btn active" data-view="dashboard">구단 대시보드</button>
             <button class="nav-btn" data-view="roster">1군 로스터</button>
@@ -27,15 +73,6 @@
             <button class="nav-btn" data-view="simulator">리그 시뮬레이션</button>
             <button class="nav-btn" data-view="postseason">포스트시즌</button>
         </nav>
-        <div class="top-bar__actions">
-            <div class="search-box" id="searchBox">
-                <input type="text" class="search-box__input" id="playerSearchInput" placeholder="선수 검색..." autocomplete="off">
-                <div class="search-box__results" id="searchResults" style="display:none;"></div>
-            </div>
-            <button class="btn btn--sm" id="btnThemeToggle" title="다크/라이트 모드 전환">라이트</button>
-            <button class="btn btn--sm" id="btnSave" title="현재 상태 저장">저장</button>
-            <button class="btn btn--sm btn--danger" id="btnReset" title="초기 상태로 되돌리기">초기화</button>
-        </div>
     </header>
 
     <!-- ===== TEAM SIDEBAR ===== -->
@@ -562,6 +599,38 @@
                 </div>
             </div>
         </section>
+
+        <!-- VIEW: Admin Panel (교사 전용) -->
+        <section id="view-admin" class="view">
+            <h2 class="view__title">교실 관리 패널</h2>
+            <div class="admin-panel">
+                <div class="admin-section">
+                    <h3>교실 정보</h3>
+                    <div id="adminClassroomInfo" class="admin-info-grid"></div>
+                </div>
+                <div class="admin-section">
+                    <h3>팀 배정 현황</h3>
+                    <p class="admin-hint">학생이 팀 코드로 접속하면 자동으로 AI에서 학생 운영으로 전환됩니다.</p>
+                    <table class="admin-table" id="adminTeamTable">
+                        <thead>
+                            <tr>
+                                <th>팀</th>
+                                <th>접속 코드</th>
+                                <th>조 이름</th>
+                                <th>운영</th>
+                                <th>잠금</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="admin-section">
+                    <h3>최근 활동 로그</h3>
+                    <div id="adminActivityLog" class="admin-log"></div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <!-- Footer -->
@@ -638,6 +707,10 @@
     <!-- Toast -->
     <div class="toast-container" id="toastContainer"></div>
 
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="js/supabase.js"></script>
+
     <!-- Scripts -->
     <script src="js/data.js"></script>
     <script src="js/models.js"></script>
@@ -650,5 +723,6 @@
     <script src="js/ui.js"></script>
     <script src="js/depthchart.js"></script>
     <script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
 </body>
 </html>

@@ -13,6 +13,8 @@ function dcPlayerLink(playerId, name, cssClass) {
 // ── 드래그 앤 드롭 ──
 function dcDragStart(e, type, from, playerId) {
     if (!playerId) { e.preventDefault(); return; }
+    // 권한 체크: 학생은 자기 팀만 라인업 수정 가능
+    if (typeof guardTeamAction === 'function' && !guardTeamAction(dcTeam, '라인업')) { e.preventDefault(); return; }
     dcDragData = { type, from, playerId };
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', playerId);

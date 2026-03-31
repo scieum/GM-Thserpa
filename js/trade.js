@@ -95,6 +95,8 @@ function validateTrade(state, sendTeamCode, recvTeamCode, sendPlayerIds, recvPla
 }
 
 function executeTrade(state, sendTeamCode, recvTeamCode, sendPlayerIds, recvPlayerIds) {
+    // 권한 체크: 학생은 자기 팀에서만 트레이드 가능
+    if (typeof guardTeamAction === 'function' && !guardTeamAction(sendTeamCode, '트레이드')) return;
     const sendTeam = state.teams[sendTeamCode];
     const recvTeam = state.teams[recvTeamCode];
 
