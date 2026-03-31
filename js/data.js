@@ -4,6 +4,261 @@
 const KBO_SALARY_CAP = 144; // 2026년 기준 (137.1억 × 1.05)
 const KBO_SALARY_FLOOR = 61; // 하한선
 
+// ─── 외국인 선수 티어 시스템 ───
+// 출신 리그에 따라 5개 티어로 분류, 티어별 능력치 범위·연봉대가 다름
+// ovrRange: 내부 20-80 스케일 기준
+// salaryRange: 억원 (KRW) 기준 — $1M ≈ 12억원
+const FOREIGN_TIERS = {
+    T1: {
+        label: 'T1', name: 'MLB 출신',
+        desc: 'MLB 로스터 경험자 — 검증된 최상위 전력',
+        origins: ['MLB'],
+        avgOvr: 67, ovrRange: [60, 80],
+        salaryRange: [12.0, 25.0],   // $1M+
+        color: '#FFD700',            // gold
+    },
+    T2: {
+        label: 'T2', name: 'AAA/NPB/KBO 복귀',
+        desc: 'AAA 주전급, NPB 경험자, 또는 KBO 재입국 — 준엘리트',
+        origins: ['AAA', 'NPB', 'KBO복귀'],
+        avgOvr: 55, ovrRange: [48, 68],
+        salaryRange: [6.0, 12.0],    // $0.5M ~ 1M
+        color: '#C0C0C0',            // silver
+    },
+    T3: {
+        label: 'T3', name: 'CPBL/중남미',
+        desc: 'CPBL(대만), 중남미 리그 출신 — 성장 가능성 있는 중간급',
+        origins: ['CPBL', '중남미', '멕시코'],
+        avgOvr: 48, ovrRange: [42, 58],
+        salaryRange: [2.4, 6.0],     // $0.2M ~ 0.5M
+        color: '#CD7F32',            // bronze
+    },
+    T4: {
+        label: 'T4', name: 'AA/쿠바',
+        desc: 'AA급 마이너리거 또는 쿠바 출신 — 원석형',
+        origins: ['AA', '쿠바'],
+        avgOvr: 42, ovrRange: [35, 50],
+        salaryRange: [1.2, 3.6],     // $0.1M ~ 0.3M
+        color: '#8B6914',            // dark gold
+    },
+    T5: {
+        label: 'T5', name: '독립리그/ABL',
+        desc: '독립리그, 호주리그(ABL) 출신 — 저예산 도박형',
+        origins: ['독립리그', 'ABL'],
+        avgOvr: 35, ovrRange: [30, 42],
+        salaryRange: [1.2, 3.6],     // $0.1M ~ 0.3M
+        color: '#696969',            // gray
+    },
+};
+
+// 실제 외국인 선수별 티어·출신 매핑
+const FOREIGN_PLAYER_PROFILES = {
+    // ── LG ──
+    '치리노스':  { tier: 'T1', origin: 'MLB',   note: 'MLB 탬파베이 레이스 출신 선발' },
+    '톨허스트':  { tier: 'T2', origin: 'AAA',   note: 'AAA 경험 선발 투수' },
+    '오스틴':    { tier: 'T1', origin: 'MLB',   note: 'MLB 경력 파워 타자' },
+    '월스':      { tier: 'T2', origin: 'AAA',   note: 'AAA 좌완 불펜' },
+    // ── 두산 ──
+    '타무라':    { tier: 'T2', origin: 'NPB',   note: 'NPB 출신 중계 투수' },
+    '잭로그':    { tier: 'T2', origin: 'AAA',   note: 'AAA 선발 투수' },
+    '카메론':    { tier: 'T2', origin: 'AAA',   note: 'AAA 외야수' },
+    '플렉센':    { tier: 'T1', origin: 'MLB',   note: 'MLB 시애틀 매리너스 출신 선발' },
+    // ── 롯데 ──
+    '비슬리':    { tier: 'T2', origin: 'AAA',   note: 'AAA 선발 투수' },
+    '로드리게스': { tier: 'T3', origin: '중남미', note: '도미니카 출신 투수' },
+    '쿄야마':    { tier: 'T2', origin: 'NPB',   note: 'NPB 출신 투수' },
+    '레이예스':  { tier: 'T3', origin: '중남미', note: '도미니카 출신 외야수' },
+    // ── KIA ──
+    '올러':      { tier: 'T2', origin: 'AAA',   note: 'AAA 선발 투수' },
+    '네일':      { tier: 'T2', origin: 'AAA',   note: 'AAA 선발 투수' },
+    '데일':      { tier: 'T3', origin: '중남미', note: '중남미 출신 내야수' },
+    '카스트로':  { tier: 'T3', origin: '중남미', note: '쿠바계 외야수' },
+    // ── KT ──
+    '스기모토':  { tier: 'T2', origin: 'NPB',   note: 'NPB 출신 투수' },
+    '사우어':    { tier: 'T2', origin: 'AAA',   note: 'AAA 선발 투수' },
+    '보쉴리':    { tier: 'T2', origin: 'AAA',   note: 'AAA 불펜 투수' },
+    '힐리어드':  { tier: 'T1', origin: 'MLB',   note: 'MLB 콜로라도 로키스 출신' },
+    // ── 한화 ──
+    '에르난데스': { tier: 'T2', origin: 'AAA',   note: 'AAA 선발 투수' },
+    '왕옌청':    { tier: 'T3', origin: 'CPBL',  note: 'CPBL(대만) 출신 좌완 투수' },
+    '페라자':    { tier: 'T3', origin: '중남미', note: '베네수엘라 출신 내야수' },
+    // ── NC ──
+    '토다':      { tier: 'T2', origin: 'NPB',   note: 'NPB 출신 투수' },
+    '데이비슨':  { tier: 'T2', origin: 'AAA',   note: 'AAA 내야수' },
+    '테일러':    { tier: 'T2', origin: 'AAA',   note: 'AAA 투수' },
+    // ── SSG ──
+    '베니지아노': { tier: 'T2', origin: 'AAA',   note: 'AAA 좌완 투수' },
+    '에레디아':  { tier: 'T3', origin: '중남미', note: '쿠바 출신 외야수' },
+    // ── 키움 ──
+    '와일스':    { tier: 'T2', origin: 'AAA',   note: 'AAA 선발 투수' },
+    '유토':      { tier: 'T2', origin: 'NPB',   note: 'NPB 출신 투수' },
+    '알칸타라':  { tier: 'T1', origin: 'MLB',   note: 'MLB 경력 투수' },
+    '브룩스':    { tier: 'T2', origin: 'AAA',   note: 'AAA 좌타 외야수' },
+    // ── 삼성 ──
+    '미야지':    { tier: 'T2', origin: 'NPB',   note: 'NPB 출신 투수' },
+    '오러클린':  { tier: 'T2', origin: 'AAA',   note: 'AAA 좌완 투수' },
+    '후라도':    { tier: 'T2', origin: 'AAA',   note: 'AAA 선발 투수' },
+    '디아즈':    { tier: 'T1', origin: 'MLB',   note: 'MLB 경력 내야수' },
+};
+
+// 화이트 — 팀별로 다른 선수이므로 팀 코드 기반 조회 필요
+const FOREIGN_PLAYER_PROFILES_BY_TEAM = {
+    '한화': { '화이트': { tier: 'T2', origin: 'AAA', note: 'AAA 투수' } },
+    'SSG':  { '화이트': { tier: 'T2', origin: 'AAA', note: 'AAA 투수' } },
+};
+
+// 외국인 선수 프로필 조회 (동명이인 처리 포함)
+function getForeignProfile(name, teamCode) {
+    // 팀별 동명이인 먼저 체크
+    const byTeam = FOREIGN_PLAYER_PROFILES_BY_TEAM[teamCode];
+    if (byTeam && byTeam[name]) return byTeam[name];
+    // 일반 조회
+    return FOREIGN_PLAYER_PROFILES[name] || null;
+}
+
+// 티어 정보 반환
+function getForeignTierInfo(tierKey) {
+    return FOREIGN_TIERS[tierKey] || null;
+}
+
+// 티어 기반 외국인 선수 OVR 생성 (실제 기록 없는 경우)
+function genForeignOvrByTier(rng, tierKey) {
+    const tier = FOREIGN_TIERS[tierKey];
+    if (!tier) return 50;
+    const [lo, hi] = tier.ovrRange;
+    const avg = tier.avgOvr;
+    const sd = (hi - lo) / 4; // ±2σ가 범위를 커버
+    let ovr = gaussianRandom(rng, avg, sd);
+    return Math.round(Math.max(lo, Math.min(hi, ovr)));
+}
+
+// 티어 기반 외국인 선수 연봉 생성 (억원)
+function genForeignSalaryByTier(rng, tierKey) {
+    const tier = FOREIGN_TIERS[tierKey];
+    if (!tier) return 3.0;
+    const [lo, hi] = tier.salaryRange;
+    const mid = (lo + hi) / 2;
+    const sd = (hi - lo) / 4;
+    let sal = gaussianRandom(rng, mid, sd);
+    return Math.round(Math.max(lo, Math.min(hi, sal)) * 10) / 10;
+}
+
+// 티어 기반 타자 레이팅 생성 (20-80 스케일)
+function genForeignBatterRatingsByTier(rng, tierKey) {
+    const tier = FOREIGN_TIERS[tierKey];
+    if (!tier) return genForeignBatterRatingsByTier(rng, 'T3');
+    const avg = tier.avgOvr;
+    const sd = 6;
+    return {
+        contact: clamp2080(gaussianRandom(rng, avg, sd)),
+        power:   clamp2080(gaussianRandom(rng, avg + 3, sd)),  // 외국인 타자는 파워 약간 우위
+        eye:     clamp2080(gaussianRandom(rng, avg - 2, sd)),
+        speed:   clamp2080(gaussianRandom(rng, avg - 5, sd)),  // 스피드는 상대적으로 낮음
+        defense: clamp2080(gaussianRandom(rng, avg - 3, sd)),
+    };
+}
+
+// 티어 기반 투수 레이팅 생성 (20-80 스케일)
+function genForeignPitcherRatingsByTier(rng, tierKey) {
+    const tier = FOREIGN_TIERS[tierKey];
+    if (!tier) return genForeignPitcherRatingsByTier(rng, 'T3');
+    const avg = tier.avgOvr;
+    const sd = 6;
+    return {
+        stuff:         clamp2080(gaussianRandom(rng, avg + 2, sd)),  // 구위 약간 우위
+        command:       clamp2080(gaussianRandom(rng, avg - 1, sd)),
+        stamina:       clamp2080(gaussianRandom(rng, avg - 2, sd)),
+        effectiveness: clamp2080(gaussianRandom(rng, avg + 1, sd)),
+        consistency:   clamp2080(gaussianRandom(rng, avg - 2, sd)),
+    };
+}
+
+// ─── 볼파크 팩터 (10개 KBO 구장) ───
+// 1.00 = 리그 평균. >1 = 해당 이벤트 증가, <1 = 감소
+// HR: 홈런, H: 안타, 2B: 2루타, 3B: 3루타, E: 실책, FO: 뜬공
+// lighting: 조명 유형 (LED/STD/OLD → 야간 경기 수비 영향)
+const BALLPARK_FACTORS = {
+    '잠실':  { team: 'LG',   teamAlt: '두산', name: '잠실야구장',       HR: 1.18, H: 1.04, '2B': 1.06, '3B': 0.93, E: 1.02, FO: 0.93, lighting: 'LED' },
+    '사직':  { team: '롯데', teamAlt: null,    name: '사직야구장',       HR: 1.12, H: 1.02, '2B': 0.99, '3B': 0.95, E: 1.01, FO: 0.97, lighting: 'LED' },
+    '울산':  { team: '롯데', teamAlt: null,    name: '울산문수야구장',   HR: 1.08, H: 1.02, '2B': 1.02, '3B': 0.95, E: 1.05, FO: 0.97, lighting: 'OLD' },
+    '광주':  { team: 'KIA',  teamAlt: null,    name: '광주-기아 챔피언스필드', HR: 1.05, H: 1.02, '2B': 1.01, '3B': 0.97, E: 1.00, FO: 0.98, lighting: 'LED' },
+    '서울':  { team: '키움', teamAlt: null,    name: '고척스카이돔',     HR: 1.05, H: 1.01, '2B': 1.01, '3B': 1.03, E: 0.96, FO: 0.98, lighting: 'LED' },
+    '고척':  { team: '키움', teamAlt: null,    name: '고척스카이돔',     HR: 1.02, H: 1.01, '2B': 1.01, '3B': 1.03, E: 0.96, FO: 0.98, lighting: 'LED' },
+    '수원':  { team: 'KT',   teamAlt: null,    name: '수원KT위즈파크',   HR: 1.00, H: 1.01, '2B': 1.00, '3B': 1.00, E: 0.97, FO: 1.00, lighting: 'LED' },
+    '대구':  { team: '삼성', teamAlt: null,    name: '대구삼성라이온즈파크', HR: 0.95, H: 0.99, '2B': 1.04, '3B': 1.08, E: 0.96, FO: 1.05, lighting: 'LED' },
+    '인천':  { team: 'SSG',  teamAlt: null,    name: '인천SSG랜더스필드', HR: 0.93, H: 0.98, '2B': 1.00, '3B': 1.08, E: 1.00, FO: 1.03, lighting: 'STD' },
+    '창원':  { team: 'NC',   teamAlt: null,    name: '창원NC파크',       HR: 0.90, H: 0.97, '2B': 0.98, '3B': 1.05, E: 0.93, FO: 1.08, lighting: 'LED' },
+};
+
+// 팀 코드 → 홈구장 매핑
+const TEAM_HOME_STADIUM = {
+    'LG':   '잠실',
+    '두산': '잠실',
+    '롯데': '사직',
+    'KIA':  '광주',
+    'KT':   '수원',
+    '한화': '대전',   // 대전은 팩터 미등록 → 리그 평균(1.00) 사용
+    'NC':   '창원',
+    'SSG':  '인천',
+    '키움': '고척',
+    '삼성': '대구',
+};
+
+// 구장 팩터 조회 (미등록 구장은 모두 1.00)
+const NEUTRAL_PARK = { HR: 1.00, H: 1.00, '2B': 1.00, '3B': 1.00, E: 1.00, FO: 1.00, lighting: 'LED', name: '기본 구장' };
+
+function getBallparkFactor(teamCode) {
+    const stadiumName = TEAM_HOME_STADIUM[teamCode];
+    if (!stadiumName) return NEUTRAL_PARK;
+    return BALLPARK_FACTORS[stadiumName] || NEUTRAL_PARK;
+}
+
+// 조명 유형에 따른 야간 수비 보정 계수
+// LED: 0 (보정 없음), STD: -1 (약간 불리), OLD: -2 (불리)
+function getLightingDefPenalty(teamCode) {
+    const park = getBallparkFactor(teamCode);
+    if (park.lighting === 'OLD') return -2;
+    if (park.lighting === 'STD') return -1;
+    return 0;
+}
+
+// 볼파크 팩터 기반 종합 타자 파워 보정
+// HR 팩터가 높으면 파워 타자에게 유리, H 팩터는 컨택 타자에게 유리
+function applyParkFactorToBatPower(batPower, parkFactor) {
+    // 타자 파워에 HR/H 팩터 가중 반영 (HR 60%, H 40%)
+    const factor = parkFactor.HR * 0.6 + parkFactor.H * 0.4;
+    return batPower * factor;
+}
+
+// 볼파크 팩터 기반 종합 투수 파워 보정
+// FO(뜬공) 팩터가 높으면 플라이볼 투수에게 유리 (뜬공이 잡힘)
+// HR 팩터가 높으면 투수에게 불리
+function applyParkFactorToPitchPower(pitchPower, parkFactor) {
+    // HR 역보정 (HR↑ → 투수 불리), FO 정보정 (FO↑ → 투수 유리)
+    const factor = (2.0 - parkFactor.HR) * 0.5 + parkFactor.FO * 0.5;
+    return pitchPower * factor;
+}
+
+// 볼파크 팩터 기반 수비 보정
+// E(실책) 팩터 + 조명 패널티
+function applyParkFactorToDefense(defRating, teamCode) {
+    const park = getBallparkFactor(teamCode);
+    const lightPenalty = getLightingDefPenalty(teamCode);
+    // E 팩터 역보정: 실책 많은 구장 → 수비 효율 하락
+    const eFactor = 2.0 - park.E;  // E=1.05 → 0.95, E=0.93 → 1.07
+    return Math.round(defRating * eFactor) + lightPenalty;
+}
+
+// wRC+ 볼파크 보정 (구장 효과 제거)
+// wRC+는 이미 리그 평균 보정이 되어 있지만, 추가 구장 효과 반영
+function adjustWrcPlusByPark(wrcPlus, teamCode) {
+    const park = getBallparkFactor(teamCode);
+    // 종합 타자 구장 팩터 (HR 40%, H 30%, 2B 20%, 3B 10%)
+    const parkRun = park.HR * 0.40 + park.H * 0.30 + park['2B'] * 0.20 + park['3B'] * 0.10;
+    // 구장 효과 제거: 타자 유리 구장에서의 성적 하향 보정
+    return Math.round(wrcPlus / parkRun);
+}
+
 // 팀 코드 → 이미지 파일명 매핑
 const TEAM_IMG = {
     'LG': 'lg', '두산': 'doosan', '롯데': 'lotte', 'KIA': 'kia',
@@ -1528,6 +1783,35 @@ function generateSampleData() {
             }
         }
 
+        // ── 외국인 선수 티어 적용 ──
+        for (const pid of teamRoster) {
+            const p = players[pid];
+            if (!p.isForeign) continue;
+            const profile = getForeignProfile(p.name, code);
+            if (profile) {
+                p.foreignTier = profile.tier;
+                p.foreignOrigin = profile.origin;
+                p.foreignNote = profile.note;
+            } else {
+                // 프로필 미등록 외국인 → 기본 T3
+                p.foreignTier = 'T3';
+                p.foreignOrigin = '미상';
+                p.foreignNote = '';
+            }
+            // 실제 시즌 성적이 없는 외국인 → 티어 기반 레이팅·연봉 생성
+            if (!p.realStats) {
+                const tierKey = p.foreignTier;
+                if (p.position === 'P') {
+                    p.ratings = genForeignPitcherRatingsByTier(rng, tierKey);
+                    p.ovr = calcPitcherOVR(p.ratings);
+                } else {
+                    p.ratings = genForeignBatterRatingsByTier(rng, tierKey);
+                    p.ovr = calcBatterOVR(p.ratings);
+                }
+                p.salary = genForeignSalaryByTier(rng, tierKey);
+            }
+        }
+
         // ── 2군(퓨처스) 선수 생성 ──
         const futuresRoster = [];
         const futData = FUTURES_ROSTERS[code];
@@ -1757,3 +2041,19 @@ window.KBO_SALARY_FLOOR = KBO_SALARY_FLOOR;
 window.REAL_ROSTERS = REAL_ROSTERS;
 window.MILITARY_ROSTERS = MILITARY_ROSTERS;
 window.generateSampleData = generateSampleData;
+window.BALLPARK_FACTORS = BALLPARK_FACTORS;
+window.TEAM_HOME_STADIUM = TEAM_HOME_STADIUM;
+window.getBallparkFactor = getBallparkFactor;
+window.getLightingDefPenalty = getLightingDefPenalty;
+window.applyParkFactorToBatPower = applyParkFactorToBatPower;
+window.applyParkFactorToPitchPower = applyParkFactorToPitchPower;
+window.applyParkFactorToDefense = applyParkFactorToDefense;
+window.adjustWrcPlusByPark = adjustWrcPlusByPark;
+window.FOREIGN_TIERS = FOREIGN_TIERS;
+window.FOREIGN_PLAYER_PROFILES = FOREIGN_PLAYER_PROFILES;
+window.getForeignProfile = getForeignProfile;
+window.getForeignTierInfo = getForeignTierInfo;
+window.genForeignOvrByTier = genForeignOvrByTier;
+window.genForeignSalaryByTier = genForeignSalaryByTier;
+window.genForeignBatterRatingsByTier = genForeignBatterRatingsByTier;
+window.genForeignPitcherRatingsByTier = genForeignPitcherRatingsByTier;

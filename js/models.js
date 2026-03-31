@@ -141,6 +141,40 @@ function calcForeignSalary(state, teamCode) {
     return { total: Math.round(total * 10) / 10, count: foreignPlayers.length };
 }
 
+// 외국인 선수 티어별 상세 정보
+function calcForeignTierSummary(state, teamCode) {
+    const players = getTeamPlayers(state, teamCode);
+    const foreignPlayers = players.filter(p => p.isForeign);
+    const tierCounts = { T1: 0, T2: 0, T3: 0, T4: 0, T5: 0 };
+    const details = [];
+    for (const p of foreignPlayers) {
+        const tier = p.foreignTier || 'T3';
+        tierCounts[tier]++;
+        const tierInfo = FOREIGN_TIERS[tier];
+        details.push({
+            name: p.name,
+            tier,
+            tierName: tierInfo ? tierInfo.name : '미분류',
+            origin: p.foreignOrigin || '미상',
+            ovr: p.ovr || 0,
+            salary: p.salary,
+            color: tierInfo ? tierInfo.color : '#999',
+        });
+    }
+    return { tierCounts, details, total: foreignPlayers.length };
+}
+
+// 외국인 선수 티어별 연봉 검증
+function validateForeignSalaryByTier(player) {
+    if (!player.isForeign || !player.foreignTier) return null;
+    const tier = FOREIGN_TIERS[player.foreignTier];
+    if (!tier) return null;
+    const [lo, hi] = tier.salaryRange;
+    if (player.salary < lo) return { valid: false, msg: `${player.name} 연봉 ${player.salary}억 < 티어 하한 ${lo}억` };
+    if (player.salary > hi * 1.5) return { valid: false, msg: `${player.name} 연봉 ${player.salary}억 > 티어 상한 ${hi}억의 150%` };
+    return { valid: true };
+}
+
 // 경쟁균형세(제재금) 계산
 function calcCapPenalty(state, teamCode) {
     const team = state.teams[teamCode];
@@ -337,11 +371,16 @@ function changePlayerPosition(state, playerId, newPos) {
     return { success: true, msg: `${p.name} → ${newPos}${penaltyMsg}`, penalty };
 }
 
-// 에러 발생 확률 계산 (시뮬레이션에서 사용)
-function getErrorRate(player) {
+// 에러 발생 확률 계산 (시뮬레이션에서 사용, 볼파크 팩터 반영)
+function getErrorRate(player, teamCode) {
     const baseDef = player.ratings ? player.ratings.defense : 50;
     const penalty = player.positionPenalty || 0;
-    const effectiveDef = Math.max(20, baseDef + penalty);
+    let effectiveDef = Math.max(20, baseDef + penalty);
+    // 볼파크 팩터 기반 수비 보정 (구장 실책 팩터 + 조명)
+    if (teamCode) {
+        effectiveDef = applyParkFactorToDefense(effectiveDef, teamCode);
+        effectiveDef = Math.max(20, effectiveDef);
+    }
     // 수비 능력 80 → 에러율 1%, 수비 능력 20 → 에러율 10%
     return Math.max(0.01, 0.12 - effectiveDef * 0.00135);
 }
@@ -422,6 +461,8 @@ window.calcWinRate = calcWinRate;
 window.calcTeamSalaryRaw = calcTeamSalaryRaw;
 window.calcTeamSalaryCap = calcTeamSalaryCap;
 window.calcForeignSalary = calcForeignSalary;
+window.calcForeignTierSummary = calcForeignTierSummary;
+window.validateForeignSalaryByTier = validateForeignSalaryByTier;
 window.calcCapPenalty = calcCapPenalty;
 window.calcAvailableBudget = calcAvailableBudget;
 window.validateRoster = validateRoster;

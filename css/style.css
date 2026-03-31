@@ -2944,6 +2944,30 @@ body {
 }
 .site-footer__icon:hover { opacity: 0.4; }
 
+/* ===== 외국인 선수 티어 배지 ===== */
+.foreign-tier-badge {
+    display: inline-block;
+    padding: 0 5px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 16px;
+    vertical-align: middle;
+    letter-spacing: 0.5px;
+}
+.foreign-tier-badge-full {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    line-height: 18px;
+    vertical-align: middle;
+}
+.foreign-tier-badge-full b {
+    font-weight: 800;
+    margin-right: 3px;
+}
+
 /* ===== PRINT ===== */
 @media print {
     .top-bar, .sim-controls, .trade-center button, .bracket button { display: none !important; }

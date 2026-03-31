@@ -14,18 +14,28 @@ async function simulateQuarter(state, quarter, onProgress) {
         state.teams[code].seasonRecord[qKey] = { wins: 0, losses: 0 };
     }
 
-    // Precalculate win rates for all teams
-    const winRates = {};
+    // Precalculate win rates for all teams (홈 & 원정)
+    const homeWinRates = {};
+    const awayWinRates = {};
     for (const code of teamCodes) {
         const pp = calcTeamPitchPower(state, code);
         const bp = calcTeamBatPower(state, code);
-        winRates[code] = calcWinRate(pp, bp);
+        const park = getBallparkFactor(code);
+        // 홈 경기: 볼파크 팩터 적용
+        const homeBp = applyParkFactorToBatPower(bp, park);
+        const homePp = applyParkFactorToPitchPower(pp, park);
+        homeWinRates[code] = calcWinRate(homePp, homeBp);
+        // 원정 경기: 볼파크 팩터 미적용 (상대 구장이므로 평균 처리)
+        awayWinRates[code] = calcWinRate(pp, bp);
     }
 
-    // Simulate game by game
+    // Simulate game by game (약 절반 홈/원정)
     for (let game = 1; game <= games; game++) {
         for (const code of teamCodes) {
-            if (Math.random() < winRates[code]) {
+            // 각 경기 ~50% 확률로 홈 경기
+            const isHome = Math.random() < 0.5;
+            const wr = isHome ? homeWinRates[code] : awayWinRates[code];
+            if (Math.random() < wr) {
                 state.teams[code].seasonRecord[qKey].wins++;
             } else {
                 state.teams[code].seasonRecord[qKey].losses++;
@@ -117,12 +127,15 @@ function getTotalGamesPlayed(state) {
 async function simulateBatch(state, batchSize, onProgress) {
     const teamCodes = Object.keys(state.teams);
 
-    // 현재 쿼터 파악 및 남은 경기
-    const winRates = {};
+    // 현재 쿼터 파악 및 남은 경기 (볼파크 팩터 포함)
+    const homeWinRates = {};
+    const awayWinRates = {};
     for (const code of teamCodes) {
         const pp = calcTeamPitchPower(state, code);
         const bp = calcTeamBatPower(state, code);
-        winRates[code] = calcWinRate(pp, bp);
+        const park = getBallparkFactor(code);
+        homeWinRates[code] = calcWinRate(applyParkFactorToPitchPower(pp, park), applyParkFactorToBatPower(bp, park));
+        awayWinRates[code] = calcWinRate(pp, bp);
     }
 
     for (let game = 1; game <= batchSize; game++) {
@@ -132,7 +145,9 @@ async function simulateBatch(state, batchSize, onProgress) {
         const qKey = `q${q}`;
 
         for (const code of teamCodes) {
-            if (Math.random() < winRates[code]) {
+            const isHome = Math.random() < 0.5;
+            const wr = isHome ? homeWinRates[code] : awayWinRates[code];
+            if (Math.random() < wr) {
                 state.teams[code].seasonRecord[qKey].wins++;
             } else {
                 state.teams[code].seasonRecord[qKey].losses++;

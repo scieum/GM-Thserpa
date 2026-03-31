@@ -3,6 +3,18 @@
 let state = null;
 let tradeSelection = { send: [], recv: [] };
 
+// ── 외국인 선수 티어 배지 헬퍼 ──
+function foreignTierBadge(player, compact) {
+    if (!player.isForeign) return '';
+    const tier = player.foreignTier;
+    const info = FOREIGN_TIERS[tier];
+    if (!info) return '<span style="color:var(--kbo-gold);font-size:10px;">외</span>';
+    if (compact) {
+        return `<span class="foreign-tier-badge" style="background:${info.color}20;color:${info.color};border:1px solid ${info.color}40;" title="${info.name} — ${player.foreignOrigin || ''}">${info.label}</span>`;
+    }
+    return `<span class="foreign-tier-badge-full" style="background:${info.color}20;color:${info.color};border:1px solid ${info.color}40;"><b>${info.label}</b> ${info.name}</span>`;
+}
+
 // ── 초기화 ──
 function initApp() {
     state = loadState();
@@ -454,7 +466,7 @@ function renderDetailRoster(code) {
         const displayColor = hasOvr ? ratingColor(p.ovr) : powerColor(p.power);
         return `<tr>
             <td style="color:var(--text-dim);">${p.number != null ? p.number : '-'}</td>
-            <td>${p.name}${p.isForeign ? ' <span style="color:var(--kbo-gold);font-size:10px;">외</span>' : ''}${p.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''}</td>
+            <td>${p.name} ${foreignTierBadge(p, true)}${p.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''}</td>
             <td>${p.role || '-'}</td>
             <td style="color:${displayColor};">${displayVal}</td>
             <td>${p.salary}억</td>
@@ -467,7 +479,7 @@ function renderDetailRoster(code) {
         const ovr = b.ovr != null ? b.ovr : pw;
         return `<tr>
             <td style="color:var(--text-dim);">${b.number != null ? b.number : '-'}</td>
-            <td>${b.name}${b.isForeign ? ' <span style="color:var(--kbo-gold);font-size:10px;">외</span>' : ''}${b.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''}</td>
+            <td>${b.name} ${foreignTierBadge(b, true)}${b.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''}</td>
             <td>${b.position}</td>
             <td style="color:${powerColor(typeof ovr === 'number' ? ovr : b.power)};">${typeof ovr === 'number' ? ovr.toFixed(0) : pw}</td>
             <td>${b.salary}억</td>
@@ -680,6 +692,13 @@ function renderRoster() {
             <div class="cap-detail-card__label">외국인 선수 연봉</div>
             <div class="cap-detail-card__value">${foreignInfo.total.toFixed(1)}억</div>
             <div class="cap-detail-card__sub">${foreignInfo.count}명 (별도 캡 적용)</div>
+            ${(() => {
+                const tierSum = calcForeignTierSummary(state, code);
+                if (tierSum.total === 0) return '';
+                return '<div style="margin-top:4px;font-size:10px;line-height:1.6;">' +
+                    tierSum.details.map(d => `<span class="foreign-tier-badge" style="background:${d.color}20;color:${d.color};border:1px solid ${d.color}40;">${d.tier}</span> ${d.name} ${d.salary}억`).join('<br>') +
+                    '</div>';
+            })()}
         </div>
         <div class="cap-detail-card">
             <div class="cap-detail-card__label">제재금 (경쟁균형세)</div>
@@ -773,7 +792,7 @@ function renderRoster() {
         const hasRatings = !!r;
         return `<tr data-player-id="${p.id}">
             <td style="color:var(--text-dim);">${p.number != null ? p.number : '-'}</td>
-            <td>${p.name}${p.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''}${p.isForeign ? ' <span style="color:#B3A177;font-size:10px;">외</span>' : ''}${p.isMilitary ? ' <span class="mil-badge">군보류</span>' : (p.isFutures ? (p.number >= 100 ? ' <span class="dev-badge">육성</span>' : ' <span class="futures-badge">2군</span>') : '')}</td>
+            <td>${p.name}${p.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''} ${foreignTierBadge(p, true)}${p.isMilitary ? ' <span class="mil-badge">군보류</span>' : (p.isFutures ? (p.number >= 100 ? ' <span class="dev-badge">육성</span>' : ' <span class="futures-badge">2군</span>') : '')}</td>
             <td>${roleSelect}</td>
             <td style="font-size:11px;color:${p.throwBat && p.throwBat.startsWith('좌') ? '#00AEEF' : '#8899aa'};">${p.throwBat ? p.throwBat.substring(0, 2) : '-'}</td>
             <td style="font-size:11px;">${p.age != null ? p.age + '세' : '-'}</td>
@@ -809,7 +828,7 @@ function renderRoster() {
         const posSelect = `<select class="pos-select ${penaltyVal < 0 ? 'pos-select--penalty' : ''}" data-id="${b.id}">${posOptions}</select>`;
         return `<tr data-player-id="${b.id}">
             <td style="color:var(--text-dim);">${b.number != null ? b.number : '-'}</td>
-            <td>${b.name}${b.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''}${b.isForeign ? ' <span style="color:#B3A177;font-size:10px;">외</span>' : ''}${b.isMilitary ? ' <span class="mil-badge">군보류</span>' : (b.isFutures ? (b.number >= 100 ? ' <span class="dev-badge">육성</span>' : ' <span class="futures-badge">2군</span>') : '')}</td>
+            <td>${b.name}${b.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''} ${foreignTierBadge(b, true)}${b.isMilitary ? ' <span class="mil-badge">군보류</span>' : (b.isFutures ? (b.number >= 100 ? ' <span class="dev-badge">육성</span>' : ' <span class="futures-badge">2군</span>') : '')}</td>
             <td>${posSelect}${penaltyBadge}</td>
             <td style="font-size:11px;color:#8899aa;">${b.throwBat || '-'}</td>
             <td style="font-size:11px;">${b.age != null ? b.age + '세' : '-'}</td>
@@ -967,7 +986,7 @@ function renderSwapList() {
                 : `<div class="sp-ovr"><span>-</span></div>`;
             return `<div class="swap-player-row" data-swap-id="${p.id}">
                 <span class="sp-no">#${p.number != null ? p.number : '-'}</span>
-                <span class="sp-name">${p.name}${p.isForeign ? ' <span style="color:#B3A177;font-size:10px;">외</span>' : ''}</span>
+                <span class="sp-name">${p.name} ${foreignTierBadge(p, true)}</span>
                 <span class="sp-pos">${p.position || '-'}</span>
                 <span class="sp-tb">${p.throwBat || '-'}</span>
                 ${ovrBar}
@@ -1066,7 +1085,11 @@ function generateScoutReport(player) {
     const age = player.age;
 
     if (!r) {
-        if (player.isForeign) return '외국인 선수 — KBO 기록 분석 필요';
+        if (player.isForeign) {
+            const tierInfo = player.foreignTier ? FOREIGN_TIERS[player.foreignTier] : null;
+            const tierDesc = tierInfo ? `[${tierInfo.label}] ${tierInfo.desc}` : '외국인 선수 — KBO 기록 분석 필요';
+            return tierDesc;
+        }
         if (player.isMilitary) return '군보류 선수 — 이번 시즌 등록 불가';
         if (player.isFutures) return '2군 유망주 — 성장 가능성 주목';
         if (player.position === 'P') return '';
@@ -1260,9 +1283,10 @@ function showPlayerModal(player) {
             ${scoutReport ? `<div class="pm-scout-report">${scoutReport}</div>` : ''}
             <div class="pm-badges">
                 ${p.isFranchiseStar ? '<span class="franchise-star-badge">★ 프랜차이즈 스타</span>' : ''}
-                ${p.isForeign ? '<span style="display:inline-block;padding:1px 6px;background:rgba(179,161,119,0.15);color:#B3A177;border-radius:4px;font-size:11px;">외국인</span>' : ''}
+                ${foreignTierBadge(p, false)}
                 ${p.isFutures ? '<span class="futures-badge">2군</span>' : ''}
                 <span style="display:inline-block;padding:1px 8px;background:rgba(255,255,255,0.06);border-radius:4px;font-size:12px;font-weight:600;">연봉 ${p.salary}억</span>
+                ${p.isForeign && p.foreignOrigin ? `<span style="display:inline-block;padding:1px 8px;background:rgba(255,255,255,0.06);border-radius:4px;font-size:11px;color:var(--text-dim);">출신: ${p.foreignOrigin}</span>` : ''}
             </div>
         </div>
     `;
@@ -1414,7 +1438,7 @@ function showPlayerModal(player) {
         statsEl.innerHTML = `
             <div class="pm-stats-title">2025 시즌 성적</div>
             <div class="pm-no-data">
-                ${p.isForeign ? '외국인 선수 — KBO 이전 시즌 기록 없음' :
+                ${p.isForeign ? `외국인 선수 (${p.foreignTier ? FOREIGN_TIERS[p.foreignTier]?.name || '' : ''}) — KBO 이전 시즌 기록 없음` :
                   p.isFutures ? '2군 선수 — 1군 시즌 기록 없음' :
                   '시즌 기록 데이터가 등록되지 않았습니다.'}
             </div>
@@ -2445,7 +2469,7 @@ function renderScoutTable() {
         let row = `<tr class="scout-row-selectable" style="cursor:pointer" onclick="selectScoutRow(this,'${p.id}')">`;
         row += `<td><img src="${teamLogo(p.team)}" style="width:20px;height:20px;vertical-align:middle" alt="${p.team}"></td>`;
         row += `<td>${p.number || '-'}</td>`;
-        row += `<td style="font-weight:600">${p.name}${p.isForeign ? '<sup style="color:var(--danger)">F</sup>' : ''}</td>`;
+        row += `<td style="font-weight:600">${p.name} ${foreignTierBadge(p, true)}</td>`;
         if (scoutMode === 'pitcher') {
             row += `<td>${p.role || '-'}</td><td style="font-size:11px">${p.throwBat || '-'}</td><td>${p.age || '-'}</td>`;
             row += `<td>${ratingCell(r.stuff)}</td><td>${ratingCell(r.command)}</td><td>${ratingCell(r.stamina)}</td><td>${ratingCell(r.effectiveness)}</td><td>${ratingCell(r.consistency)}</td>`;
@@ -2483,8 +2507,9 @@ function showScoutDetailInline(p) {
             ${scoutReport ? `<div class="pm-scout-report" style="margin-top:4px;">${scoutReport}</div>` : ''}
             <div style="margin-top:4px;font-size:13px;">
                 ${p.isFranchiseStar ? '<span class="franchise-star-badge">★ 프랜차이즈 스타</span> ' : ''}
-                ${p.isForeign ? '<span style="padding:1px 6px;background:rgba(179,161,119,0.15);color:#B3A177;border-radius:4px;font-size:11px;">외국인</span> ' : ''}
+                ${foreignTierBadge(p, false)}
                 <span style="padding:1px 8px;background:var(--bg-input);border-radius:4px;font-size:12px;font-weight:600;">연봉 ${p.salary}억</span>
+                ${p.isForeign && p.foreignNote ? ` <span style="padding:1px 8px;background:var(--bg-input);border-radius:4px;font-size:11px;color:var(--text-dim);">${p.foreignNote}</span>` : ''}
             </div>
         </div>
     `;
@@ -2535,7 +2560,7 @@ function showScoutDetailInline(p) {
             ${renderPitcherSaberStats(rs)}
         `;
     } else {
-        statsEl.innerHTML = `<div class="pm-no-data">${p.isForeign ? '외국인 선수 — KBO 이전 시즌 기록 없음' : p.isFutures ? '2군 선수 — 1군 시즌 기록 없음' : '시즌 기록 데이터가 등록되지 않았습니다.'}</div>`;
+        statsEl.innerHTML = `<div class="pm-no-data">${p.isForeign ? `외국인 선수 (${p.foreignTier ? FOREIGN_TIERS[p.foreignTier]?.name || '' : ''}) — KBO 이전 시즌 기록 없음` : p.isFutures ? '2군 선수 — 1군 시즌 기록 없음' : '시즌 기록 데이터가 등록되지 않았습니다.'}</div>`;
     }
 
     panel.style.display = 'block';
