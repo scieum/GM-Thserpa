@@ -1194,18 +1194,24 @@ function releasePlayer(playerId) {
     showToast(`${playerName} 방출 완료.`, 'info');
 }
 
-function showReleaseModal(reason, afterReleaseFn) {
+function showReleaseModal(reason, recruitType, afterReleaseFn) {
     const userTeamCode = document.getElementById('rosterTeamSelect')?.value || Object.keys(state.teams)[0];
     const team = state.teams[userTeamCode];
     const allPlayers = team.roster.map(id => state.players[id]).filter(Boolean);
 
-    // 방출 대상 목록 (프랜차이즈 스타 제외)
     let candidates;
     if (reason === 'foreign') {
-        // 외국인 초과 → 외국인만 표시
-        candidates = allPlayers.filter(p => p.isForeign && !p.isFranchiseStar);
+        // 외국인 초과 → 같은 타입의 외국인만 (투수 영입이면 외국인 투수만, 타자면 외국인 타자만)
+        candidates = allPlayers.filter(p => {
+            if (!p.isForeign || p.isFranchiseStar) return false;
+            const isPitcher = (p.position === 'P' || p.pos === 'P');
+            return recruitType === 'pitcher' ? isPitcher : !isPitcher;
+        });
+        // 같은 타입이 없으면 전체 외국인 표시
+        if (candidates.length === 0) {
+            candidates = allPlayers.filter(p => p.isForeign && !p.isFranchiseStar);
+        }
     } else {
-        // 1군 초과 → 전체 (프랜차이즈 스타 제외)
         candidates = allPlayers.filter(p => !p.isFranchiseStar);
     }
 
@@ -1216,51 +1222,39 @@ function showReleaseModal(reason, afterReleaseFn) {
 
     const reasonText = reason === 'foreign'
         ? '외국인 선수 자리가 부족합니다. 방출할 선수를 선택하세요.'
-        : '1군 로스터가 가득 찼습니다. 방출할 선수를 선택하세요.';
+        : '1군 로스터(29명)가 가득 찼습니다. 방출할 선수를 선택하세요.';
 
     header.innerHTML = `
-        <div>
-            <h3 style="margin:0;font-size:18px;color:#ef4444;">선수 방출</h3>
-            <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">${reasonText}</div>
-        </div>`;
-
-    // 외국인 선수를 상단에 정렬
-    candidates.sort((a, b) => {
-        if (a.isForeign && !b.isForeign) return -1;
-        if (!a.isForeign && b.isForeign) return 1;
-        return (b.salary || 0) - (a.salary || 0);
-    });
+        <h3 style="margin:0;font-size:16px;color:#ef4444;">선수 방출</h3>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${reasonText}</div>`;
 
     const rows = candidates.map(p => {
         const pos = p.position || p.pos || '-';
         const tag = p.isForeign
             ? (p.isAsiaQuota
-                ? '<span style="background:#ff8800;color:#fff;font-size:10px;padding:1px 5px;border-radius:3px;margin-left:4px;">아시아</span>'
-                : '<span style="background:#ef4444;color:#fff;font-size:10px;padding:1px 5px;border-radius:3px;margin-left:4px;">외국인</span>')
+                ? '<span style="background:#ff8800;color:#fff;font-size:9px;padding:1px 4px;border-radius:3px;margin-left:3px;">아시아</span>'
+                : '<span style="background:#ef4444;color:#fff;font-size:9px;padding:1px 4px;border-radius:3px;margin-left:3px;">외국인</span>')
             : '';
-        return `<tr style="cursor:pointer;" onmouseover="this.style.background='rgba(239,68,68,0.08)'" onmouseout="this.style.background=''">
-            <td style="padding:8px;"><strong>${p.name}</strong>${tag}</td>
-            <td style="padding:8px;">${pos}</td>
-            <td style="padding:8px;">${p.salary || '-'}억</td>
-            <td style="padding:8px;">
-                <button class="btn btn--sm" style="background:#ef4444;color:#fff;border:none;padding:4px 12px;border-radius:4px;cursor:pointer;"
-                    onclick="event.stopPropagation(); confirmRelease('${p.id}')">방출</button>
-            </td>
+        return `<tr onclick="doRelease('${p.id}')" style="cursor:pointer;" onmouseover="this.style.background='rgba(239,68,68,0.1)'" onmouseout="this.style.background=''">
+            <td style="padding:6px 8px;font-weight:600;font-size:13px;">${p.name}${tag}</td>
+            <td style="padding:6px 8px;font-size:12px;text-align:center;">${pos}</td>
+            <td style="padding:6px 8px;font-size:12px;text-align:right;">${p.salary || '-'}억</td>
         </tr>`;
     }).join('');
 
     ratings.innerHTML = `
-        <div style="max-height:400px;overflow-y:auto;margin-top:12px;">
-            <table class="player-table" style="width:100%;">
-                <thead><tr>
-                    <th style="text-align:left;">이름</th><th>포지션</th><th>연봉</th><th></th>
-                </tr></thead>
-                <tbody>${rows}</tbody>
-            </table>
-        </div>`;
+        <table style="width:100%;border-collapse:collapse;margin-top:8px;">
+            <thead><tr style="border-bottom:1px solid var(--border);">
+                <th style="text-align:left;padding:4px 8px;font-size:11px;color:var(--text-muted);">이름</th>
+                <th style="text-align:center;padding:4px 8px;font-size:11px;color:var(--text-muted);">포지션</th>
+                <th style="text-align:right;padding:4px 8px;font-size:11px;color:var(--text-muted);">연봉</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+        </table>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:6px;text-align:center;">클릭하면 방출됩니다</div>`;
 
     statsEl.innerHTML = `
-        <div style="text-align:center;margin-top:12px;">
+        <div style="text-align:center;margin-top:8px;">
             <button class="btn btn--sm btn--ghost" onclick="document.getElementById('playerModal').style.display='none'; pendingRecruit=null;">취소</button>
         </div>`;
 
@@ -1269,25 +1263,12 @@ function showReleaseModal(reason, afterReleaseFn) {
     if (closeBtn) closeBtn.onclick = () => { modal.style.display = 'none'; pendingRecruit = null; };
     modal.onclick = (e) => { if (e.target === modal) { modal.style.display = 'none'; pendingRecruit = null; } };
 
-    // 방출 후 실행할 콜백 저장
     window._afterReleaseFn = afterReleaseFn;
 }
 
-function confirmRelease(playerId) {
+function doRelease(playerId) {
     const player = state.players[playerId];
     if (!player) return;
-
-    // 확인 단계: 방출 버튼을 "정말?" 텍스트로 교체
-    const btn = document.querySelector(`[onclick*="confirmRelease('${playerId}')"]`);
-    if (btn && !btn.dataset.confirmed) {
-        btn.dataset.confirmed = 'true';
-        btn.textContent = '정말 방출?';
-        btn.style.background = '#991b1b';
-        setTimeout(() => {
-            if (btn) { btn.dataset.confirmed = ''; btn.textContent = '방출'; btn.style.background = '#ef4444'; }
-        }, 3000);
-        return;
-    }
 
     releasePlayer(playerId);
     document.getElementById('playerModal').style.display = 'none';
@@ -1295,10 +1276,11 @@ function confirmRelease(playerId) {
     // 방출 후 영입 진행
     setTimeout(() => {
         if (window._afterReleaseFn) {
-            window._afterReleaseFn();
+            const fn = window._afterReleaseFn;
             window._afterReleaseFn = null;
+            fn();
         }
-    }, 300);
+    }, 200);
 }
 
 // 아시아쿼터 선수 → 슬롯 선택 (아시아쿼터 or 외국인)
@@ -1391,14 +1373,14 @@ function executeRecruit(type, name, asAsiaQuota) {
 
     if (needForeignRelease) {
         pendingRecruit = { type, name };
-        showReleaseModal('foreign', () => executeRecruit(type, name, asAsiaQuota));
+        showReleaseModal('foreign', type, () => executeRecruit(type, name, asAsiaQuota));
         return;
     }
 
     // 1군 초과 → 방출 모달
     if (team.roster.length >= 29) {
         pendingRecruit = { type, name };
-        showReleaseModal('roster', () => executeRecruit(type, name, asAsiaQuota));
+        showReleaseModal('roster', type, () => executeRecruit(type, name, asAsiaQuota));
         return;
     }
 
@@ -1801,6 +1783,6 @@ window.openFsCompare = openFsCompare;
 window.closeFsCompare = closeFsCompare;
 window.addKboToCompare = addKboToCompare;
 window.showDetailedReport = showDetailedReport;
-window.confirmRelease = confirmRelease;
+window.doRelease = doRelease;
 window.releasePlayer = releasePlayer;
 window.executeRecruit = executeRecruit;
