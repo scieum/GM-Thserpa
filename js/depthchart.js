@@ -381,23 +381,32 @@ function onDefenseChange(sel) {
     const oldId = dc.defense[pos];
 
     // swap: 새 선수가 이미 다른 포지션에 있으면 교환
+    let swappedFrom = null;
     if (newId) {
         for (const p of Object.keys(dc.defense)) {
             if (p !== pos && dc.defense[p] === newId) {
                 dc.defense[p] = oldId;
+                swappedFrom = p;
                 break;
             }
         }
     }
     dc.defense[pos] = newId;
 
-    // 타선 라인업 동기화: 빠진 선수는 교체된 선수로 대체
+    // 타선 라인업 동기화: swap이면 타선에서도 두 선수의 위치를 교환
     if (oldId && newId && oldId !== newId) {
         for (const type of ['vsRHP', 'vsLHP']) {
             const lineup = dc.lineup[type];
-            const idx = lineup.indexOf(oldId);
-            if (idx !== -1) {
-                lineup[idx] = newId;
+            const idxOld = lineup.indexOf(oldId);
+            const idxNew = lineup.indexOf(newId);
+            // 둘 다 타선에 있으면 swap
+            if (idxOld !== -1 && idxNew !== -1) {
+                lineup[idxOld] = newId;
+                lineup[idxNew] = oldId;
+            } else if (idxOld !== -1) {
+                lineup[idxOld] = newId;
+            } else if (idxNew !== -1) {
+                lineup[idxNew] = oldId;
             }
         }
     }
@@ -435,13 +444,18 @@ function onLineupChange(sel) {
     }
     lineup[idx] = newId;
 
-    // 수비 라인업 동기화: 빠진 선수의 포지션을 새 선수로 대체
+    // 수비 라인업 동기화: 두 선수의 수비 포지션도 교환
     if (oldId && newId && oldId !== newId) {
+        let oldPos = null, newPos = null;
         for (const pos of Object.keys(dc.defense)) {
-            if (dc.defense[pos] === oldId) {
-                dc.defense[pos] = newId;
-                break;
-            }
+            if (dc.defense[pos] === oldId) oldPos = pos;
+            if (dc.defense[pos] === newId) newPos = pos;
+        }
+        if (oldPos && newPos) {
+            dc.defense[oldPos] = newId;
+            dc.defense[newPos] = oldId;
+        } else if (oldPos) {
+            dc.defense[oldPos] = newId;
         }
     }
 
