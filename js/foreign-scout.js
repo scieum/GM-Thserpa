@@ -722,6 +722,8 @@ const STAT_TOOLTIPS = {
     'SB': '도루 수. 시즌 총 도루 개수. 주루 능력 지표',
     // 공통
     '출신': '선수의 최근 소속 리그 (MLB/AAA/NPB/CPBL 등)',
+    '투구': '투구 손/폼 (좌투/우투/우언/좌사 등)',
+    '투타': '투구 손 + 타격 손 (좌투좌타/우투우타/양투양타 등)',
     '역할': '투수 역할 (선발/중계/마무리)',
     '연봉(만$)': '연봉 (만 달러 단위). 예: 100 = $1,000,000',
     '나이': '선수 나이 (세)',
@@ -745,7 +747,7 @@ function renderFsPitchers() {
     const thead = document.querySelector('#fsResultTable thead tr');
     thead.innerHTML =
         `<th style="width:30px;"></th><th>이름</th>` +
-        thWithTip('출신') + thWithTip('역할') +
+        thWithTip('출신') + thWithTip('투구') + thWithTip('역할') +
         thWithTip('연봉(만$)') + thWithTip('나이') +
         thWithTip('ERA') + thWithTip('FIP') +
         thWithTip('IVB') + thWithTip('CSW%') +
@@ -754,10 +756,12 @@ function renderFsPitchers() {
 
     const tbody = document.querySelector('#fsResultTable tbody');
     tbody.innerHTML = pool.map(p => {
+        const throwArm = p.throwBat ? p.throwBat.split(/[우좌]타/)[0] : '-';
         return `<tr onclick="showFsPlayerDetail('pitcher', '${p.name}')">
             <td onclick="event.stopPropagation()"><input type="checkbox" class="fs-compare-chk" data-name="${p.name}" data-type="pitcher" onchange="updateFsCompareBtn()"></td>
             <td><strong>${p.name}</strong></td>
             <td>${p.origin}</td>
+            <td>${throwArm}</td>
             <td>${p.role}</td>
             <td>${p.salary}</td>
             <td>${p.age}</td>
@@ -781,7 +785,7 @@ function renderFsBatters() {
     const thead = document.querySelector('#fsResultTable thead tr');
     thead.innerHTML =
         `<th style="width:30px;"></th><th>이름</th>` +
-        thWithTip('출신') + thWithTip('포지션') +
+        thWithTip('출신') + thWithTip('투타') + thWithTip('포지션') +
         thWithTip('연봉(만$)') + thWithTip('나이') +
         thWithTip('AVG') + thWithTip('OPS') +
         thWithTip('wRC+') + thWithTip('Barrel%') +
@@ -794,6 +798,7 @@ function renderFsBatters() {
             <td onclick="event.stopPropagation()"><input type="checkbox" class="fs-compare-chk" data-name="${p.name}" data-type="batter" onchange="updateFsCompareBtn()"></td>
             <td><strong>${p.name}</strong></td>
             <td>${p.origin}</td>
+            <td>${p.throwBat || '-'}</td>
             <td>${p.position}</td>
             <td>${p.salary}</td>
             <td>${p.age}</td>
@@ -1219,11 +1224,22 @@ function showReleaseModal(reason, afterReleaseFn) {
             <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">${reasonText}</div>
         </div>`;
 
+    // 외국인 선수를 상단에 정렬
+    candidates.sort((a, b) => {
+        if (a.isForeign && !b.isForeign) return -1;
+        if (!a.isForeign && b.isForeign) return 1;
+        return (b.salary || 0) - (a.salary || 0);
+    });
+
     const rows = candidates.map(p => {
         const pos = p.position || p.pos || '-';
-        const foreign = p.isForeign ? (p.isAsiaQuota ? '<span style="color:#ff8800;font-size:10px;"> 아시아</span>' : '<span style="color:#ef4444;font-size:10px;"> 외국인</span>') : '';
+        const tag = p.isForeign
+            ? (p.isAsiaQuota
+                ? '<span style="background:#ff8800;color:#fff;font-size:10px;padding:1px 5px;border-radius:3px;margin-left:4px;">아시아</span>'
+                : '<span style="background:#ef4444;color:#fff;font-size:10px;padding:1px 5px;border-radius:3px;margin-left:4px;">외국인</span>')
+            : '';
         return `<tr style="cursor:pointer;" onmouseover="this.style.background='rgba(239,68,68,0.08)'" onmouseout="this.style.background=''">
-            <td style="padding:8px;"><strong>${p.name}</strong>${foreign}</td>
+            <td style="padding:8px;"><strong>${p.name}</strong>${tag}</td>
             <td style="padding:8px;">${pos}</td>
             <td style="padding:8px;">${p.salary || '-'}억</td>
             <td style="padding:8px;">
@@ -1261,16 +1277,28 @@ function confirmRelease(playerId) {
     const player = state.players[playerId];
     if (!player) return;
 
-    if (confirm(`정말 ${player.name}을(를) 방출하시겠습니까?\n이 선수는 로스터에서 완전히 제거됩니다.`)) {
-        releasePlayer(playerId);
-        document.getElementById('playerModal').style.display = 'none';
+    // 확인 단계: 방출 버튼을 "정말?" 텍스트로 교체
+    const btn = document.querySelector(`[onclick*="confirmRelease('${playerId}')"]`);
+    if (btn && !btn.dataset.confirmed) {
+        btn.dataset.confirmed = 'true';
+        btn.textContent = '정말 방출?';
+        btn.style.background = '#991b1b';
+        setTimeout(() => {
+            if (btn) { btn.dataset.confirmed = ''; btn.textContent = '방출'; btn.style.background = '#ef4444'; }
+        }, 3000);
+        return;
+    }
 
-        // 방출 후 영입 진행
+    releasePlayer(playerId);
+    document.getElementById('playerModal').style.display = 'none';
+
+    // 방출 후 영입 진행
+    setTimeout(() => {
         if (window._afterReleaseFn) {
             window._afterReleaseFn();
             window._afterReleaseFn = null;
         }
-    }
+    }, 300);
 }
 
 // 아시아쿼터 선수 → 슬롯 선택 (아시아쿼터 or 외국인)
