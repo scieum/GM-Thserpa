@@ -138,6 +138,35 @@ function onLoginSuccess() {
     });
 }
 
+// ── 외국인 스카우트 탭 잠금 (학생: 1Q 완료 후 해제) ──
+function applyForeignScoutLock() {
+    if (typeof isAdmin === 'function' && isAdmin()) return; // 교사는 항상 열림
+
+    const fsNav = document.getElementById('navForeignScout');
+    if (!fsNav) return;
+
+    // 1Q(36경기) 완료 여부 확인
+    const totalPlayed = (typeof getTotalGamesPlayed === 'function' && state)
+        ? getTotalGamesPlayed(state) : 0;
+    const q1Done = totalPlayed >= 36;
+
+    if (!q1Done) {
+        fsNav.classList.add('nav-btn--locked');
+        fsNav.innerHTML = '<span style="margin-right:4px;">&#x1F512;</span>외국인 스카우트';
+        fsNav.dataset.locked = 'true';
+        fsNav.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showToast('1Q 시뮬레이션이 완료된 후 외국인 스카우트가 열립니다.');
+        };
+    } else {
+        fsNav.classList.remove('nav-btn--locked');
+        fsNav.textContent = '외국인 스카우트';
+        fsNav.dataset.locked = 'false';
+        fsNav.onclick = null;
+    }
+}
+
 // ── 팀 조작 권한 체크 (학생은 자기 팀만) ──
 function guardTeamAction(teamCode, actionName) {
     if (!isStudent()) return true; // 교사는 항상 허용
@@ -179,17 +208,8 @@ function applyPermissions() {
         // 학생: 사이드바에서 자기 팀만 선택 가능
         // (다른 팀은 볼 수는 있지만 수정 불가 - trade.js, foreign-scout.js에서 체크)
 
-        // 학생: 외국인 스카우트 탭 잠금 (교사가 해제할 때까지)
-        const fsNav = document.getElementById('navForeignScout');
-        if (fsNav) {
-            fsNav.classList.add('nav-btn--locked');
-            fsNav.textContent = '외국인 스카우트';
-            fsNav.onclick = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                showToast('외국인 스카우트는 아직 잠겨 있습니다. 교사의 해제를 기다려주세요.');
-            };
-        }
+        // 학생: 외국인 스카우트 탭 - 1Q 완료 전까지 잠금
+        applyForeignScoutLock();
 
         // 학생: 관리 버튼 숨김
         document.getElementById('btnAdminPanel').style.display = 'none';
@@ -324,6 +344,8 @@ function handleRealtimeSimResult(payload) {
     // 시뮬레이션 결과 → 순위표 갱신
     showToast('시뮬레이션 결과가 업데이트되었습니다!');
     if (typeof renderDashboard === 'function') renderDashboard();
+    // 1Q 완료 시 외국인 스카우트 잠금 해제 체크
+    applyForeignScoutLock();
 }
 
 function handleRealtimeClassroom(payload) {

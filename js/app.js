@@ -99,6 +99,15 @@ function setupNav() {
 }
 
 function showView(viewName) {
+    // 외국인 스카우트: 학생은 1Q 완료 전 진입 차단
+    if (viewName === 'foreign-scout' && typeof isStudent === 'function' && isStudent()) {
+        const totalPlayed = (typeof getTotalGamesPlayed === 'function' && state) ? getTotalGamesPlayed(state) : 0;
+        if (totalPlayed < 36) {
+            if (typeof showToast === 'function') showToast('1Q 시뮬레이션이 완료된 후 외국인 스카우트가 열립니다.');
+            return;
+        }
+    }
+
     // admin 뷰 처리
     if (viewName === 'admin') {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
