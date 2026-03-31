@@ -1170,7 +1170,109 @@ function showFsPlayerDetail(type, name) {
     modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
 }
 
-// ── 영입 기능 ──
+// ── 방출 + 영입 기능 ──
+let pendingRecruit = null; // 영입 대기 중인 선수 정보
+
+function releasePlayer(playerId) {
+    const userTeamCode = document.getElementById('rosterTeamSelect')?.value || Object.keys(state.teams)[0];
+    const team = state.teams[userTeamCode];
+    const player = state.players[playerId];
+    if (!player) return;
+
+    const playerName = player.name;
+    // 로스터에서 제거
+    team.roster = team.roster.filter(id => id !== playerId);
+    // state에서 삭제
+    delete state.players[playerId];
+
+    localStorage.setItem('kbo-sim-state', JSON.stringify(state));
+    showToast(`${playerName} 방출 완료.`, 'info');
+}
+
+function showReleaseModal(reason, afterReleaseFn) {
+    const userTeamCode = document.getElementById('rosterTeamSelect')?.value || Object.keys(state.teams)[0];
+    const team = state.teams[userTeamCode];
+    const allPlayers = team.roster.map(id => state.players[id]).filter(Boolean);
+
+    // 방출 대상 목록 (프랜차이즈 스타 제외)
+    let candidates;
+    if (reason === 'foreign') {
+        // 외국인 초과 → 외국인만 표시
+        candidates = allPlayers.filter(p => p.isForeign && !p.isFranchiseStar);
+    } else {
+        // 1군 초과 → 전체 (프랜차이즈 스타 제외)
+        candidates = allPlayers.filter(p => !p.isFranchiseStar);
+    }
+
+    const modal = document.getElementById('playerModal');
+    const header = document.getElementById('playerModalHeader');
+    const ratings = document.getElementById('playerModalRatings');
+    const statsEl = document.getElementById('playerModalStats');
+
+    const reasonText = reason === 'foreign'
+        ? '외국인 선수 자리가 부족합니다. 방출할 선수를 선택하세요.'
+        : '1군 로스터가 가득 찼습니다. 방출할 선수를 선택하세요.';
+
+    header.innerHTML = `
+        <div>
+            <h3 style="margin:0;font-size:18px;color:#ef4444;">선수 방출</h3>
+            <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">${reasonText}</div>
+        </div>`;
+
+    const rows = candidates.map(p => {
+        const pos = p.position || p.pos || '-';
+        const foreign = p.isForeign ? (p.isAsiaQuota ? '<span style="color:#ff8800;font-size:10px;"> 아시아</span>' : '<span style="color:#ef4444;font-size:10px;"> 외국인</span>') : '';
+        return `<tr style="cursor:pointer;" onmouseover="this.style.background='rgba(239,68,68,0.08)'" onmouseout="this.style.background=''">
+            <td style="padding:8px;"><strong>${p.name}</strong>${foreign}</td>
+            <td style="padding:8px;">${pos}</td>
+            <td style="padding:8px;">${p.salary || '-'}억</td>
+            <td style="padding:8px;">
+                <button class="btn btn--sm" style="background:#ef4444;color:#fff;border:none;padding:4px 12px;border-radius:4px;cursor:pointer;"
+                    onclick="event.stopPropagation(); confirmRelease('${p.id}')">방출</button>
+            </td>
+        </tr>`;
+    }).join('');
+
+    ratings.innerHTML = `
+        <div style="max-height:400px;overflow-y:auto;margin-top:12px;">
+            <table class="player-table" style="width:100%;">
+                <thead><tr>
+                    <th style="text-align:left;">이름</th><th>포지션</th><th>연봉</th><th></th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>`;
+
+    statsEl.innerHTML = `
+        <div style="text-align:center;margin-top:12px;">
+            <button class="btn btn--sm btn--ghost" onclick="document.getElementById('playerModal').style.display='none'; pendingRecruit=null;">취소</button>
+        </div>`;
+
+    modal.style.display = 'flex';
+    const closeBtn = document.getElementById('playerModalClose');
+    if (closeBtn) closeBtn.onclick = () => { modal.style.display = 'none'; pendingRecruit = null; };
+    modal.onclick = (e) => { if (e.target === modal) { modal.style.display = 'none'; pendingRecruit = null; } };
+
+    // 방출 후 실행할 콜백 저장
+    window._afterReleaseFn = afterReleaseFn;
+}
+
+function confirmRelease(playerId) {
+    const player = state.players[playerId];
+    if (!player) return;
+
+    if (confirm(`정말 ${player.name}을(를) 방출하시겠습니까?\n이 선수는 로스터에서 완전히 제거됩니다.`)) {
+        releasePlayer(playerId);
+        document.getElementById('playerModal').style.display = 'none';
+
+        // 방출 후 영입 진행
+        if (window._afterReleaseFn) {
+            window._afterReleaseFn();
+            window._afterReleaseFn = null;
+        }
+    }
+}
+
 function recruitForeignPlayer(type, name) {
     const pool = type === 'pitcher' ? FOREIGN_PITCHER_POOL : FOREIGN_BATTER_POOL;
     const p = pool.find(x => x.name === name);
@@ -1178,36 +1280,37 @@ function recruitForeignPlayer(type, name) {
 
     const userTeamCode = document.getElementById('rosterTeamSelect')?.value || Object.keys(state.teams)[0];
     const foreignInfo = calcForeignSalary(state, userTeamCode);
-
-    if (p.type === '아시아쿼터') {
-        const currentAsia = getTeamPlayers(state, userTeamCode).filter(pl => pl.isAsiaQuota).length;
-        if (currentAsia >= ASIA_QUOTA.maxAsiaQuota) {
-            showToast('아시아쿼터 선수는 최대 1명까지만 영입 가능합니다.', 'error');
-            return;
-        }
-        if (p.salary > ASIA_QUOTA.newRecruitCap) {
-            showToast(`아시아쿼터 신규 영입은 최대 ${ASIA_QUOTA.newRecruitCap}만$입니다.`, 'error');
-            return;
-        }
-    } else {
-        const currentClassic = getTeamPlayers(state, userTeamCode).filter(pl => pl.isForeign && !pl.isAsiaQuota).length;
-        if (currentClassic >= ASIA_QUOTA.maxForeignClassic) {
-            showToast('외국인 선수는 최대 3명까지만 보유 가능합니다.', 'error');
-            return;
-        }
-    }
-
-    if (foreignInfo.count >= ASIA_QUOTA.maxPlayers) {
-        showToast('외국인 선수 총 4명 초과! 외국인을 방출해야 영입 가능합니다.', 'error');
-        return;
-    }
-
     const team = state.teams[userTeamCode];
-    if (team.roster.length >= 29) {
-        showToast('1군 29명 초과! 먼저 선수를 방출하거나 2군으로 내려보내세요.', 'error');
+
+    // 아시아쿼터 연봉 체크
+    if (p.type === '아시아쿼터' && p.salary > ASIA_QUOTA.newRecruitCap) {
+        showToast(`아시아쿼터 신규 영입은 최대 ${ASIA_QUOTA.newRecruitCap}만$입니다.`, 'error');
         return;
     }
 
+    // 외국인 초과 → 방출 모달
+    const needForeignRelease = (() => {
+        if (p.type === '아시아쿼터') {
+            return getTeamPlayers(state, userTeamCode).filter(pl => pl.isAsiaQuota).length >= ASIA_QUOTA.maxAsiaQuota;
+        } else {
+            return getTeamPlayers(state, userTeamCode).filter(pl => pl.isForeign && !pl.isAsiaQuota).length >= ASIA_QUOTA.maxForeignClassic;
+        }
+    })() || foreignInfo.count >= ASIA_QUOTA.maxPlayers;
+
+    if (needForeignRelease) {
+        pendingRecruit = { type, name };
+        showReleaseModal('foreign', () => recruitForeignPlayer(type, name));
+        return;
+    }
+
+    // 1군 초과 → 방출 모달
+    if (team.roster.length >= 29) {
+        pendingRecruit = { type, name };
+        showReleaseModal('roster', () => recruitForeignPlayer(type, name));
+        return;
+    }
+
+    // 영입 실행
     const newId = `fs_${Date.now()}`;
     const salaryInBillions = p.salary * 0.015;
 
@@ -1246,10 +1349,11 @@ function recruitForeignPlayer(type, name) {
 
     foreignScoutState.recruited.push(p.name);
     saveForeignScoutState();
+    pendingRecruit = null;
 
     localStorage.setItem('kbo-sim-state', JSON.stringify(state));
 
-    showToast(`${p.name} 영입 완료! (${FOREIGN_TIERS[p.tier].label} / ${p.type === '아시아쿼터' ? '아시아쿼터' : '외국인'})`, 'success');
+    showToast(`${p.name} 영입 완료!`, 'success');
     renderForeignScout();
 }
 
@@ -1605,3 +1709,5 @@ window.openFsCompare = openFsCompare;
 window.closeFsCompare = closeFsCompare;
 window.addKboToCompare = addKboToCompare;
 window.showDetailedReport = showDetailedReport;
+window.confirmRelease = confirmRelease;
+window.releasePlayer = releasePlayer;
