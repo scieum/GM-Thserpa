@@ -1337,7 +1337,8 @@ const INJURED_ROSTERS = {
     },
     '키움': {
         P: [
-            { name: '안우진', no: 41, tb: '우투우타', injury: '어깨 부상', recovery: '2026-04-30', birth: '1999-09-26', h: 185, w: 88 },
+            { name: '안우진', no: 41, tb: '우투우타', injury: '어깨 부상', recovery: '2026-04-30', birth: '1999-09-26', h: 185, w: 88, salary: 4.8,
+              pitches: [{name:'포심',pct:30,velo:154},{name:'슬라이더',pct:25,velo:139},{name:'커터',pct:20,velo:141},{name:'체인지업',pct:15,velo:135},{name:'커브',pct:10,velo:127}] },
         ],
         C: [], IF: [], OF: [],
     },
@@ -2491,7 +2492,7 @@ function generateSampleData() {
                         id, name: ip.name, team: code,
                         position: pos,
                         role: isPitcher ? '선발' : null,
-                        salary: 0.5, isForeign: false, isFranchiseStar: false,
+                        salary: ip.salary || 0.5, isForeign: false, isFranchiseStar: false,
                         stats, powerScore: null,
                         number: ip.no,
                         throwBat: ip.tb,
@@ -2503,6 +2504,7 @@ function generateSampleData() {
                         injuryType: ip.injury,
                         injuryRecovery: ip.recovery,
                     };
+                    if (ip.pitches) players[id].pitches = ip.pitches;
                     const injAge = ip.birth ? calcAge(ip.birth) : null;
                     if (isPitcher) {
                         players[id].ratings = genFuturesPitcherRatings(rng, injAge, false);

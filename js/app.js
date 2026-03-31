@@ -779,7 +779,9 @@ function renderRoster() {
     // 1군/2군에 따라 선수 목록 분기
     let allPlayers;
     if (rosterTier === '2군') {
-        if (futuresTier === '군보류') {
+        if (futuresTier === '부상') {
+            allPlayers = (team.injuredRoster || []).map(id => state.players[id]).filter(Boolean);
+        } else if (futuresTier === '군보류') {
             allPlayers = getTeamMilitaryPlayers(state, code);
         } else {
             const futAll = getTeamFuturesPlayers(state, code);
