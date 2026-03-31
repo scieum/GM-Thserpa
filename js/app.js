@@ -2443,8 +2443,9 @@ function runScoutSearch() {
             }
             if (skip) continue;
             // 구속
-            if (p.realStats && p.realStats.pitches) {
-                const pitches = p.realStats.pitches;
+            const _pitches = (p.realStats && p.realStats.pitches) ? p.realStats.pitches : p.pitches;
+            if (_pitches) {
+                const pitches = _pitches;
                 const veloMin = parseFloat(f.veloMin); const veloMax = parseFloat(f.veloMax);
                 if (!isNaN(veloMin) || !isNaN(veloMax)) {
                     const fb = pitches.find(pt => pt.name === '포심' || pt.name === '투심');
