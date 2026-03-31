@@ -340,6 +340,13 @@ function renderBatterPanel() {
                 <div class="lineup-grid">
                     ${lineup.map((pid, i) => {
                         const p = pid ? state.players[pid] : null;
+                        // 수비 라인업에서 이 선수의 실제 배치 포지션 찾기
+                        let fieldPos = p ? p.position : '';
+                        if (p && dc.defense) {
+                            for (const [pos, id] of Object.entries(dc.defense)) {
+                                if (id === pid) { fieldPos = pos; break; }
+                            }
+                        }
                         return `
                             <div class="lineup-slot" style="--team-clr: ${teamColor}"
                                  draggable="${p ? 'true' : 'false'}"
@@ -352,7 +359,7 @@ function renderBatterPanel() {
                                 <div class="lineup-slot__info">
                                     ${p ? `
                                         <div class="lineup-slot__name">${dcPlayerLink(p.id, p.name)}</div>
-                                        <div class="lineup-slot__meta">${p.position} | OVR ${p.ovr} | ${p.throwBat || ''}</div>
+                                        <div class="lineup-slot__meta">${fieldPos} | OVR ${p.ovr} | ${p.throwBat || ''}</div>
                                         <div class="lineup-slot__ratings">
                                             <span>컨택 ${p.ratings?.contact || '-'}</span>
                                             <span>파워 ${p.ratings?.power || '-'}</span>

@@ -3305,6 +3305,9 @@ body {
     cursor: help;
     border-bottom: 1px dashed var(--text-muted);
 }
+.fs-th-sort:hover {
+    color: var(--accent);
+}
 .fs-tooltip {
     position: fixed;
     background: #1a1a2e;

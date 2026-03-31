@@ -319,6 +319,134 @@ const FOREIGN_PITCHER_POOL = [
       stats: { ERA: 4.00, FIP: 3.80, xFIP: 3.90, BABIP: 0.305, IVB: 28, VAA: -5.2, 'CSW%': 24, IP: 130, SO: 85, BB: 28, HR: 16 },
       ratings: { stuff: 40, command: 52, stamina: 55, effectiveness: 45, consistency: 48 },
       scouting: '전 MIL. 독립리그 이닝왕. 구속 낮지만 볼넷 적고 이닝 소화력 좋음' },
+
+    // === 추가 투수 (20명) ===
+    { name: 'Marco Gonzales', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', role: '선발',
+      salary: 110, age: 34, throwBat: '좌투좌타', height: 185, weight: 90,
+      stats: { ERA: 4.70, FIP: 4.40, xFIP: 4.30, BABIP: 0.310, IVB: 28, VAA: -5.4, 'CSW%': 25, IP: 145, SO: 105, BB: 35, HR: 22 },
+      ratings: { stuff: 45, command: 65, stamina: 62, effectiveness: 55, consistency: 58 },
+      scouting: '전 SEA/PIT 좌완. 구속 낮지만 제구력 최상급. 이닝이터 전형' },
+
+    { name: 'Aaron Sanchez', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', role: '선발',
+      salary: 100, age: 33, throwBat: '우투우타', height: 191, weight: 95,
+      stats: { ERA: 5.10, FIP: 4.60, xFIP: 4.50, BABIP: 0.325, IVB: 38, VAA: -4.3, 'CSW%': 27, IP: 110, SO: 95, BB: 48, HR: 16 },
+      ratings: { stuff: 58, command: 45, stamina: 48, effectiveness: 48, consistency: 42 },
+      scouting: '전 TOR/HOU. 한때 ERA 3.00 기록. 부상 후 부진하나 싱커 여전히 위력적' },
+
+    { name: 'Chris Flexen', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', role: '선발',
+      salary: 115, age: 32, throwBat: '우투우타', height: 191, weight: 102,
+      stats: { ERA: 4.85, FIP: 4.50, xFIP: 4.40, BABIP: 0.315, IVB: 32, VAA: -4.8, 'CSW%': 26, IP: 140, SO: 110, BB: 42, HR: 20 },
+      ratings: { stuff: 52, command: 58, stamina: 58, effectiveness: 52, consistency: 55 },
+      scouting: '전 KBO(두산) 경험자. MLB 복귀 후 부진. KBO 재적응 빠를 수 있음' },
+
+    { name: 'Domingo German', tier: 'T1', nationality: '도미니카', type: '기존외국인', origin: 'MLB', role: '선발',
+      salary: 105, age: 33, throwBat: '우투우타', height: 188, weight: 93,
+      stats: { ERA: 5.30, FIP: 4.80, xFIP: 4.60, BABIP: 0.320, IVB: 36, VAA: -4.4, 'CSW%': 28, IP: 120, SO: 115, BB: 45, HR: 22 },
+      ratings: { stuff: 58, command: 48, stamina: 50, effectiveness: 48, consistency: 42 },
+      scouting: '전 NYY. 노히트 경험. 체인지업 위력적이나 일관성 부족' },
+
+    { name: 'Tyler Anderson', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '선발',
+      salary: 75, age: 36, throwBat: '좌투좌타', height: 188, weight: 98,
+      stats: { ERA: 4.30, FIP: 4.10, xFIP: 4.00, BABIP: 0.300, IVB: 26, VAA: -5.6, 'CSW%': 25, IP: 150, SO: 115, BB: 38, HR: 20 },
+      ratings: { stuff: 42, command: 62, stamina: 62, effectiveness: 55, consistency: 58 },
+      scouting: '전 LAD/LAA. 좌완 이닝이터. 구속 낮지만 이닝 소화력 발군' },
+
+    { name: '오카모토 다이키', tier: 'T2', nationality: '일본', type: '아시아쿼터', origin: 'NPB', role: '중계',
+      salary: 18, age: 26, throwBat: '우투우타', height: 183, weight: 85,
+      stats: { ERA: 2.90, FIP: 3.00, xFIP: 3.15, BABIP: 0.285, IVB: 42, VAA: -3.7, 'CSW%': 32, IP: 58, SO: 65, BB: 18, HR: 5 },
+      ratings: { stuff: 60, command: 55, stamina: 35, effectiveness: 58, consistency: 52 },
+      scouting: 'NPB 2군 최우수 중계. 155km 직구와 슬라이더. 1군 기회 부족' },
+
+    { name: 'Hayden Wesneski', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '선발',
+      salary: 70, age: 27, throwBat: '우투우타', height: 191, weight: 95,
+      stats: { ERA: 4.60, FIP: 4.20, xFIP: 4.10, BABIP: 0.315, IVB: 36, VAA: -4.4, 'CSW%': 29, IP: 130, SO: 125, BB: 40, HR: 18 },
+      ratings: { stuff: 58, command: 52, stamina: 55, effectiveness: 52, consistency: 48 },
+      scouting: '전 CHC. 스플리터 우수. MLB에서 롱릴리프 → KBO 선발 전환 가능' },
+
+    { name: '나카지마 류', tier: 'T2', nationality: '일본', type: '아시아쿼터', origin: 'NPB', role: '선발',
+      salary: 20, age: 28, throwBat: '좌투좌타', height: 178, weight: 75,
+      stats: { ERA: 3.40, FIP: 3.30, xFIP: 3.40, BABIP: 0.295, IVB: 30, VAA: -5.0, 'CSW%': 28, IP: 145, SO: 120, BB: 35, HR: 14 },
+      ratings: { stuff: 50, command: 60, stamina: 58, effectiveness: 55, consistency: 58 },
+      scouting: 'NPB 퍼시픽리그 2군 좌완. 제구형. 체인지업이 주무기' },
+
+    { name: 'Carlos Hernandez', tier: 'T3', nationality: '베네수엘라', type: '기존외국인', origin: '중남미', role: '선발',
+      salary: 35, age: 27, throwBat: '우투우타', height: 196, weight: 105,
+      stats: { ERA: 3.80, FIP: 3.60, xFIP: 3.70, BABIP: 0.305, IVB: 38, VAA: -4.2, 'CSW%': 28, IP: 115, SO: 105, BB: 40, HR: 12 },
+      ratings: { stuff: 58, command: 48, stamina: 50, effectiveness: 50, consistency: 45 },
+      scouting: '전 KC. 155km 싱커 보유. 그라운드볼 투수. 제구 불안이 약점' },
+
+    { name: '천진웨이', tier: 'T3', nationality: '대만', type: '아시아쿼터', origin: 'CPBL', role: '마무리',
+      salary: 22, age: 27, throwBat: '우투우타', height: 185, weight: 88,
+      stats: { ERA: 2.60, FIP: 2.80, xFIP: 3.00, BABIP: 0.275, IVB: 42, VAA: -3.5, 'CSW%': 34, IP: 48, SO: 58, BB: 15, HR: 3 },
+      ratings: { stuff: 60, command: 58, stamina: 28, effectiveness: 58, consistency: 52 },
+      scouting: 'CPBL 올스타 마무리. 152km 직구+스플리터. 9회 적합' },
+
+    { name: 'Reiver Sanmartin', tier: 'T3', nationality: '베네수엘라', type: '기존외국인', origin: '중남미', role: '선발',
+      salary: 28, age: 28, throwBat: '좌투좌타', height: 183, weight: 82,
+      stats: { ERA: 3.60, FIP: 3.50, xFIP: 3.60, BABIP: 0.300, IVB: 30, VAA: -5.0, 'CSW%': 27, IP: 120, SO: 100, BB: 35, HR: 14 },
+      ratings: { stuff: 48, command: 55, stamina: 52, effectiveness: 50, consistency: 50 },
+      scouting: '전 CIN. 좌완 제구형. 베네수엘라 윈터리그에서 부활. 가성비 좋음' },
+
+    { name: 'Abel Taveras', tier: 'T4', nationality: '도미니카', type: '기존외국인', origin: 'AA', role: '중계',
+      salary: 15, age: 24, throwBat: '우투우타', height: 188, weight: 92,
+      stats: { ERA: 3.50, FIP: 3.30, xFIP: 3.45, BABIP: 0.295, IVB: 44, VAA: -3.4, 'CSW%': 31, IP: 52, SO: 60, BB: 20, HR: 4 },
+      ratings: { stuff: 62, command: 42, stamina: 30, effectiveness: 48, consistency: 40 },
+      scouting: 'AA 불펜 유망주. 157km 직구. 삼진 능력 뛰어나나 제구 불안' },
+
+    { name: 'Yoimer Camacho', tier: 'T4', nationality: '베네수엘라', type: '기존외국인', origin: 'AA', role: '선발',
+      salary: 18, age: 23, throwBat: '좌투좌타', height: 183, weight: 80,
+      stats: { ERA: 4.10, FIP: 3.80, xFIP: 3.90, BABIP: 0.310, IVB: 32, VAA: -4.6, 'CSW%': 27, IP: 100, SO: 92, BB: 38, HR: 10 },
+      ratings: { stuff: 52, command: 45, stamina: 48, effectiveness: 45, consistency: 42 },
+      scouting: 'AA 좌완 유망주. 성장 가능성 높으나 아직 미완성. 저비용 투자형' },
+
+    { name: 'Luis Peralta', tier: 'T4', nationality: '도미니카', type: '기존외국인', origin: '쿠바', role: '마무리',
+      salary: 20, age: 25, throwBat: '우투우타', height: 193, weight: 100,
+      stats: { ERA: 3.20, FIP: 3.00, xFIP: 3.20, BABIP: 0.280, IVB: 46, VAA: -3.2, 'CSW%': 33, IP: 45, SO: 55, BB: 20, HR: 3 },
+      ratings: { stuff: 65, command: 38, stamina: 28, effectiveness: 48, consistency: 35 },
+      scouting: '도미니카 윈터리그 마무리. 158km 직구. 구위는 최상급이나 제구 극도로 불안' },
+
+    { name: 'James Karinchak', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '마무리',
+      salary: 80, age: 30, throwBat: '우투우타', height: 191, weight: 98,
+      stats: { ERA: 3.30, FIP: 3.10, xFIP: 3.20, BABIP: 0.280, IVB: 48, VAA: -3.0, 'CSW%': 35, IP: 55, SO: 80, BB: 25, HR: 5 },
+      ratings: { stuff: 68, command: 45, stamina: 32, effectiveness: 58, consistency: 48 },
+      scouting: '전 CLE. 커브볼 스핀레이트 MLB 상위 1%. 삼진 머신이나 볼넷 많음' },
+
+    { name: 'Liam Hendriks', tier: 'T1', nationality: '호주', type: '아시아쿼터', origin: 'MLB', role: '마무리',
+      salary: 100, age: 37, throwBat: '우투우타', height: 183, weight: 95,
+      stats: { ERA: 3.80, FIP: 3.50, xFIP: 3.40, BABIP: 0.290, IVB: 40, VAA: -3.6, 'CSW%': 32, IP: 50, SO: 60, BB: 15, HR: 6 },
+      ratings: { stuff: 60, command: 60, stamina: 30, effectiveness: 58, consistency: 55 },
+      scouting: '전 CHW/BOS. 호주 국대 에이스. 올스타 마무리. 암 투병 후 복귀. 경험+구위 겸비' },
+
+    { name: 'Craig Kimbrel', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', role: '마무리',
+      salary: 120, age: 38, throwBat: '우투우타', height: 180, weight: 95,
+      stats: { ERA: 4.20, FIP: 3.80, xFIP: 3.70, BABIP: 0.300, IVB: 44, VAA: -3.3, 'CSW%': 33, IP: 48, SO: 62, BB: 22, HR: 8 },
+      ratings: { stuff: 62, command: 50, stamina: 28, effectiveness: 52, consistency: 48 },
+      scouting: '전 ATL/CHC/BOS. 통산 400세이브 레전드. 노장 리스크 있으나 커브볼 여전' },
+
+    { name: 'Sean Doolittle', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '중계',
+      salary: 55, age: 38, throwBat: '좌투좌타', height: 188, weight: 95,
+      stats: { ERA: 3.50, FIP: 3.40, xFIP: 3.50, BABIP: 0.290, IVB: 32, VAA: -4.8, 'CSW%': 28, IP: 45, SO: 48, BB: 12, HR: 5 },
+      ratings: { stuff: 48, command: 62, stamina: 30, effectiveness: 52, consistency: 55 },
+      scouting: '전 OAK/WSH. 좌완 경험 풍부. 볼넷 적고 안정적. 좌타자 전문' },
+
+    { name: 'Brad Keller', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '선발',
+      salary: 65, age: 30, throwBat: '우투우타', height: 196, weight: 105,
+      stats: { ERA: 4.50, FIP: 4.20, xFIP: 4.10, BABIP: 0.305, IVB: 30, VAA: -5.0, 'CSW%': 25, IP: 150, SO: 110, BB: 45, HR: 18 },
+      ratings: { stuff: 50, command: 55, stamina: 62, effectiveness: 52, consistency: 52 },
+      scouting: '전 KC. 이닝이터. 싱커 위주 그라운드볼. 구속 낮지만 체력 우수' },
+
+    // === 한국계 선수 ===
+    { name: 'Dane Dunning', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', role: '선발',
+      salary: 100, age: 30, throwBat: '우투우타', height: 193, weight: 100,
+      stats: { ERA: 4.50, FIP: 4.20, xFIP: 4.10, BABIP: 0.305, IVB: 34, VAA: -4.6, 'CSW%': 27, IP: 155, SO: 125, BB: 42, HR: 20 },
+      ratings: { stuff: 52, command: 58, stamina: 60, effectiveness: 55, consistency: 55 },
+      scouting: '전 TEX. 한국계 미국인. 이닝이터 타입. 싱커/슬라이더 조합. 안정적' },
+
+    { name: 'Shea Whitcomb', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', role: '중계',
+      salary: 55, age: 26, throwBat: '우투우타', height: 185, weight: 88,
+      stats: { ERA: 3.60, FIP: 3.40, xFIP: 3.50, BABIP: 0.295, IVB: 38, VAA: -4.0, 'CSW%': 30, IP: 60, SO: 65, BB: 20, HR: 5 },
+      ratings: { stuff: 55, command: 52, stamina: 35, effectiveness: 52, consistency: 50 },
+      scouting: '한국계 미국인. AAA 릴리버. 직구+슬라이더 조합 좋음. 성장 가능성' },
 ];
 
 // ── 외국인 타자 후보 풀 (티어별 실제 기반 데이터) ──
@@ -543,6 +671,128 @@ const FOREIGN_BATTER_POOL = [
       stats: { AVG: 0.255, OBP: 0.320, SLG: 0.440, OPS: 0.760, 'wRC+': 108, 'Barrel%': 10.0, HR: 16, BB: 30, SB: 3, PA: 450 },
       ratings: { contact: 45, power: 55, eye: 42, speed: 32, defense: 38 },
       scouting: '전 OAK/LAD. 장신 좌타 외야수. 파워 잠재력 좋고 가성비 우수' },
+
+    // === 추가 타자 (20명) ===
+    { name: 'Adam Duvall', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', position: 'LF',
+      salary: 110, age: 37, throwBat: '우투우타', height: 185, weight: 95,
+      stats: { AVG: 0.225, OBP: 0.285, SLG: 0.440, OPS: 0.725, 'wRC+': 102, 'Barrel%': 14.0, HR: 22, BB: 30, SB: 1, PA: 490 },
+      ratings: { contact: 38, power: 65, eye: 38, speed: 22, defense: 48 },
+      scouting: '전 ATL/BOS/MIA. 순수 파워형. 삼진 많지만 홈런 생산력 우수. WS 경험' },
+
+    { name: 'Tommy Pham', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', position: 'LF',
+      salary: 100, age: 38, throwBat: '우투우타', height: 185, weight: 95,
+      stats: { AVG: 0.248, OBP: 0.330, SLG: 0.400, OPS: 0.730, 'wRC+': 105, 'Barrel%': 9.5, HR: 14, BB: 45, SB: 10, PA: 500 },
+      ratings: { contact: 48, power: 50, eye: 52, speed: 45, defense: 42 },
+      scouting: '전 STL/SD/BOS. 밸런스형. 출루+도루+파워 고루 갖춤. 노장 리스크' },
+
+    { name: 'Mark Canha', tier: 'T1', nationality: '미국', type: '기존외국인', origin: 'MLB', position: 'RF',
+      salary: 105, age: 37, throwBat: '우투우타', height: 185, weight: 95,
+      stats: { AVG: 0.240, OBP: 0.340, SLG: 0.390, OPS: 0.730, 'wRC+': 108, 'Barrel%': 8.5, HR: 12, BB: 55, SB: 2, PA: 510 },
+      ratings: { contact: 48, power: 48, eye: 62, speed: 28, defense: 42 },
+      scouting: '전 OAK/NYM/DET. 선구안 최상급. HBP 많이 맞는 출루 머신' },
+
+    { name: 'Jose Siri', tier: 'T1', nationality: '도미니카', type: '기존외국인', origin: 'MLB', position: 'CF',
+      salary: 100, age: 30, throwBat: '우투우타', height: 191, weight: 95,
+      stats: { AVG: 0.228, OBP: 0.280, SLG: 0.420, OPS: 0.700, 'wRC+': 95, 'Barrel%': 11.0, HR: 18, BB: 22, SB: 20, PA: 480 },
+      ratings: { contact: 38, power: 55, eye: 35, speed: 62, defense: 65 },
+      scouting: '전 TB/NYM. 중견수 수비+주루 최상급. 삼진 많지만 파워+스피드 겸비' },
+
+    { name: '마쓰바라 코타', tier: 'T2', nationality: '일본', type: '아시아쿼터', origin: 'NPB', position: '3B',
+      salary: 18, age: 27, throwBat: '우투우타', height: 180, weight: 85,
+      stats: { AVG: 0.280, OBP: 0.340, SLG: 0.450, OPS: 0.790, 'wRC+': 118, 'Barrel%': 10.0, HR: 15, BB: 35, SB: 5, PA: 500 },
+      ratings: { contact: 55, power: 52, eye: 48, speed: 35, defense: 50 },
+      scouting: 'NPB 2군 3루수. 중거리 파워와 안정적 수비. 밸런스형' },
+
+    { name: 'Jose Rojas', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', position: '1B',
+      salary: 50, age: 31, throwBat: '우투우타', height: 188, weight: 100,
+      stats: { AVG: 0.275, OBP: 0.340, SLG: 0.470, OPS: 0.810, 'wRC+': 122, 'Barrel%': 12.0, HR: 20, BB: 35, SB: 2, PA: 490 },
+      ratings: { contact: 55, power: 58, eye: 48, speed: 25, defense: 35 },
+      scouting: '전 LAA AAA. 중장거리 타격 능력 우수. 1루/DH 겸용' },
+
+    { name: 'Aledmys Diaz', tier: 'T2', nationality: '쿠바', type: '기존외국인', origin: 'AAA', position: 'SS',
+      salary: 60, age: 35, throwBat: '우투우타', height: 185, weight: 95,
+      stats: { AVG: 0.260, OBP: 0.320, SLG: 0.420, OPS: 0.740, 'wRC+': 108, 'Barrel%': 9.5, HR: 14, BB: 30, SB: 3, PA: 470 },
+      ratings: { contact: 52, power: 50, eye: 42, speed: 30, defense: 48 },
+      scouting: '전 STL/HOU. 유틸리티(SS/2B/3B). 안정적 타격. 경험 풍부' },
+
+    { name: '황지웨이', tier: 'T3', nationality: '대만', type: '아시아쿼터', origin: 'CPBL', position: '1B',
+      salary: 20, age: 28, throwBat: '좌투좌타', height: 185, weight: 95,
+      stats: { AVG: 0.290, OBP: 0.360, SLG: 0.480, OPS: 0.840, 'wRC+': 128, 'Barrel%': 12.5, HR: 20, BB: 40, SB: 2, PA: 500 },
+      ratings: { contact: 55, power: 58, eye: 52, speed: 22, defense: 32 },
+      scouting: 'CPBL 홈런왕. 좌타 파워형. 수비 약하지만 DH/1루 가치' },
+
+    { name: 'Oscar Gonzalez', tier: 'T3', nationality: '베네수엘라', type: '기존외국인', origin: '중남미', position: 'RF',
+      salary: 35, age: 27, throwBat: '우투우타', height: 191, weight: 107,
+      stats: { AVG: 0.270, OBP: 0.310, SLG: 0.460, OPS: 0.770, 'wRC+': 112, 'Barrel%': 11.5, HR: 18, BB: 18, SB: 2, PA: 480 },
+      ratings: { contact: 52, power: 58, eye: 35, speed: 28, defense: 42 },
+      scouting: '전 CLE. 프리 스윙어. 파워 좋으나 선구안 부족. 적극적 타격' },
+
+    { name: 'Roberto Perez', tier: 'T3', nationality: '도미니카', type: '기존외국인', origin: '중남미', position: 'C',
+      salary: 30, age: 37, throwBat: '우투우타', height: 178, weight: 95,
+      stats: { AVG: 0.220, OBP: 0.310, SLG: 0.360, OPS: 0.670, 'wRC+': 88, 'Barrel%': 7.5, HR: 8, BB: 35, SB: 0, PA: 400 },
+      ratings: { contact: 38, power: 42, eye: 50, speed: 20, defense: 62 },
+      scouting: '전 CLE/PIT. 수비형 포수. 프레이밍 능력 우수. 타격 약점이나 리드 가치' },
+
+    { name: 'Victor Reyes', tier: 'T3', nationality: '베네수엘라', type: '기존외국인', origin: '중남미', position: 'CF',
+      salary: 28, age: 30, throwBat: '양투양타', height: 191, weight: 90,
+      stats: { AVG: 0.275, OBP: 0.315, SLG: 0.385, OPS: 0.700, 'wRC+': 95, 'Barrel%': 5.5, HR: 6, BB: 18, SB: 15, PA: 460 },
+      ratings: { contact: 55, power: 35, eye: 35, speed: 55, defense: 52 },
+      scouting: '전 DET. 양타 외야수. 컨택+스피드형. 파워 부족이나 유틸리티 가치' },
+
+    { name: 'Ernie Clement', tier: 'T4', nationality: '미국', type: '기존외국인', origin: 'AA', position: '2B',
+      salary: 15, age: 28, throwBat: '우투우타', height: 183, weight: 82,
+      stats: { AVG: 0.270, OBP: 0.310, SLG: 0.370, OPS: 0.680, 'wRC+': 90, 'Barrel%': 4.5, HR: 5, BB: 18, SB: 8, PA: 420 },
+      ratings: { contact: 55, power: 32, eye: 38, speed: 48, defense: 52 },
+      scouting: '전 CLE/TOR. 컨택형 유틸리티. 다포지션 가능. 파워 부족' },
+
+    { name: 'Rafael Ortega', tier: 'T4', nationality: '베네수엘라', type: '기존외국인', origin: 'AA', position: 'CF',
+      salary: 18, age: 34, throwBat: '좌투좌타', height: 175, weight: 72,
+      stats: { AVG: 0.260, OBP: 0.330, SLG: 0.380, OPS: 0.710, 'wRC+': 98, 'Barrel%': 5.0, HR: 6, BB: 30, SB: 12, PA: 440 },
+      ratings: { contact: 52, power: 32, eye: 48, speed: 52, defense: 50 },
+      scouting: '전 CHC. 좌타 중견수. 출루+도루형. 체구 작지만 꾸준' },
+
+    { name: 'Isan Diaz', tier: 'T4', nationality: '쿠바', type: '기존외국인', origin: '쿠바', position: '2B',
+      salary: 20, age: 29, throwBat: '좌투좌타', height: 178, weight: 85,
+      stats: { AVG: 0.235, OBP: 0.315, SLG: 0.420, OPS: 0.735, 'wRC+': 105, 'Barrel%': 10.0, HR: 14, BB: 35, SB: 3, PA: 440 },
+      ratings: { contact: 42, power: 52, eye: 45, speed: 32, defense: 42 },
+      scouting: '전 MIA. 좌타 2루수. 파워 잠재력 있으나 삼진 많음. 쿠바 출신' },
+
+    { name: 'Ryan McKenna', tier: 'T5', nationality: '미국', type: '기존외국인', origin: '독립리그', position: 'CF',
+      salary: 12, age: 28, throwBat: '우투우타', height: 180, weight: 82,
+      stats: { AVG: 0.245, OBP: 0.310, SLG: 0.360, OPS: 0.670, 'wRC+': 85, 'Barrel%': 5.0, HR: 5, BB: 22, SB: 15, PA: 420 },
+      ratings: { contact: 48, power: 32, eye: 42, speed: 58, defense: 58 },
+      scouting: '전 BAL. 수비+주루형 외야수. 타격 약하지만 4번째 외야수로 가치' },
+
+    { name: 'Jake McCarthy', tier: 'T5', nationality: '미국', type: '기존외국인', origin: '독립리그', position: 'LF',
+      salary: 15, age: 28, throwBat: '좌투좌타', height: 188, weight: 88,
+      stats: { AVG: 0.255, OBP: 0.320, SLG: 0.380, OPS: 0.700, 'wRC+': 92, 'Barrel%': 6.0, HR: 7, BB: 25, SB: 20, PA: 450 },
+      ratings: { contact: 48, power: 38, eye: 42, speed: 62, defense: 50 },
+      scouting: '전 ARI. 스피드형 외야수. 도루 능력 좋고 수비 범위 넓음' },
+
+    { name: 'Tim Locastro', tier: 'T5', nationality: '미국', type: '기존외국인', origin: '독립리그', position: 'CF',
+      salary: 10, age: 33, throwBat: '우투우타', height: 185, weight: 88,
+      stats: { AVG: 0.240, OBP: 0.310, SLG: 0.330, OPS: 0.640, 'wRC+': 78, 'Barrel%': 3.5, HR: 2, BB: 22, SB: 25, PA: 400 },
+      ratings: { contact: 45, power: 25, eye: 42, speed: 70, defense: 55 },
+      scouting: '전 ARI/NYY. 도루 전문가 (MLB 통산 성공률 92%). 대주자 가치' },
+
+    { name: '하야시 유키', tier: 'T5', nationality: '호주', type: '아시아쿼터', origin: 'ABL', position: 'RF',
+      salary: 12, age: 26, throwBat: '우투우타', height: 183, weight: 85,
+      stats: { AVG: 0.275, OBP: 0.340, SLG: 0.420, OPS: 0.760, 'wRC+': 108, 'Barrel%': 8.0, HR: 10, BB: 30, SB: 8, PA: 460 },
+      ratings: { contact: 52, power: 45, eye: 48, speed: 42, defense: 48 },
+      scouting: 'ABL 올스타 외야수. 밸런스형. 큰 약점 없고 가성비 우수' },
+
+    { name: 'Marcos Diplán', tier: 'T4', nationality: '도미니카', type: '기존외국인', origin: 'AA', position: 'DH',
+      salary: 18, age: 26, throwBat: '우투우타', height: 190, weight: 105,
+      stats: { AVG: 0.250, OBP: 0.310, SLG: 0.470, OPS: 0.780, 'wRC+': 115, 'Barrel%': 13.5, HR: 22, BB: 25, SB: 1, PA: 460 },
+      ratings: { contact: 42, power: 62, eye: 38, speed: 20, defense: 22 },
+      scouting: 'AA 홈런 2위. 순수 파워형 DH. Barrel% 높으나 삼진 극히 많음' },
+
+    // === 한국계 선수 ===
+    { name: 'Jermaine Jones', tier: 'T2', nationality: '미국', type: '기존외국인', origin: 'AAA', position: 'SS',
+      salary: 60, age: 25, throwBat: '우투우타', height: 183, weight: 82,
+      stats: { AVG: 0.270, OBP: 0.340, SLG: 0.420, OPS: 0.760, 'wRC+': 112, 'Barrel%': 8.0, HR: 12, BB: 35, SB: 15, PA: 500 },
+      ratings: { contact: 55, power: 48, eye: 48, speed: 55, defense: 55 },
+      scouting: '한국계 미국인. AAA 유격수. 밸런스형 5툴. 수비+주루 좋고 발전 가능성' },
 ];
 
 // ── 미션 상태 관리 ──
@@ -687,6 +937,43 @@ function getFlagImg(nationality, size = 24) {
 
 // ── 외국인 스카우트 렌더링 ──
 let currentFsMode = 'pitcher';
+let fsSortKey = null;
+let fsSortDir = 'desc';
+
+function sortFsPool(pool, type) {
+    if (!fsSortKey) return pool;
+    const sorted = [...pool];
+    sorted.sort((a, b) => {
+        let va, vb;
+        if (fsSortKey === 'name') { va = a.name; vb = b.name; }
+        else if (fsSortKey === 'origin') { va = a.origin; vb = b.origin; }
+        else if (fsSortKey === 'role' || fsSortKey === 'position') { va = a[fsSortKey] || ''; vb = b[fsSortKey] || ''; }
+        else if (fsSortKey === 'salary' || fsSortKey === 'age') { va = a[fsSortKey] || 0; vb = b[fsSortKey] || 0; }
+        else if (fsSortKey === 'throwBat') { va = a.throwBat || ''; vb = b.throwBat || ''; }
+        else { va = (a.stats && a.stats[fsSortKey]) || 0; vb = (b.stats && b.stats[fsSortKey]) || 0; }
+        if (typeof va === 'string') return fsSortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+        return fsSortDir === 'asc' ? va - vb : vb - va;
+    });
+    return sorted;
+}
+
+function fsSortHeader(label, key) {
+    const tip = STAT_TOOLTIPS[label];
+    const arrow = fsSortKey === key ? (fsSortDir === 'asc' ? ' ▲' : ' ▼') : '';
+    const cls = tip ? 'fs-th-tip fs-th-sort' : 'fs-th-sort';
+    const dataTip = tip ? ` data-tip="${tip}"` : '';
+    return `<th class="${cls}"${dataTip} style="cursor:pointer;user-select:none;white-space:nowrap;" onclick="setFsSort('${key}')">${label}${arrow}</th>`;
+}
+
+function setFsSort(key) {
+    if (fsSortKey === key) {
+        fsSortDir = fsSortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+        fsSortKey = key;
+        fsSortDir = (key === 'name' || key === 'origin' || key === 'role' || key === 'position') ? 'asc' : 'desc';
+    }
+    renderForeignScout();
+}
 
 function renderForeignScout() {
     document.getElementById('fsEmpty').style.display = 'none';
@@ -739,19 +1026,20 @@ function thWithTip(label) {
 }
 
 function renderFsPitchers() {
-    const pool = filterForeignPitchers();
+    let pool = filterForeignPitchers();
+    pool = sortFsPool(pool, 'pitcher');
     document.getElementById('fsResultCount').textContent = `투수 후보 ${pool.length}명`;
     const cnt = document.getElementById('fsCountP');
     if (cnt) cnt.textContent = pool.length + '명';
 
     const thead = document.querySelector('#fsResultTable thead tr');
     thead.innerHTML =
-        `<th style="width:30px;"></th><th>이름</th>` +
-        thWithTip('출신') + thWithTip('투구') + thWithTip('역할') +
-        thWithTip('연봉(만$)') + thWithTip('나이') +
-        thWithTip('ERA') + thWithTip('FIP') +
-        thWithTip('IVB') + thWithTip('CSW%') +
-        thWithTip('IP') + thWithTip('SO') +
+        `<th style="width:30px;"></th>` + fsSortHeader('이름','name') +
+        fsSortHeader('출신','origin') + fsSortHeader('투구','throwBat') + fsSortHeader('역할','role') +
+        fsSortHeader('연봉(만$)','salary') + fsSortHeader('나이','age') +
+        fsSortHeader('ERA','ERA') + fsSortHeader('FIP','FIP') +
+        fsSortHeader('IVB','IVB') + fsSortHeader('CSW%','CSW%') +
+        fsSortHeader('IP','IP') + fsSortHeader('SO','SO') +
         `<th></th>`;
 
     const tbody = document.querySelector('#fsResultTable tbody');
@@ -777,19 +1065,20 @@ function renderFsPitchers() {
 }
 
 function renderFsBatters() {
-    const pool = filterForeignBatters();
+    let pool = filterForeignBatters();
+    pool = sortFsPool(pool, 'batter');
     document.getElementById('fsResultCount').textContent = `타자 후보 ${pool.length}명`;
     const cnt = document.getElementById('fsCountB');
     if (cnt) cnt.textContent = pool.length + '명';
 
     const thead = document.querySelector('#fsResultTable thead tr');
     thead.innerHTML =
-        `<th style="width:30px;"></th><th>이름</th>` +
-        thWithTip('출신') + thWithTip('투타') + thWithTip('포지션') +
-        thWithTip('연봉(만$)') + thWithTip('나이') +
-        thWithTip('AVG') + thWithTip('OPS') +
-        thWithTip('wRC+') + thWithTip('Barrel%') +
-        thWithTip('HR') + thWithTip('SB') +
+        `<th style="width:30px;"></th>` + fsSortHeader('이름','name') +
+        fsSortHeader('출신','origin') + fsSortHeader('투타','throwBat') + fsSortHeader('포지션','position') +
+        fsSortHeader('연봉(만$)','salary') + fsSortHeader('나이','age') +
+        fsSortHeader('AVG','AVG') + fsSortHeader('OPS','OPS') +
+        fsSortHeader('wRC+','wRC+') + fsSortHeader('Barrel%','Barrel%') +
+        fsSortHeader('HR','HR') + fsSortHeader('SB','SB') +
         `<th></th>`;
 
     const tbody = document.querySelector('#fsResultTable tbody');
@@ -1780,3 +2069,4 @@ window.showDetailedReport = showDetailedReport;
 window.doRelease = doRelease;
 window.releasePlayer = releasePlayer;
 window.executeRecruit = executeRecruit;
+window.setFsSort = setFsSort;
