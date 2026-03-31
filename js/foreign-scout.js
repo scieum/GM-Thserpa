@@ -1,5 +1,5 @@
 // ===== 외국인 스카우트 & 미션 카드 시스템 (티어 시스템 적용) =====
-// 2026 KBO 외국인 규정: 기존 외국인 3명 + 아시아쿼터 1명 = 최대 4명
+// 2026 KBO 외국인 규정: 외국인 3명 + 아시아쿼터 1명 = 최대 4명
 
 // ── 아시아쿼터 규정 상수 ──
 const ASIA_QUOTA = {
@@ -624,7 +624,7 @@ function showFsPlayerDetail(type, name) {
     const tierInfo = FOREIGN_TIERS[p.tier];
     const salaryNote = isAsia
         ? `아시아쿼터 적용 (최대 ${ASIA_QUOTA.newRecruitCap}만$, 재계약 시 연 ${ASIA_QUOTA.renewalIncrease}만$ 인상)`
-        : '기존 외국인 계약';
+        : '외국인 계약';
 
     let statsHtml;
     if (type === 'pitcher') {
@@ -725,13 +725,13 @@ function recruitForeignPlayer(type, name) {
     } else {
         const currentClassic = getTeamPlayers(state, userTeamCode).filter(pl => pl.isForeign && !pl.isAsiaQuota).length;
         if (currentClassic >= ASIA_QUOTA.maxForeignClassic) {
-            showToast('기존 외국인 선수는 최대 3명까지만 보유 가능합니다.', 'error');
+            showToast('외국인 선수는 최대 3명까지만 보유 가능합니다.', 'error');
             return;
         }
     }
 
     if (foreignInfo.count >= ASIA_QUOTA.maxPlayers) {
-        showToast('외국인 선수 총 4명 초과! 기존 외국인을 방출해야 영입 가능합니다.', 'error');
+        showToast('외국인 선수 총 4명 초과! 외국인을 방출해야 영입 가능합니다.', 'error');
         return;
     }
 

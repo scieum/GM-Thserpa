@@ -2153,6 +2153,7 @@ body {
     transition: all 0.1s;
     color: var(--text);
     background: var(--bg-input);
+    white-space: nowrap;
 }
 .scout-chip:has(input:checked) {
     background: var(--accent);
