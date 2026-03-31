@@ -1000,10 +1000,11 @@ function generateDetailedReport(p, type) {
 }
 
 function showDetailedReport(type, name) {
-    if (foreignScoutState.detailedReport) {
-        showToast(`이미 상세 스카우팅을 사용했습니다. (${foreignScoutState.detailedReport})`, 'warning');
-        return;
-    }
+    // [임시 무제한] 1회 제한 해제
+    // if (foreignScoutState.detailedReport) {
+    //     showToast(`이미 상세 스카우팅을 사용했습니다. (${foreignScoutState.detailedReport})`, 'warning');
+    //     return;
+    // }
 
     const pool = type === 'pitcher' ? FOREIGN_PITCHER_POOL : FOREIGN_BATTER_POOL;
     const p = pool.find(x => x.name === name);
@@ -1085,13 +1086,9 @@ function showDetailedReport(type, name) {
 function updateScoutingRemaining() {
     const el = document.getElementById('fsScoutingRemain');
     if (!el) return;
-    if (foreignScoutState.detailedReport) {
-        el.textContent = `상세 스카우팅: 사용 완료 (${foreignScoutState.detailedReport})`;
-        el.style.color = 'var(--text-muted)';
-    } else {
-        el.textContent = '상세 스카우팅: 1회 남음';
-        el.style.color = '#fbbf24';
-    }
+    // [임시 무제한]
+    el.textContent = '상세 스카우팅: 무제한';
+    el.style.color = '#fbbf24';
 }
 
 // ── 선수 상세 (클릭) ──
@@ -1154,18 +1151,8 @@ function showFsPlayerDetail(type, name) {
 
     ratings.innerHTML = statsHtml;
 
-    const alreadyUsed = foreignScoutState.detailedReport;
-    const isThisPlayer = alreadyUsed === p.name;
-    let scoutBtnHtml = '';
-    if (isThisPlayer) {
-        scoutBtnHtml = `<button class="btn btn--sm" style="width:100%;margin-top:12px;opacity:0.5;" disabled>상세 스카우팅 리포트 보기</button>`;
-        // 이미 이 선수의 리포트를 본 경우 → 다시 볼 수 있게
-        scoutBtnHtml = `<button class="btn btn--sm btn--primary" style="width:100%;margin-top:12px;" onclick="event.stopPropagation(); showDetailedReport('${type}','${p.name}')">상세 스카우팅 리포트 다시 보기</button>`;
-    } else if (alreadyUsed) {
-        scoutBtnHtml = `<button class="btn btn--sm" style="width:100%;margin-top:12px;opacity:0.4;" disabled>상세 스카우팅 사용 완료 (${alreadyUsed})</button>`;
-    } else {
-        scoutBtnHtml = `<button class="btn btn--sm btn--primary" style="width:100%;margin-top:12px;" onclick="event.stopPropagation(); showDetailedReport('${type}','${p.name}')">상세 스카우팅 요청 (1회 한정)</button>`;
-    }
+    // [임시 무제한] 모든 선수에 대해 항상 버튼 활성화
+    const scoutBtnHtml = `<button class="btn btn--sm btn--primary" style="width:100%;margin-top:12px;" onclick="event.stopPropagation(); showDetailedReport('${type}','${p.name}')">상세 스카우팅 리포트 보기</button>`;
 
     statsEl.innerHTML = `
         <div style="background:rgba(251,191,36,0.08);border-radius:8px;padding:12px;margin-top:8px;">
