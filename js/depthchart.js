@@ -378,18 +378,30 @@ function onDefenseChange(sel) {
     const pos = sel.dataset.pos;
     const newId = sel.value || null;
     const dc = state.teams[dcTeam].depthChart;
+    const oldId = dc.defense[pos];
 
     // swap: 새 선수가 이미 다른 포지션에 있으면 교환
     if (newId) {
-        const oldId = dc.defense[pos];
         for (const p of Object.keys(dc.defense)) {
             if (p !== pos && dc.defense[p] === newId) {
-                dc.defense[p] = oldId; // 원래 이 자리에 있던 선수를 거기로
+                dc.defense[p] = oldId;
                 break;
             }
         }
     }
     dc.defense[pos] = newId;
+
+    // 타선 라인업 동기화: 빠진 선수는 교체된 선수로 대체
+    if (oldId && newId && oldId !== newId) {
+        for (const type of ['vsRHP', 'vsLHP']) {
+            const lineup = dc.lineup[type];
+            const idx = lineup.indexOf(oldId);
+            if (idx !== -1) {
+                lineup[idx] = newId;
+            }
+        }
+    }
+
     renderBatterPanel();
 }
 
@@ -410,17 +422,29 @@ function switchLineupType(type) {
 function onLineupChange(sel) {
     const idx = parseInt(sel.dataset.idx);
     const newId = sel.value || null;
-    const lineup = state.teams[dcTeam].depthChart.lineup[dcLineupType];
+    const dc = state.teams[dcTeam].depthChart;
+    const lineup = dc.lineup[dcLineupType];
+    const oldId = lineup[idx];
 
     // swap: 새 선수가 이미 다른 타순에 있으면 교환
     if (newId) {
-        const oldId = lineup[idx];
         const existingIdx = lineup.indexOf(newId);
         if (existingIdx !== -1 && existingIdx !== idx) {
-            lineup[existingIdx] = oldId; // 원래 여기 있던 선수를 저쪽으로
+            lineup[existingIdx] = oldId;
         }
     }
     lineup[idx] = newId;
+
+    // 수비 라인업 동기화: 빠진 선수의 포지션을 새 선수로 대체
+    if (oldId && newId && oldId !== newId) {
+        for (const pos of Object.keys(dc.defense)) {
+            if (dc.defense[pos] === oldId) {
+                dc.defense[pos] = newId;
+                break;
+            }
+        }
+    }
+
     renderBatterPanel();
 }
 
