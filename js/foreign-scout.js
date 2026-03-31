@@ -1362,14 +1362,8 @@ function executeRecruit(type, name, asAsiaQuota) {
         return;
     }
 
-    // 외국인 초과 → 방출 모달
-    const needForeignRelease = (() => {
-        if (asAsiaQuota) {
-            return getTeamPlayers(state, userTeamCode).filter(pl => pl.isAsiaQuota).length >= ASIA_QUOTA.maxAsiaQuota;
-        } else {
-            return getTeamPlayers(state, userTeamCode).filter(pl => pl.isForeign && !pl.isAsiaQuota).length >= ASIA_QUOTA.maxForeignClassic;
-        }
-    })() || foreignInfo.count >= ASIA_QUOTA.maxPlayers;
+    // 외국인 초과 → 방출 모달 (총 외국인 수 기준)
+    const needForeignRelease = foreignInfo.count >= ASIA_QUOTA.maxPlayers;
 
     if (needForeignRelease) {
         pendingRecruit = { type, name };
