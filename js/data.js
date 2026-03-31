@@ -322,6 +322,12 @@ const REAL_SEASON_STATS = {
     'KT': {
         '김현수': { pos:'LF', AVG:.298, OBP:.384, SLG:.422, OPS:.806, 'wRC+':133.1, WAR:3.36, oWAR:3.61, dWAR:-0.24, H:144, '2B':24, '3B':0, HR:12, RBI:90, R:66, SB:4, CS:0, BB:64, SO:73, G:140, PA:552, AB:483, IsoP:.124, salary:5.0, defRAA:-1.35, rangeRAA:-0.14, errRAA:0.46 },
     },
+    'KIA': {
+        // 김도영: 2025 부상시즌(122PA) → 2024 몬스터 시즌 기반 보정
+        // 2024: .317/.429/.570, OPS .999, wRC+ 172.5, WAR 8.59, SB 40 (40-40 도전)
+        // 공수주 겸비 초특급 유격수/3루수, 리그 MVP급
+        '김도영': { pos:'3B', AVG:.317, OBP:.429, SLG:.570, OPS:.999, 'wRC+':172.5, WAR:8.59, oWAR:8.78, dWAR:-0.18, H:143, '2B':25, '3B':4, HR:38, RBI:110, R:109, SB:40, CS:4, BB:66, SO:109, G:134, PA:625, AB:544, IsoP:.232, salary:3.0, defRAA:-4.03, rangeRAA:-6.93, errRAA:-0.06, dpRAA:0.19 },
+    },
     '한화': {
         // 투수 연봉 (Statiz 2026)
         '류현진':    { pos:'P', role:'선발', salary:21.0 },
@@ -379,7 +385,7 @@ const FUTURES_ROSTERS = {
         OF: ['김정민','이승민','한유섬','류효승','박정빈','이원준','최준우','하재훈','이정범','장재율','김창평','박세직','이승빈','오시후'],
     },
     '키움': {
-        P: ['박주성','김성민','이강준','정현우','박준현','김윤하','조영건','박지성','안우진','이준우','정다훈45','원종현','이승호','김선기','양지율','김서준','손현기','정세영','이태양66','김인범','김연주','임진묵','이명종','백진수','윤현','김동규','손힘찬','오혜성','정동준','이태준','한민우','최현우','김태언','박준건','김유빈','이승재118','김준형'],
+        P: ['박주성','김성민','이강준','정현우','박준현','김윤하','조영건','박지성','이준우','정다훈45','원종현','이승호','김선기','양지율','김서준','손현기','정세영','이태양66','김인범','김연주','임진묵','이명종','백진수','윤현','김동규','손힘찬','오혜성','정동준','이태준','한민우','최현우','김태언','박준건','김유빈','이승재118','김준형'],
         C: ['김동헌','박성빈','김지성','박준형','김리안','김주영'],
         IF: ['이재상','김웅빈','김병휘','김지석','염승원','양현종','송지후','여동욱','전태현','권혁빈','서유신','심휘윤','유정택'],
         OF: ['이용규','임병욱','주성원','원성준','박주홍','이주형58','박채울'],
@@ -1247,7 +1253,7 @@ const MILITARY_ROSTERS = {
         ],
         IF: [
             { name: '정대선', no: null, tb: '우투우타', discharge: '2026-06-01', type: '상무' },
-            { name: '안우진', no: null, tb: '우투우타', discharge: '2026-06-22', type: '현역' },
+            // 안우진: 군보류 아님 → 부상(INJURED_ROSTERS)으로 이동
             { name: '강성우', no: null, tb: '우투우타', discharge: '2026-11-11', type: '상무' },
             { name: '최민규', no: null, tb: '우투우타', discharge: '2027-01-27', type: '현역' },
         ],
@@ -1326,6 +1332,12 @@ const INJURED_ROSTERS = {
     'SSG': {
         P: [
             { name: '김광현', no: 29, tb: '좌투좌타', injury: '어깨 수술', recovery: '2027 시즌', birth: '1988-07-22', h: 188, w: 88 },
+        ],
+        C: [], IF: [], OF: [],
+    },
+    '키움': {
+        P: [
+            { name: '안우진', no: 41, tb: '우투우타', injury: '어깨 부상', recovery: '2026-04-30', birth: '1999-09-26', h: 185, w: 88 },
         ],
         C: [], IF: [], OF: [],
     },
@@ -2523,6 +2535,28 @@ function generateSampleData() {
             },
             tradeHistory: [],
         };
+    }
+
+    // ── 특수 선수 OVR/레이팅 오버라이드 (군보류/부상으로 데이터 부족한 스타급) ──
+    const PLAYER_OVERRIDES = {
+        // 안우진 (키움, 군보류): 2022-2023 초에이스 시즌 기반
+        // 2022: 196IP, ERA 2.11, FIP 2.09, WAR 7.77 / 2023: 150.2IP, ERA 2.39, FIP 2.91, WAR 5.94
+        // 통산 ERA 3.17, K/9 9.65, CSW% 29.5, 포심 153km+
+        '안우진': {
+            ratings: { stuff: 72, command: 62, stamina: 68, effectiveness: 70, consistency: 65 },
+            role: '선발',
+        },
+    };
+    for (const [pName, override] of Object.entries(PLAYER_OVERRIDES)) {
+        const p = Object.values(players).find(pl => pl.name === pName);
+        if (p) {
+            if (override.ratings) {
+                p.ratings = override.ratings;
+                if (p.position === 'P') p.ovr = calcPitcherOVR(p.ratings);
+                else p.ovr = calcBatterOVR(p.ratings);
+            }
+            if (override.role) p.role = override.role;
+        }
     }
 
     return { teams, players, tradeHistory: [], news: [] };
