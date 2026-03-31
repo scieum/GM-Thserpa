@@ -521,7 +521,7 @@ function renderDetailRoster(code) {
         const displayVal = hasOvr ? p.ovr : ((typeof p.power === 'number') ? p.power.toFixed(1) : '-');
         const displayColor = hasOvr ? ratingColor(p.ovr) : powerColor(p.power);
         return `<tr>
-            <td style="color:var(--text-dim);">${p.number != null ? p.number : '-'}</td>
+            <td class="num-cell" style="color:var(--text-dim);cursor:pointer;" onclick="event.stopPropagation(); editPlayerNumber('${p.id}', this)" title="클릭하여 등번호 변경">${p.number != null ? p.number : '-'}</td>
             <td>${p.name}${p.isForeign ? ' <span style="color:var(--kbo-gold);font-size:10px;">외</span>' : ''}${p.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''}</td>
             <td>${p.role || '-'}</td>
             <td style="color:${displayColor};">${displayVal}</td>
@@ -852,7 +852,7 @@ function renderRoster() {
         const r = p.ratings;
         const hasRatings = !!r;
         return `<tr data-player-id="${p.id}">
-            <td style="color:var(--text-dim);">${p.number != null ? p.number : '-'}</td>
+            <td class="num-cell" style="color:var(--text-dim);cursor:pointer;" onclick="event.stopPropagation(); editPlayerNumber('${p.id}', this)" title="클릭하여 등번호 변경">${p.number != null ? p.number : '-'}</td>
             <td>${p.name}${p.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''}${p.isForeign ? ' <span style="color:#B3A177;font-size:10px;">외</span>' : ''}${p.isInjured ? ' <span class="injured-badge">부상</span>' : (p.isMilitary ? ' <span class="mil-badge">군보류</span>' : (p.isFutures ? (p.number >= 100 ? ' <span class="dev-badge">육성</span>' : ' <span class="futures-badge">2군</span>') : ''))}</td>
             <td>${roleSelect}</td>
             <td style="font-size:11px;color:${p.throwBat && p.throwBat.startsWith('좌') ? '#00AEEF' : '#8899aa'};">${p.throwBat ? p.throwBat.substring(0, 2) : '-'}</td>
@@ -2996,6 +2996,59 @@ function ratingCell(val) {
     const v = Math.round(val);
     const color = v >= 70 ? '#16a34a' : v >= 60 ? '#2563eb' : v >= 50 ? 'var(--text)' : v >= 40 ? '#d97706' : '#dc2626';
     return `<span style="color:${color};font-weight:600">${v}</span>`;
+}
+
+// ── 등번호 인라인 편집 ──
+function editPlayerNumber(playerId, td) {
+    const p = state.players[playerId];
+    if (!p) return;
+
+    // 이미 편집 중이면 무시
+    if (td.querySelector('input')) return;
+
+    const oldVal = p.number != null ? p.number : '';
+    td.innerHTML = `<input type="number" min="0" max="999" value="${oldVal}"
+        style="width:40px;padding:2px 4px;font-size:12px;text-align:center;border:1px solid var(--accent);border-radius:4px;background:var(--bg-input);color:var(--text-primary);outline:none;"
+        onclick="event.stopPropagation()">`;
+    const input = td.querySelector('input');
+    input.focus();
+    input.select();
+
+    function save() {
+        const val = input.value.trim();
+        if (val === '') {
+            // 빈 값 → 번호 제거
+            p.number = null;
+            td.textContent = '-';
+        } else {
+            const num = parseInt(val);
+            if (isNaN(num) || num < 0 || num > 999) {
+                showToast('0~999 사이의 번호를 입력하세요.', 'error');
+                td.textContent = oldVal || '-';
+                return;
+            }
+            // 중복 체크
+            const teamCode = p.team;
+            const team = state.teams[teamCode];
+            const duplicate = team.roster
+                .map(id => state.players[id])
+                .find(pl => pl && pl.id !== playerId && pl.number === num);
+            if (duplicate) {
+                showToast(`${num}번은 ${duplicate.name}이(가) 사용 중입니다.`, 'error');
+                td.textContent = oldVal || '-';
+                return;
+            }
+            p.number = num;
+            td.textContent = num;
+        }
+        localStorage.setItem('kbo-sim-state', JSON.stringify(state));
+    }
+
+    input.addEventListener('blur', save);
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+        if (e.key === 'Escape') { td.textContent = oldVal || '-'; }
+    });
 }
 
 // ── 앱 시작 ──
