@@ -1273,7 +1273,71 @@ function confirmRelease(playerId) {
     }
 }
 
+// 아시아쿼터 선수 → 슬롯 선택 (아시아쿼터 or 외국인)
+function showSlotChoiceModal(type, name) {
+    const pool = type === 'pitcher' ? FOREIGN_PITCHER_POOL : FOREIGN_BATTER_POOL;
+    const p = pool.find(x => x.name === name);
+    if (!p) return;
+
+    const userTeamCode = document.getElementById('rosterTeamSelect')?.value || Object.keys(state.teams)[0];
+    const currentAsia = getTeamPlayers(state, userTeamCode).filter(pl => pl.isAsiaQuota).length;
+    const currentClassic = getTeamPlayers(state, userTeamCode).filter(pl => pl.isForeign && !pl.isAsiaQuota).length;
+
+    const asiaAvail = ASIA_QUOTA.maxAsiaQuota - currentAsia;
+    const classicAvail = ASIA_QUOTA.maxForeignClassic - currentClassic;
+
+    const modal = document.getElementById('playerModal');
+    const header = document.getElementById('playerModalHeader');
+    const ratings = document.getElementById('playerModalRatings');
+    const statsEl = document.getElementById('playerModalStats');
+
+    header.innerHTML = `
+        <div>
+            <h3 style="margin:0;font-size:18px;">${getFlagImg(p.nationality, 24)} ${p.name} 영입 방식 선택</h3>
+            <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">이 선수는 아시아쿼터 대상 국적입니다. 어떤 슬롯으로 영입하시겠습니까?</div>
+        </div>`;
+
+    ratings.innerHTML = `
+        <div style="display:flex;gap:12px;margin-top:16px;">
+            <div style="flex:1;background:rgba(0,174,239,0.06);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center;cursor:pointer;transition:all 0.15s;"
+                 onmouseover="this.style.borderColor='#00aeef'" onmouseout="this.style.borderColor='var(--border)'"
+                 onclick="document.getElementById('playerModal').style.display='none'; executeRecruit('${type}','${p.name}',true)">
+                <div style="font-size:14px;font-weight:700;color:#00aeef;">아시아쿼터</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">잔여 ${asiaAvail}/${ASIA_QUOTA.maxAsiaQuota}명</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">연봉 최대 ${ASIA_QUOTA.newRecruitCap}만$</div>
+            </div>
+            <div style="flex:1;background:rgba(239,68,68,0.06);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center;cursor:pointer;transition:all 0.15s;"
+                 onmouseover="this.style.borderColor='#ef4444'" onmouseout="this.style.borderColor='var(--border)'"
+                 onclick="document.getElementById('playerModal').style.display='none'; executeRecruit('${type}','${p.name}',false)">
+                <div style="font-size:14px;font-weight:700;color:#ef4444;">외국인</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">잔여 ${classicAvail}/${ASIA_QUOTA.maxForeignClassic}명</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">연봉 제한 없음</div>
+            </div>
+        </div>`;
+
+    statsEl.innerHTML = '';
+    modal.style.display = 'flex';
+    const closeBtn = document.getElementById('playerModalClose');
+    if (closeBtn) closeBtn.onclick = () => { modal.style.display = 'none'; };
+    modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+}
+
 function recruitForeignPlayer(type, name) {
+    const pool = type === 'pitcher' ? FOREIGN_PITCHER_POOL : FOREIGN_BATTER_POOL;
+    const p = pool.find(x => x.name === name);
+    if (!p) return;
+
+    // 아시아쿼터 대상 선수 → 슬롯 선택 모달
+    if (p.type === '아시아쿼터') {
+        showSlotChoiceModal(type, name);
+        return;
+    }
+
+    // 일반 외국인 → 바로 영입
+    executeRecruit(type, name, false);
+}
+
+function executeRecruit(type, name, asAsiaQuota) {
     const pool = type === 'pitcher' ? FOREIGN_PITCHER_POOL : FOREIGN_BATTER_POOL;
     const p = pool.find(x => x.name === name);
     if (!p) return;
@@ -1282,15 +1346,15 @@ function recruitForeignPlayer(type, name) {
     const foreignInfo = calcForeignSalary(state, userTeamCode);
     const team = state.teams[userTeamCode];
 
-    // 아시아쿼터 연봉 체크
-    if (p.type === '아시아쿼터' && p.salary > ASIA_QUOTA.newRecruitCap) {
+    // 아시아쿼터 연봉 체크 (아시아쿼터 슬롯 선택 시만)
+    if (asAsiaQuota && p.salary > ASIA_QUOTA.newRecruitCap) {
         showToast(`아시아쿼터 신규 영입은 최대 ${ASIA_QUOTA.newRecruitCap}만$입니다.`, 'error');
         return;
     }
 
     // 외국인 초과 → 방출 모달
     const needForeignRelease = (() => {
-        if (p.type === '아시아쿼터') {
+        if (asAsiaQuota) {
             return getTeamPlayers(state, userTeamCode).filter(pl => pl.isAsiaQuota).length >= ASIA_QUOTA.maxAsiaQuota;
         } else {
             return getTeamPlayers(state, userTeamCode).filter(pl => pl.isForeign && !pl.isAsiaQuota).length >= ASIA_QUOTA.maxForeignClassic;
@@ -1299,14 +1363,14 @@ function recruitForeignPlayer(type, name) {
 
     if (needForeignRelease) {
         pendingRecruit = { type, name };
-        showReleaseModal('foreign', () => recruitForeignPlayer(type, name));
+        showReleaseModal('foreign', () => executeRecruit(type, name, asAsiaQuota));
         return;
     }
 
     // 1군 초과 → 방출 모달
     if (team.roster.length >= 29) {
         pendingRecruit = { type, name };
-        showReleaseModal('roster', () => recruitForeignPlayer(type, name));
+        showReleaseModal('roster', () => executeRecruit(type, name, asAsiaQuota));
         return;
     }
 
@@ -1322,7 +1386,7 @@ function recruitForeignPlayer(type, name) {
         role: type === 'pitcher' ? p.role : null,
         salary: Math.round(salaryInBillions * 10) / 10,
         isForeign: true,
-        isAsiaQuota: p.type === '아시아쿼터',
+        isAsiaQuota: asAsiaQuota,
         isFranchiseStar: false,
         stats: p.stats,
         powerScore: null,
@@ -1711,3 +1775,4 @@ window.addKboToCompare = addKboToCompare;
 window.showDetailedReport = showDetailedReport;
 window.confirmRelease = confirmRelease;
 window.releasePlayer = releasePlayer;
+window.executeRecruit = executeRecruit;
