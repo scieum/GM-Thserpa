@@ -158,6 +158,7 @@ function showView(viewName) {
     if (viewName === 'trade') renderTradeView();
     if (viewName === 'scout') setupScoutView();
     if (viewName === 'foreign-scout') renderForeignScout();
+    if (viewName === 'stadium') renderStadiumView();
     if (viewName === 'simulator') renderSimulator();
     if (viewName === 'postseason') renderPostseason();
 }
@@ -516,6 +517,8 @@ function showTeamDetail(code) {
 
     // 감독/코치 + 1군 로스터 요약
     renderDetailRoster(code);
+    // 홈구장 정보
+    renderDetailStadium(code);
 
     document.getElementById('detailClose').onclick = () => { detail.style.display = 'none'; };
 }
@@ -586,6 +589,334 @@ function renderDetailRoster(code) {
             </div>
         </div>
     `;
+}
+
+// ══════════════════════════════════════════
+// ██ STADIUM VIEW
+// ══════════════════════════════════════════
+
+const KBO_STADIUMS = {
+    'LG':  {
+        main:'서울종합운동장 야구장', short:'잠실야구장', alt:null,
+        city:'서울', type:'개방형',
+        dims:{L:100, LC:120, C:125, RC:120, R:100, wall:2.6},
+        note:'LG·두산 공동 홈구장',
+        chars:[
+            { icon:'🏟', text:'KBO 최대 규모 구장' },
+            { icon:'💨', text:'깊은 외야로 홈런 억제, 투수 유리' },
+            { icon:'🏃', text:'외야 수비 범위가 승패 좌우' },
+            { icon:'📉', text:'득점 낮은 투수전 경향' },
+        ],
+    },
+    '두산': {
+        main:'서울종합운동장 야구장', short:'잠실야구장', alt:null,
+        city:'서울', type:'개방형',
+        dims:{L:100, LC:120, C:125, RC:120, R:100, wall:2.6},
+        note:'LG·두산 공동 홈구장',
+        chars:[
+            { icon:'🏟', text:'KBO 최대 규모 구장' },
+            { icon:'💨', text:'깊은 외야로 홈런 억제, 투수 유리' },
+            { icon:'🏃', text:'외야 수비 범위가 승패 좌우' },
+            { icon:'📉', text:'득점 낮은 투수전 경향' },
+        ],
+    },
+    '한화': {
+        main:'대전 한화생명 볼파크', short:'한화생명 볼파크', alt:'청주 야구장†',
+        city:'대전', type:'개방형',
+        dims:{L:99, LC:115, C:122, RC:112, R:95, wall:null},
+        note:'비대칭 구장 — 우측 펜스 95m',
+        chars:[
+            { icon:'⚖️', text:'비대칭 설계 — 우측이 좌측보다 4m 짧음' },
+            { icon:'💥', text:'좌타자 당겨치기 홈런 유리 (우측 95m)' },
+            { icon:'🎯', text:'배트 컨트롤·상황 대응 능력이 핵심' },
+            { icon:'🆕', text:'2024 신축 구장, 관중 친화 설계' },
+        ],
+    },
+    'SSG': {
+        main:'인천 SSG 랜더스필드', short:'랜더스필드', alt:null,
+        city:'인천', type:'개방형',
+        dims:{L:95, LC:115, C:120, RC:115, R:95, wall:2.8},
+        note:null,
+        chars:[
+            { icon:'💥', text:'좌우 폴 95m — KBO 최단 수준, 홈런 다발' },
+            { icon:'⚾', text:'타자 친화적, 득점 많은 경기 多' },
+            { icon:'🌊', text:'해풍 영향으로 타구 방향 예측 어려움' },
+            { icon:'🏃', text:'짧은 외야지만 코너 타구 처리가 변수' },
+        ],
+    },
+    '삼성': {
+        main:'대구 삼성 라이온즈 파크', short:'라이온즈파크', alt:'포항 야구장',
+        city:'대구', type:'개방형',
+        dims:{L:99.5, LC:107, C:122.5, RC:107, R:99.5, wall:3.6},
+        note:'좌우중간 107m · 펜스 높이 3.6m',
+        chars:[
+            { icon:'🧱', text:'높은 펜스(3.6m)로 홈런 억제 효과 큼' },
+            { icon:'📏', text:'좌우중간 107m — KBO 최단, 2루타가 줄어듦' },
+            { icon:'⚾', text:'장타보다 컨택·라인드라이브 타격 유리' },
+            { icon:'🌿', text:'투수·수비 중심 야구가 잘 맞는 구장' },
+        ],
+    },
+    'NC':  {
+        main:'창원NC파크', short:'NC파크', alt:null,
+        city:'창원', type:'개방형',
+        dims:{L:101, LC:107, C:122, RC:107, R:101, wall:3.3},
+        note:'중앙 좌우측 123m · 투수 친화',
+        chars:[
+            { icon:'🔵', text:'좌우폴 101m — KBO에서 가장 넓은 편' },
+            { icon:'🏃', text:'광활한 외야, 수비 범위와 스피드 필수' },
+            { icon:'🌿', text:'투수 친화 구장 — 실점 억제에 유리' },
+            { icon:'📏', text:'좌우중간 좁음(107m)으로 장타 예측 어려움' },
+        ],
+    },
+    'KT':  {
+        main:'수원 케이티 위즈 파크', short:'위즈파크', alt:null,
+        city:'수원', type:'개방형',
+        dims:{L:98, LC:115, C:120, RC:115, R:98, wall:4.0},
+        note:'펜스 높이 4m',
+        chars:[
+            { icon:'🧱', text:'KBO 최고 높이 펜스(4m) — 홈런 크게 줄어듦' },
+            { icon:'🎯', text:'펜스 직격 2루타 전략이 중요' },
+            { icon:'🏃', text:'발 빠른 외야수가 더 빛나는 구장' },
+            { icon:'⚾', text:'컨택 타자·2루타 생산력이 핵심 지표' },
+        ],
+    },
+    '롯데': {
+        main:'사직 야구장', short:'사직야구장', alt:'울산 문수 야구장',
+        city:'부산', type:'개방형',
+        dims:{L:95.8, LC:null, C:121, RC:null, R:95.8, wall:'4.8~6.0'},
+        note:'폴대 근처 6m · 중앙·좌우측 4.8m',
+        chars:[
+            { icon:'🎭', text:'짧은 거리(95.8m)와 높은 펜스(6m)의 역설' },
+            { icon:'💥', text:'홈런 여부 예측 불가 — 경기 변수 최대' },
+            { icon:'👥', text:'성지 분위기, 홈 어드밴티지 KBO 최강' },
+            { icon:'🌊', text:'해풍 강해 우타자 밀어치기 홈런 유리' },
+        ],
+    },
+    'KIA': {
+        main:'광주-기아 챔피언스 필드', short:'챔피언스필드', alt:'월명종합경기장 야구장†',
+        city:'광주', type:'개방형',
+        dims:{L:99, LC:117, C:121, RC:117, R:99, wall:2.6},
+        note:'낮은 펜스(2.6m) · 타자 친화',
+        chars:[
+            { icon:'💥', text:'낮은 펜스(2.6m) — KBO 최저, 홈런 빈발' },
+            { icon:'📈', text:'타자 천국 — 득점 많은 화끈한 경기 多' },
+            { icon:'🏃', text:'넓은 외야 + 잦은 홈런, 외야 수비력 필수' },
+            { icon:'⚾', text:'장타력 있는 타선이 더욱 빛나는 구장' },
+        ],
+    },
+    '키움': {
+        main:'고척 스카이돔', short:'고척돔', alt:null,
+        city:'서울', type:'돔',
+        dims:{L:99, LC:null, C:122, RC:null, R:99, wall:4.0},
+        note:'KBO 유일 돔구장 · 연면적 83,476㎡',
+        chars:[
+            { icon:'🏛', text:'KBO 유일 돔구장 — 우천 취소 없음' },
+            { icon:'⚡', text:'인조잔디로 타구 바운드 빠르고 예측 어려움' },
+            { icon:'🌡', text:'바람 없어 타구 궤적이 안정적' },
+            { icon:'🎵', text:'밀폐 공간 함성 울림 — 홈 심리적 이점 큼' },
+        ],
+    },
+};
+
+// SVG 구장 다이어그램 생성
+function generateStadiumSVG(dims, color, mini = false) {
+    const W = mini ? 180 : 240, H = mini ? 140 : 190;
+    const hx = W / 2, hy = H - 10;
+    const scale = (H - 45) / dims.C;
+
+    const SIN45 = 0.7071, COS45 = 0.7071;
+    const SIN22 = 0.3746, COS22 = 0.9272;
+
+    function pt(dist, sx, cx) {
+        return { x: +(hx + dist * scale * sx).toFixed(1), y: +(hy - dist * scale * cx).toFixed(1) };
+    }
+
+    const LP = pt(dims.L,    -SIN45, COS45);
+    const LC = dims.LC ? pt(dims.LC, -SIN22, COS22) : null;
+    const CT = pt(dims.C,    0,      1);
+    const RC = dims.RC ? pt(dims.RC,  SIN22, COS22) : null;
+    const RP = pt(dims.R,     SIN45, COS45);
+
+    const infR = +(19 * scale).toFixed(1);
+    const sb = pt(infR * 1.414, 0, 1);
+    const fb = { x: +(hx + infR).toFixed(1), y: +(hy - infR).toFixed(1) };
+    const tb = { x: +(hx - infR).toFixed(1), y: +(hy - infR).toFixed(1) };
+
+    const fencePts = [LP, ...(LC ? [LC] : []), CT, ...(RC ? [RC] : []), RP];
+    const fencePath = 'M ' + fencePts.map(p => `${p.x},${p.y}`).join(' L ');
+    const grassPath = `M ${hx},${hy} L ${LP.x},${LP.y} ` +
+        fencePts.slice(1).map(p => `L ${p.x},${p.y}`).join(' ') + ` L ${RP.x},${RP.y} Z`;
+
+    const fs = mini ? 7 : 9, fsc = mini ? 8 : 10;
+    const uid = Math.random().toString(36).slice(2, 7);
+
+    const labels = [
+        `<text x="${LP.x}" y="${Math.min(LP.y + 13, H - 2)}" fill="white" font-size="${fs}" text-anchor="middle" font-family="sans-serif">${dims.L}m</text>`,
+        LC ? `<text x="${LC.x - 4}" y="${LC.y - 3}" fill="rgba(255,255,255,0.85)" font-size="${fs - 1}" text-anchor="middle" font-family="sans-serif">${dims.LC}m</text>` : '',
+        `<text x="${hx}" y="${CT.y - 4}" fill="white" font-size="${fsc}" text-anchor="middle" font-weight="bold" font-family="sans-serif">${dims.C}m</text>`,
+        RC ? `<text x="${RC.x + 4}" y="${RC.y - 3}" fill="rgba(255,255,255,0.85)" font-size="${fs - 1}" text-anchor="middle" font-family="sans-serif">${dims.RC}m</text>` : '',
+        `<text x="${RP.x}" y="${Math.min(RP.y + 13, H - 2)}" fill="white" font-size="${fs}" text-anchor="middle" font-family="sans-serif">${dims.R}m</text>`,
+    ].filter(Boolean).join('');
+
+    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block;">
+  <defs><clipPath id="fc${uid}"><path d="${grassPath}"/></clipPath></defs>
+  <rect width="${W}" height="${H}" fill="#0a180a" rx="${mini?4:6}"/>
+  <path d="${grassPath}" fill="#1d5e1d"/>
+  <circle cx="${hx}" cy="${hy - infR * 0.8}" r="${infR * 1.15}" fill="#6b4f28" clip-path="url(#fc${uid})"/>
+  <polygon points="${hx},${hy} ${fb.x},${fb.y} ${sb.x},${sb.y} ${tb.x},${tb.y}" fill="#1d5e1d"/>
+  <line x1="${hx}" y1="${hy}" x2="${LP.x}" y2="${LP.y}" stroke="rgba(255,255,255,0.4)" stroke-width="0.8"/>
+  <line x1="${hx}" y1="${hy}" x2="${RP.x}" y2="${RP.y}" stroke="rgba(255,255,255,0.4)" stroke-width="0.8"/>
+  <path d="${fencePath}" fill="none" stroke="${color}" stroke-width="${mini?2:2.5}" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="${fb.x-2.5}" y="${fb.y-2.5}" width="5" height="5" fill="white" transform="rotate(45,${fb.x},${fb.y})"/>
+  <rect x="${sb.x-2.5}" y="${sb.y-2.5}" width="5" height="5" fill="white" transform="rotate(45,${sb.x},${sb.y})"/>
+  <rect x="${tb.x-2.5}" y="${tb.y-2.5}" width="5" height="5" fill="white" transform="rotate(45,${tb.x},${tb.y})"/>
+  <circle cx="${hx}" cy="${hy}" r="3" fill="white"/>
+  <circle cx="${hx}" cy="${hy - infR * 0.78}" r="3" fill="#9b7a3e"/>
+  ${labels}
+</svg>`;
+}
+
+function getStadiumParkType(s) {
+    const avg = 99 + 122 + 99; // 리그 평균 총 펜스
+    const total = s.dims.L + s.dims.C + s.dims.R;
+    if (total > avg + 3) return { type: 'pitcher', label: '투수 친화', cls: 'pitcher' };
+    if (total < avg - 3) return { type: 'hitter', label: '타자 친화', cls: 'hitter' };
+    // 특이 구장 체크 (비대칭, 높은 펜스 등)
+    if (s.dims.wall && parseFloat(s.dims.wall) >= 3.5) return { type: 'unique', label: '특수 구장', cls: 'unique' };
+    return { type: 'neutral', label: '중립', cls: 'neutral' };
+}
+
+function getStadiumStrategy(s, parkInfo) {
+    const strategies = [];
+    if (parkInfo.type === 'pitcher') {
+        strategies.push({ icon: '🎯', text: '그라운드볼 투수 영입 시 구장 시너지 극대화' });
+        strategies.push({ icon: '💪', text: '장타력 있는 타자로 약점 상쇄 필요' });
+    } else if (parkInfo.type === 'hitter') {
+        strategies.push({ icon: '🎯', text: '탈삼진 투수로 구장 불리함 최소화' });
+        strategies.push({ icon: '💪', text: '파워 히터가 구장 이점 극대화' });
+    } else {
+        strategies.push({ icon: '⚖️', text: '투타 밸런스 편성이 유효한 구장' });
+        if (s.dims.wall && parseFloat(s.dims.wall) >= 3.5) {
+            strategies.push({ icon: '📏', text: '높은 펜스 활용 — 라인드라이브 타자 우선' });
+        }
+    }
+    return strategies;
+}
+
+function renderStadiumView() {
+    const grid = document.getElementById('stadiumGrid');
+    if (!grid) return;
+
+    const ORDER = ['LG','두산','한화','SSG','삼성','NC','KT','롯데','KIA','키움'];
+    grid.innerHTML = ORDER.map(code => {
+        const team = state?.teams[code];
+        const s = KBO_STADIUMS[code];
+        if (!s) return '';
+        const color = team?.color || '#3399cc';
+        const parkInfo = getStadiumParkType(s);
+        const strategies = getStadiumStrategy(s, parkInfo);
+
+        const dimRow = (label, val, unit='m') => val != null
+            ? `<tr><td>${label}</td><td><strong>${val}${unit}</strong></td></tr>` : '';
+
+        // 앞면 (기존 + 힌트)
+        const frontHTML = `
+            <div class="stadium-flip__front">
+                <div class="stadium-card__header" style="background:${color}22;border-left:4px solid ${color};">
+                    <img class="stadium-card__emblem" src="image/${code}_emblem.png" alt="${code}" onerror="this.style.display='none'">
+                    <div>
+                        <div class="stadium-card__team">${team?.name || code}</div>
+                        <div class="stadium-card__name">${s.short}</div>
+                        <div class="stadium-card__city">📍 ${s.city} · ${s.type === '돔' ? '🏛 돔구장' : '🏟 개방형'}</div>
+                    </div>
+                </div>
+                <div class="stadium-card__svg">${generateStadiumSVG(s.dims, color, false)}</div>
+                <div class="stadium-card__info">
+                    <table class="stadium-dim-table">
+                        <thead><tr><th colspan="2">구장 제원</th></tr></thead>
+                        <tbody>
+                            ${dimRow('좌측 폴', s.dims.L)}
+                            ${s.dims.LC ? dimRow('좌중간', s.dims.LC) : ''}
+                            ${dimRow('중앙', s.dims.C)}
+                            ${s.dims.RC ? dimRow('우중간', s.dims.RC) : ''}
+                            ${dimRow('우측 폴', s.dims.R)}
+                            ${s.dims.wall != null ? dimRow('펜스 높이', s.dims.wall) : ''}
+                        </tbody>
+                    </table>
+                    ${s.alt ? `<div class="stadium-alt">🏟 보조: ${s.alt}</div>` : ''}
+                    ${s.note ? `<div class="stadium-note">💡 ${s.note}</div>` : ''}
+                </div>
+                <div class="stadium-card__flip-hint">클릭하여 스카우팅 리포트 보기 →</div>
+            </div>`;
+
+        // 뒷면 (스카우팅 리포트)
+        const charsHTML = (s.chars || []).map(c =>
+            `<div class="scout-report__item"><span class="scout-report__icon">${c.icon}</span><span class="scout-report__text">${c.text}</span></div>`
+        ).join('');
+
+        const stratHTML = strategies.map(st =>
+            `<div class="scout-report__strategy-item"><span class="scout-report__icon">${st.icon}</span><span class="scout-report__text">${st.text}</span></div>`
+        ).join('');
+
+        const backHTML = `
+            <div class="stadium-flip__back">
+                <div class="scout-report" style="--sr-color:${color};">
+                    <div class="scout-report__header">
+                        <span class="scout-report__header-icon">📋</span>
+                        <div class="scout-report__header-text">
+                            <div class="scout-report__team-name">${team?.name || code}</div>
+                            <div class="scout-report__subtitle">Scouting Report</div>
+                        </div>
+                        <span class="scout-report__badge scout-report__badge--${parkInfo.cls}">${parkInfo.label}</span>
+                    </div>
+                    <div class="scout-report__items">
+                        ${charsHTML}
+                    </div>
+                    <div class="scout-report__strategy">
+                        <div class="scout-report__strategy-title">GM 전략 제안</div>
+                        ${stratHTML}
+                    </div>
+                    <div class="scout-report__back-hint">← 클릭하여 돌아가기</div>
+                </div>
+            </div>`;
+
+        return `<div class="stadium-flip" style="--team-color:${color}" onclick="this.classList.toggle('flipped')">
+            <div class="stadium-flip__inner">${frontHTML}${backHTML}</div>
+        </div>`;
+    }).join('');
+}
+
+function renderDetailStadium(code) {
+    const el = document.getElementById('detailStadium');
+    if (!el) return;
+    const s = KBO_STADIUMS[code];
+    if (!s) { el.innerHTML = ''; return; }
+    const team = state?.teams[code];
+    const color = team?.color || '#3399cc';
+    const dimItem = (label, val, unit='m') => val != null
+        ? `<div class="ds-dim-item"><span>${label}</span><strong>${val}${unit}</strong></div>` : '';
+
+    el.innerHTML = `
+    <div class="detail-stadium-wrap">
+        <h4>홈구장</h4>
+        <div class="detail-stadium-inner">
+            <div class="detail-stadium-svg">${generateStadiumSVG(s.dims, color, true)}</div>
+            <div class="detail-stadium-info">
+                <div class="detail-stadium-name">${s.main}</div>
+                <div class="detail-stadium-city">📍 ${s.city} · ${s.type === '돔' ? '🏛 돔' : '🏟 개방형'}</div>
+                <div class="ds-dims">
+                    ${dimItem('좌폴', s.dims.L)}
+                    ${s.dims.LC ? dimItem('좌중간', s.dims.LC) : ''}
+                    ${dimItem('중앙', s.dims.C)}
+                    ${s.dims.RC ? dimItem('우중간', s.dims.RC) : ''}
+                    ${dimItem('우폴', s.dims.R)}
+                    ${s.dims.wall != null ? dimItem('펜스', s.dims.wall) : ''}
+                </div>
+                ${s.alt ? `<div class="stadium-alt">🏟 보조: ${s.alt}</div>` : ''}
+                ${s.note ? `<div class="stadium-note">💡 ${s.note}</div>` : ''}
+            </div>
+        </div>
+    </div>`;
 }
 
 // ══════════════════════════════════════════

@@ -1393,6 +1393,8 @@ function filterForeignPitchers() {
         if (f.role && f.role.length > 0 && !f.role.includes(p.role)) return false;
         if (f.salMin && p.salary < Number(f.salMin)) return false;
         if (f.salMax && p.salary > Number(f.salMax)) return false;
+        if (f.ageMin && p.age < Number(f.ageMin)) return false;
+        if (f.ageMax && p.age > Number(f.ageMax)) return false;
         if (f.stuffMin && p.ratings.stuff < Number(f.stuffMin)) return false;
         if (f.stuffMax && p.ratings.stuff > Number(f.stuffMax)) return false;
         if (f.commandMin && p.ratings.command < Number(f.commandMin)) return false;
@@ -1400,6 +1402,20 @@ function filterForeignPitchers() {
         const ovr = calcForeignPitcherOVR(p.ratings);
         if (f.ovrMin && ovr < Number(f.ovrMin)) return false;
         if (f.ovrMax && ovr > Number(f.ovrMax)) return false;
+        // ── 세이버메트릭스 필터 ──
+        const s = p.stats;
+        if (f.eraMin  && s.ERA           < Number(f.eraMin))    return false;
+        if (f.eraMax  && s.ERA           > Number(f.eraMax))    return false;
+        if (f.fipMin  && s.FIP           < Number(f.fipMin))    return false;
+        if (f.fipMax  && s.FIP           > Number(f.fipMax))    return false;
+        if (f.k9Min   && s['K/9']        < Number(f.k9Min))     return false;
+        if (f.k9Max   && s['K/9']        > Number(f.k9Max))     return false;
+        if (f.ivbMin  && s.IVB           < Number(f.ivbMin))    return false;
+        if (f.ivbMax  && s.IVB           > Number(f.ivbMax))    return false;
+        if (f.cswMin  && s['CSW%']       < Number(f.cswMin))    return false;
+        if (f.cswMax  && s['CSW%']       > Number(f.cswMax))    return false;
+        if (f.ipMin   && s.IP            < Number(f.ipMin))     return false;
+        if (f.ipMax   && s.IP            > Number(f.ipMax))     return false;
         return true;
     });
 }
@@ -1426,10 +1442,22 @@ function filterForeignBatters() {
         if (f.pos && f.pos.length > 0 && !f.pos.includes(p.position)) return false;
         if (f.salMin && p.salary < Number(f.salMin)) return false;
         if (f.salMax && p.salary > Number(f.salMax)) return false;
+        if (f.ageMin && p.age < Number(f.ageMin)) return false;
+        if (f.ageMax && p.age > Number(f.ageMax)) return false;
         if (f.contactMin && p.ratings.contact < Number(f.contactMin)) return false;
         if (f.contactMax && p.ratings.contact > Number(f.contactMax)) return false;
         if (f.powerMin && p.ratings.power < Number(f.powerMin)) return false;
         if (f.powerMax && p.ratings.power > Number(f.powerMax)) return false;
+        // ── 세이버메트릭스 필터 ──
+        const s = p.stats;
+        if (f.opsMin    && s.OPS          < Number(f.opsMin))    return false;
+        if (f.opsMax    && s.OPS          > Number(f.opsMax))    return false;
+        if (f.wrcMin    && s['wRC+']      < Number(f.wrcMin))    return false;
+        if (f.wrcMax    && s['wRC+']      > Number(f.wrcMax))    return false;
+        if (f.barrelMin && s['Barrel%']   < Number(f.barrelMin)) return false;
+        if (f.barrelMax && s['Barrel%']   > Number(f.barrelMax)) return false;
+        if (f.hrMin     && s.HR           < Number(f.hrMin))     return false;
+        if (f.hrMax     && s.HR           > Number(f.hrMax))     return false;
         return true;
     });
 }

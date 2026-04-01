@@ -7,40 +7,349 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <!-- Iconify Solar icons -->
+    <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+    <!-- Pretendard (보조 한글 폰트) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <!-- ===== LOGIN SCREEN ===== -->
+    <!-- ===== LOGIN SCREEN (Premium Landing) ===== -->
+    <style id="landing-styles">
+        /* ── 랜딩 배경 ── */
+        #loginScreen.login-screen {
+            background: none;
+            font-family: 'KBO Dia Gothic', 'Pretendard Variable', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+        }
+        .landing-bg {
+            position: absolute; inset: 0; overflow: hidden;
+            background: radial-gradient(ellipse at 20% 50%, #0a1628 0%, #000d1a 50%, #00070f 100%);
+        }
+        .landing-mesh {
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(circle at 15% 30%, rgba(0,37,97,0.6) 0%, transparent 50%),
+                radial-gradient(circle at 85% 70%, rgba(0,174,239,0.12) 0%, transparent 40%),
+                radial-gradient(circle at 50% 90%, rgba(237,28,36,0.06) 0%, transparent 30%);
+        }
+        .landing-stitches {
+            position: absolute; inset: 0; opacity: 0.035; pointer-events: none;
+            background-image: repeating-linear-gradient(
+                30deg, transparent, transparent 40px,
+                rgba(255,255,255,0.12) 40px, rgba(255,255,255,0.12) 41px
+            );
+        }
+        .landing-floaters { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+        .landing-noise {
+            position: fixed; inset: 0; z-index: 60; pointer-events: none; opacity: 0.025;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* ── 스피드 라인 ── */
+        .landing-speedlines {
+            position: absolute; inset: 0; overflow: hidden; pointer-events: none; opacity: 0.06;
+        }
+        .landing-speedlines::before,
+        .landing-speedlines::after {
+            content: ''; position: absolute;
+            width: 200%; height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(0,174,239,0.6) 30%, rgba(255,255,255,0.3) 50%, transparent 100%);
+            animation: speedline 4s ease-in-out infinite;
+        }
+        .landing-speedlines::before { top: 25%; left: -100%; animation-delay: 0s; }
+        .landing-speedlines::after { top: 72%; left: -100%; animation-delay: 2s; opacity: 0.7; }
+        @keyframes speedline {
+            0% { transform: translateX(-30%); opacity: 0; }
+            30% { opacity: 1; }
+            100% { transform: translateX(100%); opacity: 0; }
+        }
+
+        /* ── 콘텐츠 레이아웃 ── */
+        .landing-content {
+            min-height: 100dvh; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            position: relative; z-index: 10; padding: 24px 16px;
+            gap: 28px;
+        }
+
+        /* ── 히어로 ── */
+        .landing-hero { text-align: center; }
+        .landing-hero__icon {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 80px; height: 80px; border-radius: 50%;
+            background: rgba(0,174,239,0.08); border: 1px solid rgba(0,174,239,0.15);
+            margin-bottom: 16px;
+            animation: float-slow 6s ease-in-out infinite;
+        }
+        .landing-ball-icon { color: rgba(0,174,239,0.8); filter: drop-shadow(0 0 12px rgba(0,174,239,0.3)); }
+        .landing-hero__title {
+            font-family: 'KBO Dia Gothic', sans-serif;
+            font-size: clamp(36px, 8vw, 56px); font-weight: 700; line-height: 1.15;
+            background: linear-gradient(135deg, #ffffff 0%, #7ec8e3 60%, var(--kbo-light-blue, #00AEEF) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 8px; word-break: keep-all;
+        }
+        .landing-hero__sub {
+            font-size: clamp(14px, 2.5vw, 17px); color: rgba(180,200,230,0.7);
+            font-weight: 300; margin: 0; letter-spacing: 0.02em; word-break: keep-all;
+        }
+
+        /* ── Eyebrow 태그 ── */
+        .landing-eyebrow {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 14px; border-radius: 100px;
+            background: rgba(0,174,239,0.08); border: 1px solid rgba(0,174,239,0.12);
+            font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em;
+            color: rgba(0,174,239,0.85); font-weight: 500; margin-bottom: 12px;
+        }
+
+        /* ── Double-Bezel 카드 ── */
+        .landing-card-outer {
+            padding: 1.5px; border-radius: 22px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 100%);
+            box-shadow: 0 25px 80px rgba(0,0,0,0.5);
+        }
+        .landing-card {
+            background: rgba(8,14,30,0.88);
+            backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20.5px; padding: 36px 32px;
+            width: 420px; max-width: 88vw;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+
+        /* ── 탭 ── */
+        .landing-card .login-tabs {
+            display: flex; gap: 4px; margin-bottom: 24px;
+            background: rgba(255,255,255,0.04); border-radius: 10px; padding: 3px;
+        }
+        .landing-card .login-tab {
+            flex: 1; padding: 10px 0; border: none; border-radius: 8px;
+            background: transparent; color: rgba(180,200,230,0.5);
+            font-size: 13px; font-weight: 500; cursor: pointer;
+            font-family: 'KBO Dia Gothic', 'Pretendard Variable', sans-serif;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .landing-card .login-tab.active {
+            background: rgba(0,174,239,0.12); color: #e0ecff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .landing-card .login-tab:hover:not(.active) { color: rgba(200,215,240,0.7); }
+
+        /* ── 인풋 ── */
+        .landing-input-wrap {
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
+            padding: 0 14px; margin-bottom: 10px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .landing-input-wrap:focus-within {
+            border-color: rgba(0,174,239,0.45);
+            box-shadow: 0 0 0 3px rgba(0,174,239,0.08);
+            background: rgba(255,255,255,0.06);
+        }
+        .landing-input-icon { color: rgba(180,200,230,0.35); flex-shrink: 0; }
+        .landing-card .login-input {
+            flex: 1; background: transparent !important; border: none !important; outline: none !important;
+            padding: 13px 0 !important; font-size: 14px !important; color: #d0daf0 !important;
+            font-family: 'KBO Dia Gothic', 'Pretendard Variable', sans-serif !important;
+            box-shadow: none !important; border-radius: 0 !important;
+        }
+        .landing-card .login-input::placeholder { color: rgba(160,180,210,0.35); }
+
+        /* ── 힌트 ── */
+        .landing-hint {
+            font-size: 11.5px; color: rgba(160,180,210,0.4); margin: 2px 0 16px;
+            text-align: center; word-break: keep-all;
+        }
+
+        /* ── 버튼 ── */
+        .landing-card .login-btn {
+            width: 100%; padding: 13px 0; border: none; border-radius: 10px;
+            background: linear-gradient(135deg, #003a8c 0%, #0060d0 50%, #0080e8 100%);
+            color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;
+            font-family: 'KBO Dia Gothic', sans-serif;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 15px rgba(0,60,180,0.25);
+            position: relative; overflow: hidden;
+        }
+        .landing-card .login-btn::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.08) 100%);
+            pointer-events: none;
+        }
+        .landing-card .login-btn:hover {
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 8px 30px rgba(0,80,220,0.35);
+        }
+        .landing-card .login-btn:active { transform: translateY(0) scale(0.98); }
+
+        /* ── 에러/로딩 ── */
+        .landing-card .login-error {
+            color: #ff6b7a; font-size: 12px; margin-top: 10px; text-align: center;
+            min-height: 0; background: transparent; border: none; padding: 0;
+        }
+        .landing-card .login-loading {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            color: rgba(0,174,239,0.7); font-size: 13px; margin-top: 10px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .landing-card .login-loading iconify-icon { animation: spin 1.2s linear infinite; }
+
+        /* ── 하단 스탯 바 ── */
+        .landing-footer {
+            display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: center;
+            font-size: 12px; color: rgba(140,165,205,0.35); letter-spacing: 0.01em;
+            word-break: keep-all;
+        }
+        .landing-footer__dot {
+            width: 3px; height: 3px; border-radius: 50%;
+            background: rgba(140,165,205,0.25);
+        }
+
+        /* ── 플로팅 애니메이션 ── */
+        @keyframes float-slow {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-18px) rotate(4deg); }
+        }
+        @keyframes float-medium {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(-3deg); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(24px); filter: blur(3px); }
+            to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+        .landing-reveal {
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .landing-reveal-d1 { animation-delay: 0.1s; }
+        .landing-reveal-d2 { animation-delay: 0.2s; }
+        .landing-reveal-d3 { animation-delay: 0.35s; }
+        .landing-reveal-d4 { animation-delay: 0.5s; }
+
+        /* ── 반응형 ── */
+        @media (max-width: 480px) {
+            .landing-card { padding: 28px 22px; }
+            .landing-hero__icon { width: 64px; height: 64px; }
+        }
+    </style>
+
     <div id="loginScreen" class="login-screen">
-        <div class="login-card">
-            <div class="login-card__logo">⚾</div>
-            <h1 class="login-card__title">나도GM</h1>
-            <p class="login-card__sub">데이터로 완성하는 승리의 라인업</p>
+        <!-- 배경 레이어 -->
+        <div class="landing-bg">
+            <div class="landing-mesh"></div>
+            <div class="landing-floaters" id="landingFloaters"></div>
+            <div class="landing-stitches"></div>
+            <div class="landing-speedlines"></div>
+        </div>
+        <div class="landing-noise"></div>
 
-            <!-- 탭 전환 -->
-            <div class="login-tabs">
-                <button class="login-tab active" onclick="switchLoginTab('join')">교실 참가</button>
-                <button class="login-tab" onclick="switchLoginTab('create')">교실 만들기</button>
+        <!-- 메인 콘텐츠 -->
+        <div class="landing-content">
+
+            <!-- 히어로 -->
+            <div class="landing-hero landing-reveal landing-reveal-d1">
+                <div class="landing-eyebrow">
+                    <iconify-icon icon="solar:star-bold" width="12"></iconify-icon>
+                    2026 KBO 시뮬레이션
+                </div>
+                <div class="landing-hero__icon">
+                    <iconify-icon icon="solar:baseball-bold-duotone" width="44" class="landing-ball-icon"></iconify-icon>
+                </div>
+                <h1 class="landing-hero__title">나도GM</h1>
+                <p class="landing-hero__sub">데이터로 완성하는 승리의 라인업</p>
             </div>
 
-            <!-- 교실 참가 (학생/교사 공통) -->
-            <div id="loginTabJoin" class="login-tab-content active">
-                <input type="text" id="loginCode" class="login-input" placeholder="접속 코드 입력" autocomplete="off" spellcheck="false">
-                <p class="login-hint">교사: 관리자 코드 / 학생: 팀 코드를 입력하세요</p>
-                <button class="login-btn" onclick="handleLogin()">접속</button>
+            <!-- Double-Bezel 로그인 카드 -->
+            <div class="landing-card-outer landing-reveal landing-reveal-d2">
+                <div class="landing-card">
+                    <!-- 탭 전환 -->
+                    <div class="login-tabs">
+                        <button class="login-tab active" onclick="switchLoginTab('join')">
+                            <iconify-icon icon="solar:users-group-rounded-bold" width="16"></iconify-icon>
+                            교실 참가
+                        </button>
+                        <button class="login-tab" onclick="switchLoginTab('create')">
+                            <iconify-icon icon="solar:add-circle-bold" width="16"></iconify-icon>
+                            교실 만들기
+                        </button>
+                    </div>
+
+                    <!-- 교실 참가 (학생/교사 공통) -->
+                    <div id="loginTabJoin" class="login-tab-content active">
+                        <div class="landing-input-wrap">
+                            <iconify-icon icon="solar:key-bold" width="18" class="landing-input-icon"></iconify-icon>
+                            <input type="text" id="loginCode" class="login-input" placeholder="접속 코드 입력" autocomplete="off" spellcheck="false">
+                        </div>
+                        <p class="landing-hint">교사는 관리자 코드, 학생은 팀 코드를 입력하세요</p>
+                        <button class="login-btn" onclick="handleLogin()">
+                            <iconify-icon icon="solar:login-3-bold" width="18"></iconify-icon>
+                            접속
+                        </button>
+                    </div>
+
+                    <!-- 교실 만들기 (교사 전용) -->
+                    <div id="loginTabCreate" class="login-tab-content">
+                        <div class="landing-input-wrap">
+                            <iconify-icon icon="solar:buildings-bold" width="18" class="landing-input-icon"></iconify-icon>
+                            <input type="text" id="createName" class="login-input" placeholder="교실 이름 (예: 3학년 2반)" autocomplete="off">
+                        </div>
+                        <div class="landing-input-wrap">
+                            <iconify-icon icon="solar:shield-keyhole-bold" width="18" class="landing-input-icon"></iconify-icon>
+                            <input type="text" id="createAdminCode" class="login-input" placeholder="관리자 코드 설정 (예: ADMIN2026)" autocomplete="off" spellcheck="false">
+                        </div>
+                        <button class="login-btn" onclick="handleCreateClassroom()">
+                            <iconify-icon icon="solar:add-circle-bold" width="18"></iconify-icon>
+                            교실 생성
+                        </button>
+                    </div>
+
+                    <div id="loginError" class="login-error"></div>
+                    <div id="loginLoading" class="login-loading" style="display:none;">
+                        <iconify-icon icon="solar:baseball-bold-duotone" width="18"></iconify-icon>
+                        연결 중...
+                    </div>
+                </div>
             </div>
 
-            <!-- 교실 만들기 (교사 전용) -->
-            <div id="loginTabCreate" class="login-tab-content">
-                <input type="text" id="createName" class="login-input" placeholder="교실 이름 (예: 3학년 2반)" autocomplete="off">
-                <input type="text" id="createAdminCode" class="login-input" placeholder="관리자 코드 설정 (예: ADMIN2026)" autocomplete="off" spellcheck="false">
-                <button class="login-btn" onclick="handleCreateClassroom()">교실 생성</button>
+            <!-- 하단 스탯 바 -->
+            <div class="landing-footer landing-reveal landing-reveal-d4">
+                <span>KBO 10개 구단</span>
+                <span class="landing-footer__dot"></span>
+                <span>실제 2025 시즌 데이터</span>
+                <span class="landing-footer__dot"></span>
+                <span>데이터 기반 의사결정</span>
             </div>
-
-            <div id="loginError" class="login-error"></div>
-            <div id="loginLoading" class="login-loading" style="display:none;">연결 중...</div>
         </div>
     </div>
+
+    <!-- 랜딩 플로팅 요소 스크립트 -->
+    <script>
+    (function initLandingFloaters() {
+        var c = document.getElementById('landingFloaters');
+        if (!c) return;
+        var svgs = [
+            '<svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="17" stroke="rgba(255,255,255,0.07)" stroke-width="0.8"/><path d="M9 13c3.5 3.5 7 3.5 11 0M20 13c3.5 3.5 7 3.5 11 0" stroke="rgba(255,255,255,0.05)" stroke-width="0.7"/><path d="M9 27c3.5-3.5 7-3.5 11 0M20 27c3.5-3.5 7-3.5 11 0" stroke="rgba(255,255,255,0.05)" stroke-width="0.7"/></svg>',
+            '<svg viewBox="0 0 40 40" fill="none"><rect x="12" y="12" width="16" height="16" rx="1" transform="rotate(45 20 20)" stroke="rgba(255,255,255,0.06)" stroke-width="0.8"/></svg>',
+            '<svg viewBox="0 0 50 16" fill="none"><rect x="4" y="5.5" width="32" height="5" rx="2.5" fill="rgba(255,255,255,0.03)"/><rect x="32" y="4" width="14" height="8" rx="4" fill="rgba(255,255,255,0.04)"/></svg>',
+            '<svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="14" stroke="rgba(0,174,239,0.06)" stroke-width="0.6" stroke-dasharray="3 5"/></svg>'
+        ];
+        for (var i = 0; i < 10; i++) {
+            var el = document.createElement('div');
+            var sz = 25 + Math.random() * 45;
+            var anim = i % 2 === 0 ? 'float-slow' : 'float-medium';
+            var dur = 5 + Math.random() * 9;
+            el.style.cssText = 'position:absolute;left:' + (Math.random()*92) + '%;top:' + (Math.random()*92) + '%;width:' + sz + 'px;opacity:' + (0.2+Math.random()*0.5) + ';animation:' + anim + ' ' + dur + 's ease-in-out infinite;animation-delay:' + (-Math.random()*6) + 's;';
+            el.innerHTML = svgs[i % svgs.length];
+            c.appendChild(el);
+        }
+    })();
+    </script>
 
     <!-- ===== TOP NAV ===== -->
     <header class="top-bar" style="display:none;">
@@ -68,6 +377,7 @@
             <button class="nav-btn" data-view="roster">1군 로스터</button>
             <button class="nav-btn nav-btn--futures" data-view="futures">2군 (퓨처스)</button>
             <button class="nav-btn" data-view="depthchart">뎁스 차트</button>
+            <button class="nav-btn" data-view="stadium">홈구장</button>
             <button class="nav-btn" data-view="trade">트레이드 마켓</button>
             <button class="nav-btn" data-view="foreign-scout" id="navForeignScout">외국인 스카우트</button>
             <button class="nav-btn" data-view="simulator">리그 시뮬레이션</button>
@@ -115,6 +425,8 @@
                 </div>
                 <!-- 감독/코치진 + 1군 로스터 요약 -->
                 <div class="team-detail__roster" id="detailRoster"></div>
+                <!-- 홈구장 정보 -->
+                <div class="team-detail__stadium" id="detailStadium"></div>
             </div>
         </section>
 
@@ -478,6 +790,15 @@
                             <div class="scout-row scout-range-row"><label>연봉(만$)</label><input type="number" class="scout-input-sm fs-f" data-fs="salMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm fs-f" data-fs="salMax" placeholder="최대"></div>
                             <div class="scout-row scout-range-row"><label>나이</label><input type="number" class="scout-input-sm fs-f" data-fs="ageMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm fs-f" data-fs="ageMax" placeholder="최대"></div>
                         </div>
+                        <div class="scout-filter-group">
+                            <h4>세이버메트릭스</h4>
+                            <div class="scout-row scout-range-row"><label>ERA</label><input type="number" class="scout-input-sm fs-f" data-fs="eraMin" placeholder="최소" step="0.01"><span>~</span><input type="number" class="scout-input-sm fs-f" data-fs="eraMax" placeholder="최대" step="0.01"></div>
+                            <div class="scout-row scout-range-row"><label>FIP</label><input type="number" class="scout-input-sm fs-f" data-fs="fipMin" placeholder="최소" step="0.01"><span>~</span><input type="number" class="scout-input-sm fs-f" data-fs="fipMax" placeholder="최대" step="0.01"></div>
+                            <div class="scout-row scout-range-row"><label>K/9</label><input type="number" class="scout-input-sm fs-f" data-fs="k9Min" placeholder="최소" step="0.1"><span>~</span><input type="number" class="scout-input-sm fs-f" data-fs="k9Max" placeholder="최대" step="0.1"></div>
+                            <div class="scout-row scout-range-row"><label>IVB</label><input type="number" class="scout-input-sm fs-f" data-fs="ivbMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm fs-f" data-fs="ivbMax" placeholder="최대"></div>
+                            <div class="scout-row scout-range-row"><label>CSW%</label><input type="number" class="scout-input-sm fs-f" data-fs="cswMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm fs-f" data-fs="cswMax" placeholder="최대"></div>
+                            <div class="scout-row scout-range-row"><label>IP</label><input type="number" class="scout-input-sm fs-f" data-fs="ipMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm fs-f" data-fs="ipMax" placeholder="최대"></div>
+                        </div>
                         <div class="scout-actions">
                             <button class="btn btn--primary btn--sm" id="btnFsSearch">검색</button>
                             <button class="btn btn--sm" id="btnFsReset">초기화</button>
@@ -512,6 +833,13 @@
                             <h4>연봉 / 나이</h4>
                             <div class="scout-row scout-range-row"><label>연봉(만$)</label><input type="number" class="scout-input-sm fs-fb" data-fs="salMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm fs-fb" data-fs="salMax" placeholder="최대"></div>
                             <div class="scout-row scout-range-row"><label>나이</label><input type="number" class="scout-input-sm fs-fb" data-fs="ageMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm fs-fb" data-fs="ageMax" placeholder="최대"></div>
+                        </div>
+                        <div class="scout-filter-group">
+                            <h4>세이버메트릭스</h4>
+                            <div class="scout-row scout-range-row"><label>OPS</label><input type="number" class="scout-input-sm fs-fb" data-fs="opsMin" placeholder="최소" step="0.001"><span>~</span><input type="number" class="scout-input-sm fs-fb" data-fs="opsMax" placeholder="최대" step="0.001"></div>
+                            <div class="scout-row scout-range-row"><label>wRC+</label><input type="number" class="scout-input-sm fs-fb" data-fs="wrcMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm fs-fb" data-fs="wrcMax" placeholder="최대"></div>
+                            <div class="scout-row scout-range-row"><label>Barrel%</label><input type="number" class="scout-input-sm fs-fb" data-fs="barrelMin" placeholder="최소" step="0.1"><span>~</span><input type="number" class="scout-input-sm fs-fb" data-fs="barrelMax" placeholder="최대" step="0.1"></div>
+                            <div class="scout-row scout-range-row"><label>HR</label><input type="number" class="scout-input-sm fs-fb" data-fs="hrMin" placeholder="최소"><span>~</span><input type="number" class="scout-input-sm fs-fb" data-fs="hrMax" placeholder="최대"></div>
                         </div>
                         <div class="scout-actions">
                             <button class="btn btn--primary btn--sm" id="btnFsSearchB">검색</button>
@@ -549,6 +877,12 @@
                     <div id="fsCompareContent"></div>
                 </div>
             </div>
+        </section>
+
+        <!-- VIEW: Stadium -->
+        <section id="view-stadium" class="view">
+            <h2 class="view__title">KBO 홈구장</h2>
+            <div class="stadium-grid" id="stadiumGrid"></div>
         </section>
 
         <!-- VIEW: Postseason -->

@@ -3583,3 +3583,307 @@ body {
     .view { display: block !important; page-break-after: always; }
     .standings-table th, .player-table th { background: #eee; }
 }
+
+/* ===== STADIUM VIEW ===== */
+.stadium-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(2, auto);
+    gap: 16px;
+    padding: 8px 0 24px;
+}
+
+/* 카드 플립 컨테이너 */
+.stadium-flip {
+    perspective: 1000px;
+    cursor: pointer;
+}
+.stadium-flip__inner {
+    position: relative;
+    width: 100%;
+    transition: transform 0.65s cubic-bezier(.4,.2,.2,1);
+    transform-style: preserve-3d;
+}
+.stadium-flip.flipped .stadium-flip__inner {
+    transform: rotateY(180deg);
+}
+.stadium-flip__front,
+.stadium-flip__back {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+.stadium-flip__front {
+    background: var(--card-bg, #1a2332);
+    display: flex;
+    flex-direction: column;
+}
+.stadium-flip__back {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    transform: rotateY(180deg);
+    background: var(--card-bg, #1a2332);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.stadium-flip:hover .stadium-flip__front {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+.stadium-flip.flipped:hover .stadium-flip__back {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+/* 앞면 기존 카드 스타일 */
+.stadium-card__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.04);
+}
+.stadium-card__emblem {
+    width: 36px; height: 36px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+.stadium-card__team {
+    font-size: 12px; font-weight: 700;
+    color: var(--text-primary, #e8eaf0);
+}
+.stadium-card__name {
+    font-size: 11px; color: var(--text-muted, #8899aa);
+    margin-top: 1px;
+}
+.stadium-card__city {
+    font-size: 10px; color: var(--text-dim, #667788);
+    margin-top: 1px;
+}
+.stadium-card__svg {
+    width: 100%;
+    aspect-ratio: 240 / 190;
+    background: #0a180a;
+}
+.stadium-card__info {
+    padding: 8px 12px;
+    flex: 1;
+}
+.stadium-dim-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+.stadium-dim-table th {
+    text-align: left;
+    font-size: 10px;
+    color: var(--text-muted, #8899aa);
+    padding: 0 0 4px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    letter-spacing: 0.05em;
+}
+.stadium-dim-table td {
+    padding: 2px 0;
+    color: var(--text-secondary, #b0bcc8);
+    font-size: 11px;
+}
+.stadium-dim-table td:first-child {
+    width: 55px; color: var(--text-muted, #8899aa);
+}
+.stadium-dim-table strong {
+    color: var(--text-primary, #e8eaf0);
+    font-weight: 600;
+}
+.stadium-alt {
+    margin-top: 6px;
+    font-size: 10px;
+    color: var(--text-dim, #667788);
+}
+.stadium-note {
+    margin-top: 4px;
+    font-size: 10px;
+    color: #fbbf24;
+    line-height: 1.4;
+}
+.stadium-card__flip-hint {
+    text-align: center;
+    font-size: 9px;
+    color: var(--text-dim, #667788);
+    padding: 4px 0 8px;
+    opacity: 0.7;
+}
+
+/* ── 뒷면: 스카우팅 리포트 ── */
+.scout-report {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 100%;
+    overflow-y: auto;
+}
+.scout-report__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--sr-color, #3399cc);
+}
+.scout-report__header-icon {
+    font-size: 18px;
+}
+.scout-report__header-text {
+    flex: 1;
+}
+.scout-report__team-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary, #e8eaf0);
+}
+.scout-report__subtitle {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted, #8899aa);
+    margin-top: 1px;
+}
+.scout-report__badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    color: #fff;
+    white-space: nowrap;
+}
+.scout-report__badge--pitcher  { background: #2563eb; }
+.scout-report__badge--hitter   { background: #dc2626; }
+.scout-report__badge--neutral  { background: #6b7280; }
+.scout-report__badge--unique   { background: #9333ea; }
+
+.scout-report__items {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+.scout-report__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--text-secondary, #b0bcc8);
+}
+.scout-report__icon {
+    flex-shrink: 0;
+    width: 18px;
+    text-align: center;
+    font-size: 13px;
+}
+.scout-report__text {
+    flex: 1;
+}
+
+.scout-report__strategy {
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding-top: 8px;
+    margin-top: auto;
+}
+.scout-report__strategy-title {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted, #8899aa);
+    margin-bottom: 6px;
+}
+.scout-report__strategy-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 11px;
+    line-height: 1.4;
+    color: #fbbf24;
+    margin-bottom: 4px;
+}
+
+.scout-report__back-hint {
+    text-align: center;
+    font-size: 9px;
+    color: var(--text-dim, #667788);
+    opacity: 0.7;
+    padding-top: 4px;
+}
+
+@media (max-width: 1100px) {
+    .stadium-grid { grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .stadium-card__header { padding: 8px 10px; }
+    .stadium-card__info { padding: 6px 10px; }
+    .scout-report { padding: 10px; }
+}
+@media (max-width: 768px) {
+    .stadium-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ===== TEAM DETAIL: 홈구장 섹션 ===== */
+.team-detail__stadium {
+    margin-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    padding-top: 16px;
+}
+.detail-stadium-wrap h4 {
+    font-size: 14px; font-weight: 700;
+    color: var(--text-primary, #e8eaf0);
+    margin: 0 0 12px;
+}
+.detail-stadium-inner {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+.detail-stadium-svg {
+    width: 180px;
+    height: 140px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #0a180a;
+}
+.detail-stadium-info {
+    flex: 1;
+    min-width: 0;
+}
+.detail-stadium-name {
+    font-size: 13px; font-weight: 700;
+    color: var(--text-primary, #e8eaf0);
+    margin-bottom: 2px;
+    word-break: keep-all;
+}
+.detail-stadium-city {
+    font-size: 11px; color: var(--text-muted, #8899aa);
+    margin-bottom: 10px;
+}
+.ds-dims {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+.ds-dim-item {
+    background: rgba(255,255,255,0.04);
+    border-radius: 6px;
+    padding: 5px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.ds-dim-item span {
+    font-size: 10px;
+    color: var(--text-muted, #8899aa);
+}
+.ds-dim-item strong {
+    font-size: 13px; font-weight: 700;
+    color: var(--text-primary, #e8eaf0);
+}
