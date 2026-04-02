@@ -289,7 +289,7 @@ function setupPlayerSearch() {
                 <div class="search-result" data-team="${p.team}" data-id="${p.id}">
                     <img class="search-result__logo" src="${teamLogo(p.team)}" alt="">
                     <span class="search-result__name">${p.name}</span>
-                    <span class="search-result__info">#${p.number || '-'} ${p.pos} ${p.salary ? p.salary.toFixed(1) + '억' : ''}</span>
+                    <span class="search-result__info">#${p.number || '-'} ${p.pos} ${p.salary ? p.salary.toFixed(1) + '억' : ''}${p.statLine ? ' · ' + p.statLine : ''}</span>
                 </div>
             `).join('');
         }
@@ -339,7 +339,14 @@ function searchPlayers(query) {
     const q = query.toLowerCase();
     for (const [id, p] of Object.entries(state.players)) {
         if (p.name && p.name.toLowerCase().includes(q)) {
-            results.push({ id, name: p.name, team: p.team, pos: p.position || p.pos || '', number: p.number, salary: p.salary });
+            const rs = p.realStats;
+            let statLine = '';
+            if (rs && p.position === 'P') {
+                statLine = `ERA ${rs.ERA != null ? rs.ERA.toFixed(2) : '-'} / WAR ${rs.WAR != null ? rs.WAR.toFixed(1) : '-'}`;
+            } else if (rs && p.position !== 'P') {
+                statLine = `AVG ${rs.AVG != null ? rs.AVG.toFixed(3) : '-'} / OPS ${rs.OPS != null ? rs.OPS.toFixed(3) : '-'}`;
+            }
+            results.push({ id, name: p.name, team: p.team, pos: p.position || p.pos || '', number: p.number, salary: p.salary, statLine });
         }
     }
     results.sort((a, b) => (b.salary || 0) - (a.salary || 0));
@@ -2026,8 +2033,8 @@ function renderPitcherSaberStats(rs) {
         { label: 'K%', value: KPCT + '%' },
         { label: 'BB%', value: BBPCT + '%' },
         { label: 'K-BB%', value: KBBPCT + '%' },
-        { label: 'BABIP', value: rs.BABIP.toFixed(3) },
-        { label: 'WPA', value: rs.WPA.toFixed(2) },
+        { label: 'BABIP', value: rs.BABIP != null ? rs.BABIP.toFixed(3) : '-' },
+        { label: 'WPA', value: rs.WPA != null ? rs.WPA.toFixed(2) : '-' },
         { label: 'ERA', value: rs.ERA.toFixed(2) },
     ];
     return `<div class="pm-stats-grid">${items.map(s => {
