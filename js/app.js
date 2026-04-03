@@ -54,7 +54,7 @@ function loadState() {
                     let totalGames = 0;
                     for (let q = 1; q <= 4; q++) {
                         const r = firstTeam.seasonRecord?.[`q${q}`];
-                        if (r) totalGames += (r.wins || 0) + (r.losses || 0);
+                        if (r) totalGames += (r.wins || 0) + (r.losses || 0) + (r.draws || 0);
                     }
                     const hasChampion = !!parsed.champion;
                     if (totalGames >= 144 || hasChampion) {
@@ -98,36 +98,21 @@ function resetState() {
         if (!confirm('정말로 초기화합니다. 되돌릴 수 없습니다!')) return;
     }
 
+    // 로컬 데이터 모두 제거
     localStorage.removeItem('kbo-sim-state');
     localStorage.removeItem('kbo-foreign-scout-state');
-    state = generateSampleData();
-    window.state = state;
-    updateAllPowerScores();
-    renderDashboard();
-    renderRoster();
-    renderDepthChart();
-    renderSimulator();
-    renderPostseason();
-    updateQuarterBadge();
-    // 외국인 스카우트 초기화
-    foreignScoutState.unlocked = false;
-    foreignScoutState.batterUnlocked = false;
-    foreignScoutState.missionShown = false;
-    foreignScoutState.missionChoice = null;
-    foreignScoutState.recruited = [];
-    const navFs = document.getElementById('navForeignScout');
-    if (navFs) { navFs.classList.add('nav-btn--locked'); navFs.classList.remove('nav-btn--unlocked'); navFs.textContent = '🔒 외국인 스카우트'; }
-    const fsTabBatter = document.getElementById('fsTabBatter');
-    if (fsTabBatter) { fsTabBatter.classList.add('fs-sub-tab--locked'); fsTabBatter.textContent = '🔒 타자 후보'; }
-    showToast('초기화 완료! 새로운 시즌을 시작합니다.', 'info');
+    // 시즌 변동 캐시 초기화
+    window._seasonVarCache = {};
 
     // ── Supabase 동기화: 학생에게 초기화 전파 ──
+    const teamCodes = ['LG','두산','롯데','KIA','KT','한화','NC','SSG','키움','삼성'];
+    const emptyRecord = {
+        q1:{wins:0,losses:0,draws:0,rs:0,ra:0}, q2:{wins:0,losses:0,draws:0,rs:0,ra:0},
+        q3:{wins:0,losses:0,draws:0,rs:0,ra:0}, q4:{wins:0,losses:0,draws:0,rs:0,ra:0}
+    };
+
     try {
-        const teamCodes = Object.keys(state.teams);
-        const emptyRecord = {
-            q1:{wins:0,losses:0,draws:0,rs:0,ra:0}, q2:{wins:0,losses:0,draws:0,rs:0,ra:0},
-            q3:{wins:0,losses:0,draws:0,rs:0,ra:0}, q4:{wins:0,losses:0,draws:0,rs:0,ra:0}
-        };
+        const promises = [];
 
         // 1) 전체 팀 시즌 기록 초기화
         if (typeof saveAllGameStates === 'function') {
@@ -135,29 +120,38 @@ function resetState() {
             for (const code of teamCodes) {
                 statesMap[code] = { season_record: emptyRecord };
             }
-            saveAllGameStates(statesMap);
+            promises.push(saveAllGameStates(statesMap));
         }
 
-        // 2) sim_results 초기화 — 빈 standings로 덮어쓰기
+        // 2) sim_results 초기화
         if (typeof saveSimResult === 'function') {
             const emptyStandings = teamCodes.map(code => ({
-                code,
-                wins: 0, losses: 0, draws: 0, rate: 0,
+                code, wins: 0, losses: 0, draws: 0, rate: 0,
                 seasonRecord: emptyRecord,
             }));
-            saveSimResult(0, emptyStandings, { totalGames: 0, reset: true });
+            promises.push(saveSimResult(0, emptyStandings, { totalGames: 0, reset: true }));
         }
 
         // 3) 교실 상태 초기화
         if (typeof updateClassroom === 'function') {
-            updateClassroom({ is_simulating: false, current_quarter: 0, season_phase: 'pre' });
+            promises.push(updateClassroom({ is_simulating: false, current_quarter: 0, season_phase: 'pre' }));
         }
 
         // 4) 활동 로그
         if (typeof logActivity === 'function') {
-            logActivity(null, 'reset', { message: '교사가 시즌을 초기화했습니다.' });
+            promises.push(logActivity(null, 'reset', { message: '교사가 시즌을 초기화했습니다.' }));
         }
-    } catch (e) { console.warn('초기화 Supabase 동기화 실패:', e); }
+
+        // 모든 Supabase 작업 완료 후 새로고침
+        Promise.all(promises).then(() => {
+            location.reload();
+        }).catch(() => {
+            location.reload();
+        });
+    } catch (e) {
+        // Supabase 없어도 새로고침
+        location.reload();
+    }
 }
 
 function updateAllPowerScores() {
