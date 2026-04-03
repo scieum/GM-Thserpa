@@ -47,7 +47,26 @@ function loadState() {
         const saved = localStorage.getItem('kbo-sim-state');
         if (saved) {
             const parsed = JSON.parse(saved);
-            if (parsed.teams && parsed.players) return parsed;
+            if (parsed.teams && parsed.players) {
+                // 시즌 완료 감지: 144경기 모두 진행 or 챔피언 결정
+                const firstTeam = Object.values(parsed.teams)[0];
+                if (firstTeam) {
+                    let totalGames = 0;
+                    for (let q = 1; q <= 4; q++) {
+                        const r = firstTeam.seasonRecord?.[`q${q}`];
+                        if (r) totalGames += (r.wins || 0) + (r.losses || 0);
+                    }
+                    const hasChampion = !!parsed.champion;
+                    if (totalGames >= 144 || hasChampion) {
+                        if (confirm('이전 시즌이 종료되었습니다.\n새로운 시즌을 시작하시겠습니까?\n\n[확인] → 새 시즌 시작\n[취소] → 이전 시즌 데이터 유지')) {
+                            localStorage.removeItem('kbo-sim-state');
+                            localStorage.removeItem('kbo-foreign-scout-state');
+                            return generateSampleData();
+                        }
+                    }
+                }
+                return parsed;
+            }
         }
     } catch (e) { /* ignore */ }
     return generateSampleData();
@@ -3137,10 +3156,14 @@ async function runKS() {
     removeFatigue(state, teamB);
 
     // Champion!
+    state.champion = result.winner;
     const championEl = document.getElementById('champion');
     championEl.style.display = 'block';
     document.getElementById('championName').textContent = `🏆 ${state.teams[result.winner].name}`;
     createConfetti();
+
+    // 시즌 완료 저장
+    localStorage.setItem('kbo-sim-state', JSON.stringify(state));
 
     // Awards
     const awardsEl = document.getElementById('postseasonAwards');
