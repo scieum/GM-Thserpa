@@ -175,7 +175,7 @@ function createEmptyDepthChart() {
     };
 }
 
-// ── 자동 배정 (OVR 기반) ──
+// ── 자동 배정 (AI 감독 스타일 기반) ──
 function autoAssignDepthChart(teamCode) {
     const team = state.teams[teamCode];
     const pitchers = getTeamPitchers(state, teamCode);
@@ -184,7 +184,10 @@ function autoAssignDepthChart(teamCode) {
     if (!team.depthChart) team.depthChart = createEmptyDepthChart();
     const dc = team.depthChart;
 
-    // 1) 수비 라인업
+    // 감독 프로필 로드
+    const profile = (typeof MANAGER_PROFILES !== 'undefined' && MANAGER_PROFILES[teamCode]) || { dataOrientation: 50 };
+
+    // 1) 수비 라인업 — 포지션별 최고 OVR 배치
     const posOrder = ['C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
     const usedIds = new Set();
     for (const pos of posOrder) {
@@ -204,32 +207,58 @@ function autoAssignDepthChart(teamCode) {
         usedIds.add(dhCandidates[0].id);
     }
 
-    // 2) 타선 라인업 — OVR순으로 3-4-5-2-1-6-7-8-9 배치
-    const lineupPlayers = posOrder.map(pos => dc.defense[pos]).filter(Boolean);
+    // 2) AI 타순 배치 — 감독 스타일(데이터/전통)에 따라 배치
+    const lineupIds = posOrder.map(pos => dc.defense[pos]).filter(Boolean);
     const dhId = dc.defense.DH;
-    if (dhId) lineupPlayers.push(dhId);
-    const sorted = [...lineupPlayers].sort((a, b) => (state.players[b]?.ovr || 0) - (state.players[a]?.ovr || 0));
-    const orderMapping = [4, 2, 0, 1, 3, 5, 6, 7, 8];
-    dc.lineup.vsRHP = Array(9).fill(null);
-    dc.lineup.vsLHP = Array(9).fill(null);
-    for (let i = 0; i < Math.min(sorted.length, 9); i++) {
-        const slot = orderMapping[i] !== undefined ? orderMapping[i] : i;
-        dc.lineup.vsRHP[slot] = sorted[i];
-        dc.lineup.vsLHP[slot] = sorted[i];
+    if (dhId) lineupIds.push(dhId);
+    const lineupPlayers = lineupIds.map(id => state.players[id]).filter(Boolean);
+
+    if (typeof generateAILineup === 'function' && lineupPlayers.length > 0) {
+        const aiOrder = generateAILineup(lineupPlayers, profile);
+        dc.lineup.vsRHP = Array(9).fill(null);
+        dc.lineup.vsLHP = Array(9).fill(null);
+        for (let i = 0; i < Math.min(aiOrder.length, 9); i++) {
+            const pid = aiOrder[i] ? aiOrder[i].id : null;
+            dc.lineup.vsRHP[i] = pid;
+            dc.lineup.vsLHP[i] = pid;
+        }
+    } else {
+        // 폴백: OVR 기반 3-4-5-2-1 배치
+        const sorted = [...lineupIds].sort((a, b) => (state.players[b]?.ovr || 0) - (state.players[a]?.ovr || 0));
+        const orderMapping = [4, 2, 0, 1, 3, 5, 6, 7, 8];
+        dc.lineup.vsRHP = Array(9).fill(null);
+        dc.lineup.vsLHP = Array(9).fill(null);
+        for (let i = 0; i < Math.min(sorted.length, 9); i++) {
+            const slot = orderMapping[i] !== undefined ? orderMapping[i] : i;
+            dc.lineup.vsRHP[slot] = sorted[i];
+            dc.lineup.vsLHP[slot] = sorted[i];
+        }
     }
 
-    // 3) 선발 로테이션
+    // 3) 선발 로테이션 — OVR 순
     const starters = pitchers.filter(p => p.role === '선발').sort((a, b) => b.ovr - a.ovr);
     dc.rotation = starters.slice(0, 5).map(p => p.id);
     while (dc.rotation.length < 5) dc.rotation.push(null);
 
-    // 4) 불펜 구성
+    // 4) 불펜 구성 — 역할별 배정
     const closers = pitchers.filter(p => p.role === '마무리').sort((a, b) => b.ovr - a.ovr);
     const relievers = pitchers.filter(p => p.role === '중계').sort((a, b) => b.ovr - a.ovr);
     dc.bullpen.closer = closers.slice(0, 1).map(p => p.id);
     dc.bullpen.setup = relievers.slice(0, 3).map(p => p.id);
     dc.bullpen.middle = relievers.slice(3, 6).map(p => p.id);
     dc.bullpen.long = relievers.slice(6, 8).map(p => p.id);
+
+    // 5) 타순별 전술 지시 저장
+    dc.tactics = {
+        // 1~2번: 도루 허용, 인내심 접근
+        leadoff: { steal: true, patience: true, bunt: profile.dataOrientation < 50 },
+        // 3~5번: 파워 중심, 번트 금지
+        cleanup: { steal: false, patience: false, bunt: false, powerSwing: true },
+        // 6~7번: 상황별, 번트 금지
+        middle: { steal: false, patience: false, bunt: false },
+        // 8~9번: 컨택 우선, 번트 허용
+        bottom: { steal: false, patience: false, bunt: true, contact: true },
+    };
 }
 
 // ── 메인 렌더 ──

@@ -17,6 +17,24 @@ function teamWordmark(code) {
     return `image/wordmark/${TEAM_IMG[code]}.${ext}`;
 }
 
+// ── AI 감독 프로필 ──
+// dataOrientation: 0(전통)~100(데이터지향) — 타순 배치 철학 결정
+// aggression: 0(보수)~100(공격) — 도루/번트/대타 빈도
+// patience: 투수 교체 인내심 (낮을수록 빠르게 교체)
+// youthTrust: 젊은 선수 기용 성향
+const MANAGER_PROFILES = {
+    'LG':   { dataOrientation:75, aggression:55, patience:60, youthTrust:60 },
+    '두산': { dataOrientation:60, aggression:50, patience:65, youthTrust:55 },
+    '롯데': { dataOrientation:45, aggression:60, patience:50, youthTrust:65 },
+    'KIA':  { dataOrientation:40, aggression:65, patience:55, youthTrust:70 },
+    'KT':   { dataOrientation:70, aggression:45, patience:70, youthTrust:50 },
+    '한화': { dataOrientation:35, aggression:55, patience:60, youthTrust:55 },
+    'NC':   { dataOrientation:55, aggression:50, patience:55, youthTrust:60 },
+    'SSG':  { dataOrientation:65, aggression:50, patience:60, youthTrust:55 },
+    '키움': { dataOrientation:50, aggression:60, patience:50, youthTrust:70 },
+    '삼성': { dataOrientation:55, aggression:45, patience:65, youthTrust:60 },
+};
+
 // 코칭스태프 (감독 + 코치)
 // 1군 코칭스태프 (KBO 2025 시즌 공식 발표 기준)
 const COACHING_STAFF = {
@@ -75,13 +93,13 @@ const REAL_ROSTERS = {
     '롯데': {
         manager: '김태형',
         P: ['한현희','김강현','박세웅','비슬리*','로드리게스*','김원중','박정민','이민석','쿄야마*','이준서','윤성빈','최준용','박준우','정철원'],
-        C: ['유강남','손성빈','정보근'],
-        IF: ['전민재','김민성','한동희','이호준','노진혁','박승욱','한태양','이서준'],
-        OF: ['황성빈','레이예스*','신윤후','손호영','장두성','전준우','윤동희'],
+        C: ['유강남','정보근'],
+        IF: ['전민재','김민성','한동희','이호준','노진혁','박승욱','한태양'],
+        OF: ['황성빈','레이예스*','손호영','장두성','전준우','윤동희'],
     },
     'KIA': {
         manager: '이범호',
-        P: ['조상우','올러*','최지민','네일*','황동하','이의리','김범수','전상현','김기훈','김시훈','정해영','성영탁','홍민규','양현종'],
+        P: ['조상우','올러*','최지민','네일*','황동하','이의리','김범수','전상현','김기훈','정해영','성영탁','홍민규','양현종'],
         C: ['한준수','김태군'],
         IF: ['정현창','김규성','윤도현','박민','김선빈','데일*','김도영','오선우'],
         OF: ['박정우','박재현','카스트로*','김호령','나성범','이창진'],
@@ -91,7 +109,7 @@ const REAL_ROSTERS = {
         P: ['고영표','스기모토*','우규민','김민수','전용주','소형준','사우어*','한승혁','보쉴리*','주권','손동현','박영현','박지훈'],
         C: ['장성우','조대현','한승택'],
         IF: ['허경민','오윤석','권동진','이강민','김상수','류현인'],
-        OF: ['김현수','힐리어드*','안현민','배정대','최원준','이정훈','장진혁','안치영'],
+        OF: ['김현수','힐리어드*','안현민','배정대','최원준','이정훈','장진혁'],
     },
     '한화': {
         manager: '김경문',
@@ -104,7 +122,7 @@ const REAL_ROSTERS = {
         manager: '이호준',
         P: ['토다*','라일리*','김영규','임지민','임정호','이준혁','류진욱','손주환','김진호','구창모','배재환','원종해','테일러*'],
         C: ['김형준','김정호'],
-        IF: ['김한별','최정원','박민우','데이비슨*','오영수','허윤','김휘집','서호철','김주원','신재인'],
+        IF: ['김한별','최정원','박민우','데이비슨*','오영수','허윤','김휘집','서호철','김주원'],
         OF: ['천재환','한석현','권희동','박건우','고준휘'],
     },
     'SSG': {

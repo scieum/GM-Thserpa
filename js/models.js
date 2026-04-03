@@ -409,6 +409,174 @@ function getAcePitcher(state, teamCode) {
     );
 }
 
+// ══════════════════════════════════════════
+// ── AI 감독 로직: 선수 가중치 & 타순 배치 ──
+// ══════════════════════════════════════════
+
+// 시그모이드 컨디션 곡선 (0~1)
+function sigmoid01(x) { return 1 / (1 + Math.exp(-x)); }
+
+/**
+ * AI 선수 가중치 계산 (10가지 요소 조합)
+ * @param {object} player - 선수 객체
+ * @param {object} ctx - 컨텍스트 { gameNum, isHome, streak, opponentCode, state }
+ * @returns {number} 가중치 (0~100+)
+ */
+function calcPlayerWeight(player, ctx = {}) {
+    const p = player;
+    const ovr = p.ovr || 50;
+    let w = ovr; // 1) 기본 OVR
+
+    // 2) 컨디션 곡선 (시그모이드: 시즌 중반 피크)
+    const gn = ctx.gameNum || 72;
+    const condRaw = -((gn - 72) / 36); // 72경기(시즌 중반) 피크
+    w += (sigmoid01(condRaw) - 0.5) * 6;
+
+    // 3) 피로도 — 포지션별 차등
+    const fatiguePenalty = p.position === 'P' ? 0 :
+        (p.position === 'C' ? 3 : (p.stats?.G || 0) > 120 ? 2 : 0);
+    w -= fatiguePenalty;
+
+    // 4) 시즌 부담 — 100경기 이상 출전 피로
+    const gPlayed = p.stats?.G || 0;
+    if (gPlayed > 100) w -= (gPlayed - 100) * 0.03;
+
+    // 5) 연승/연패 스트릭 보너스
+    const streak = ctx.streak || 0;
+    if (streak >= 3) w += 1.5;
+    else if (streak <= -3) w -= 1.0;
+
+    // 6) 유소년 보너스 (24세 이하)
+    if (p.age && p.age <= 24) w += 2;
+
+    // 7) 좌우 상성 (L/R 매치업)
+    if (ctx.oppPitcherHand && p.stats) {
+        const tb = p.throwBat || '';
+        if (ctx.oppPitcherHand === 'L' && tb.includes('우타')) w += 1.5;
+        if (ctx.oppPitcherHand === 'R' && tb.includes('좌타')) w += 1.0;
+    }
+
+    // 8) 상대 팀 상성 (OPS 기반 — 향후 확장)
+    // 현재는 기본값 유지
+
+    // 9) 복귀 보호 (부상 복귀 직후)
+    if (p.justReturned) w -= 3;
+
+    // 10) 홈/원정 스플릿
+    if (ctx.isHome) w += 1;
+
+    return Math.max(0, Math.round(w * 10) / 10);
+}
+
+/**
+ * AI 타순 배치 — 감독 스타일에 따라 다름
+ * @param {object[]} batters - 출전 타자 배열 (9명)
+ * @param {object} profile - MANAGER_PROFILES 엔트리
+ * @returns {object[]} 타순 배열 (index 0=1번, 8=9번)
+ */
+function generateAILineup(batters, profile) {
+    if (!batters || batters.length === 0) return [];
+    const dOri = (profile && profile.dataOrientation) || 50;
+    const isData = dOri >= 50; // 데이터 지향 vs 전통
+
+    // 헬퍼: 스탯 가져오기
+    const stat = (p, key, def) => (p.stats && p.stats[key] != null) ? p.stats[key] : (p.ratings ? p.ratings[key] || def : def);
+    const obp = p => stat(p, 'OBP', 0.300);
+    const slg = p => stat(p, 'SLG', 0.350);
+    const spd = p => stat(p, 'speed', 40) || (p.ratings?.speed || 40);
+    const con = p => stat(p, 'contact', 50) || (p.ratings?.contact || 50);
+    const pwr = p => stat(p, 'power', 50) || (p.ratings?.power || 50);
+    const ovr = p => p.ovr || 50;
+
+    const pool = [...batters];
+    const lineup = new Array(9).fill(null);
+
+    function pickBest(scoreFn) {
+        if (pool.length === 0) return null;
+        pool.sort((a, b) => scoreFn(b) - scoreFn(a));
+        return pool.splice(0, 1)[0];
+    }
+
+    if (isData) {
+        // ── 데이터 지향 감독 ──
+        lineup[0] = pickBest(p => obp(p) * 100);                         // 1번: OBP
+        lineup[1] = pickBest(p => ovr(p) * obp(p) * 100);                // 2번: OVR × OBP
+        lineup[2] = pickBest(p => obp(p) * slg(p) * 1000);               // 3번: OBP × SLG (클러치)
+        lineup[3] = pickBest(p => slg(p) * 100 + pwr(p));                 // 4번: SLG + 파워
+        lineup[4] = pickBest(p => slg(p) * 50 + obp(p) * 50);            // 5번: SLG + OBP 밸런스
+    } else {
+        // ── 전통 감독 ──
+        lineup[0] = pickBest(p => obp(p) * 50 + spd(p));                  // 1번: OBP + 주력
+        lineup[1] = pickBest(p => con(p));                                 // 2번: 컨택
+        lineup[2] = pickBest(p => ovr(p));                                 // 3번: OVR (팀 최고)
+        lineup[3] = pickBest(p => pwr(p));                                 // 4번: 파워
+        lineup[4] = pickBest(p => slg(p) * 100);                          // 5번: SLG
+    }
+
+    // 6~9번: 남은 선수 가중치 내림차순
+    pool.sort((a, b) => (b.ovr || 0) - (a.ovr || 0));
+    for (let i = 5; i < 9; i++) {
+        lineup[i] = pool.length > 0 ? pool.shift() : null;
+    }
+
+    return lineup;
+}
+
+/**
+ * AI 로테이션 관리
+ * 5선발 시스템: 중4일 휴식, 팔 상태 30 이상
+ */
+function getNextStarter(rotation, pitcherStates, gameNum) {
+    // pitcherStates: { [id]: { lastStart: gameNum, armCondition: 0-100, restDays: N } }
+    if (!rotation || rotation.length === 0) return null;
+
+    // 휴식일 충족 + 팔 상태 30 이상인 투수 중 가장 오래 쉰 투수
+    const eligible = rotation.filter(id => {
+        if (!id) return false;
+        const ps = pitcherStates[id] || { lastStart: -10, armCondition: 80 };
+        const rest = gameNum - (ps.lastStart || 0);
+        return rest >= 5 && (ps.armCondition || 80) >= 30; // 중4일 = 5경기 간격
+    });
+
+    if (eligible.length > 0) {
+        eligible.sort((a, b) => {
+            const aLast = (pitcherStates[a]?.lastStart || 0);
+            const bLast = (pitcherStates[b]?.lastStart || 0);
+            return aLast - bLast; // 가장 오래 쉰 순
+        });
+        return eligible[0];
+    }
+
+    // 모두 못 던지면 로테이션 순서대로 첫 번째
+    return rotation.find(id => id) || null;
+}
+
+/**
+ * 불펜 운용 — 역할별 투수 선택
+ * @param {object} bullpen - { closer:[], setup:[], middle:[], long:[] }
+ * @param {string} situation - 'save'|'hold'|'middle'|'long'
+ * @param {object} pitcherStates - 피로/연투 상태
+ */
+function selectReliever(bullpen, situation, pitcherStates = {}) {
+    const roleMap = {
+        save: 'closer',
+        hold: 'setup',
+        middle: 'middle',
+        long: 'long',
+    };
+    const role = roleMap[situation] || 'middle';
+    const candidates = bullpen[role] || [];
+
+    // 연투 제한 체크 (2연투 시 휴식 필요)
+    const available = candidates.filter(id => {
+        const ps = pitcherStates[id];
+        if (!ps) return true;
+        return (ps.consecutiveGames || 0) < 2;
+    });
+
+    return available.length > 0 ? available[0] : candidates[0] || null;
+}
+
 // 전역
 window.calcPitcherPower = calcPitcherPower;
 window.calcBatterPower = calcBatterPower;
@@ -433,6 +601,10 @@ window.getTeamTotalRecord = getTeamTotalRecord;
 window.getAcePitcher = getAcePitcher;
 window.calcBatterRatings = calcBatterRatings;
 window.calcBatterOVR = calcBatterOVR;
+window.calcPlayerWeight = calcPlayerWeight;
+window.generateAILineup = generateAILineup;
+window.getNextStarter = getNextStarter;
+window.selectReliever = selectReliever;
 window.getTeamFuturesPlayers = getTeamFuturesPlayers;
 window.getTeamMilitaryPlayers = getTeamMilitaryPlayers;
 window.promotePlayer = promotePlayer;
