@@ -221,18 +221,20 @@ function updateAllSimStats(state) {
         const teamWins = record.wins;
         const teamLosses = record.losses;
 
-        // 1) 타자 simStats 생성
+        // 1) 타자 simStats 생성 — 선수별 시드 RNG 사용
         for (const pid of team.roster) {
             const p = state.players[pid];
             if (!p || p.position === 'P') continue;
+            _currentRng = createSeededRng(hashStr(pid + '_bat_' + totalGames));
             p.simStats = generateBatterSimStats(p, totalGames, seasonPct);
         }
 
-        // 2) 투수 simStats 생성 (승/패는 0으로 초기화)
+        // 2) 투수 simStats 생성 (승/패는 배분 함수에서 처리)
         const pitcherList = [];
         for (const pid of team.roster) {
             const p = state.players[pid];
             if (!p || p.position !== 'P') continue;
+            _currentRng = createSeededRng(hashStr(pid + '_pit_' + totalGames));
             p.simStats = generatePitcherSimStats(p, totalGames, seasonPct, teamWins, teamLosses);
             if (p.simStats) pitcherList.push(p);
         }
@@ -240,6 +242,9 @@ function updateAllSimStats(state) {
         // 3) 팀 승/패를 투수들에게 배분 (개인 승/패 합 = 팀 승/패)
         distributePitcherWinLoss(pitcherList, teamWins, teamLosses);
     }
+
+    // RNG 복원 (시뮬레이션 대전은 Math.random 사용)
+    _currentRng = Math.random;
 }
 
 /**
@@ -249,6 +254,9 @@ function updateAllSimStats(state) {
  */
 function distributePitcherWinLoss(pitchers, teamW, teamL) {
     if (!pitchers.length || (teamW + teamL) === 0) return;
+    // 팀 코드 기반 시드로 배분 결과도 결정론적
+    const teamSeed = pitchers[0]?.team || 'X';
+    _currentRng = createSeededRng(hashStr(teamSeed + '_wl_' + teamW + '_' + teamL));
 
     const starters = pitchers.filter(p => p.role === '선발' && p.simStats);
     const closers = pitchers.filter(p => p.role === '마무리' && p.simStats);
@@ -358,10 +366,37 @@ function distributePitcherWinLoss(pitchers, teamW, teamL) {
     }
 }
 
-/** 난수 헬퍼: 정규분포 근사 */
+// ══════════════════════════════════════════
+// ── 결정론적 시드 난수 (교사-학생 동일 결과 보장) ──
+// ══════════════════════════════════════════
+
+/** 문자열 → 32비트 해시 */
+function hashStr(s) {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) {
+        h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+    }
+    return h >>> 0;
+}
+
+/** 시드 기반 PRNG (Mulberry32) — 0~1 사이 값 반환 */
+function createSeededRng(seed) {
+    let t = seed >>> 0;
+    return function() {
+        t = (t + 0x6D2B79F5) | 0;
+        let x = Math.imul(t ^ (t >>> 15), 1 | t);
+        x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+        return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+    };
+}
+
+/** 현재 스탯 생성에 사용할 시드 RNG — 선수별로 결정론적 */
+let _currentRng = Math.random;
+
+/** 시드 기반 정규분포 */
 function randNorm(mean, sd) {
-    const u1 = Math.random(), u2 = Math.random();
-    return mean + sd * Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    const u1 = _currentRng(), u2 = _currentRng();
+    return mean + sd * Math.sqrt(-2 * Math.log(Math.max(u1, 1e-10))) * Math.cos(2 * Math.PI * u2);
 }
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
@@ -375,17 +410,21 @@ function roundIP(rawIP) {
 
 /**
  * 시즌 변동 팩터 — 브레이크아웃(+15%) / 슬럼프(-15%) / 평년
- * 선수별로 시즌 초 1회 결정, 이후 유지 (선수 id 기반 시드)
+ * 선수 ID 기반 시드로 교사-학생 동일 값 보장
  */
 function getSeasonVariance(playerId) {
-    // 간단한 해시로 시즌 내 일관성 유지
     if (!window._seasonVarCache) window._seasonVarCache = {};
     if (window._seasonVarCache[playerId] != null) return window._seasonVarCache[playerId];
-    // 20% 확률 브레이크아웃, 20% 슬럼프, 60% 평년
-    const roll = Math.random();
-    const v = roll < 0.20 ? randNorm(0.12, 0.04) :   // 브레이크아웃 (+8~16%)
-              roll < 0.40 ? randNorm(-0.10, 0.04) :   // 슬럼프 (-6~14%)
-              randNorm(0, 0.03);                        // 평년 (±3%)
+    // 선수 ID로 시드 고정
+    const rng = createSeededRng(hashStr('sv_' + playerId));
+    const roll = rng();
+    // 임시로 rng 사용
+    const oldRng = _currentRng;
+    _currentRng = rng;
+    const v = roll < 0.20 ? randNorm(0.12, 0.04) :
+              roll < 0.40 ? randNorm(-0.10, 0.04) :
+              randNorm(0, 0.03);
+    _currentRng = oldRng;
     window._seasonVarCache[playerId] = clamp(v, -0.20, 0.25);
     return window._seasonVarCache[playerId];
 }
