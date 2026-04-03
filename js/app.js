@@ -123,13 +123,16 @@ function resetState() {
             promises.push(saveAllGameStates(statesMap));
         }
 
-        // 2) sim_results 초기화
+        // 2) sim_results 초기화 — 모든 분기(0~4) 덮어쓰기
+        // quarter=0만 덮으면 기존 1~4Q 기록이 남아 재로드 시 복원됨
         if (typeof saveSimResult === 'function') {
             const emptyStandings = teamCodes.map(code => ({
                 code, wins: 0, losses: 0, draws: 0, rate: 0,
                 seasonRecord: emptyRecord,
             }));
-            promises.push(saveSimResult(0, emptyStandings, { totalGames: 0, reset: true }));
+            for (let q = 0; q <= 4; q++) {
+                promises.push(saveSimResult(q, emptyStandings, { totalGames: 0, reset: q === 0 }));
+            }
         }
 
         // 3) 교실 상태 초기화

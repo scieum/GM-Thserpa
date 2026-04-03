@@ -136,7 +136,14 @@ async function onLoginSuccess() {
                 // 가장 최근 결과의 standings에서 seasonRecord 복원
                 const latest = simResults[simResults.length - 1];
                 const standings = latest.standings;
-                if (Array.isArray(standings)) {
+                // 리셋된 상태(전 분기 totalGames=0)면 Supabase 데이터 복원 건너뜀
+                const totalRestoredGames = standings.reduce((sum, s) => {
+                    const sr = s.seasonRecord || {};
+                    return sum + [sr.q1, sr.q2, sr.q3, sr.q4].reduce((a, q) =>
+                        a + (q ? (q.wins||0) + (q.losses||0) + (q.draws||0) : 0), 0);
+                }, 0);
+
+                if (Array.isArray(standings) && totalRestoredGames > 0) {
                     for (const s of standings) {
                         const team = state.teams[s.code];
                         if (team && s.seasonRecord) {
