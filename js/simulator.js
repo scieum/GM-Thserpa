@@ -491,6 +491,10 @@ function generateBatterSimStats(p, totalGames, seasonPct) {
     const SB = Math.round(G * clamp(randNorm(sbBase, 0.05), 0, 0.6));
     const CS = Math.round(SB * clamp(randNorm(0.25, 0.08), 0.1, 0.5));
 
+    // 병살타 — 발이 느리고 그라운드볼 성향일수록 높음
+    const gidpRate = clamp(0.045 - speedR * 0.025 + (1 - contactR) * 0.012, 0.005, 0.08);
+    const GIDP = Math.round(AB * clamp(randNorm(gidpRate, 0.010), 0, 0.10));
+
     // 삼진
     const soBase = real.SO && real.PA ? real.SO / real.PA : clamp(0.25 - contactR * 0.15, 0.08, 0.35);
     const SO = Math.round(PA * clamp(randNorm(soBase * (1 - sv * 0.3), 0.025), 0.05, 0.40));
@@ -511,7 +515,7 @@ function generateBatterSimStats(p, totalGames, seasonPct) {
 
     return {
         G, PA, AB, H, '2B': doubles, '3B': triples, HR, RBI, R,
-        SB, CS, BB, HBP, SO, SF,
+        SB, CS, BB, HBP, SO, SF, GIDP,
         AVG: Math.round((AB > 0 ? H / AB : 0) * 1000) / 1000,
         OBP: Math.round(OBP * 1000) / 1000,
         SLG: Math.round(calcSLG * 1000) / 1000,

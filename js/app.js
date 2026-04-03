@@ -2961,26 +2961,62 @@ function showFullBatterRecord(stat) {
     const container = document.getElementById('batterFullRecords');
     const formatVal = v => typeof v === 'number' ? (v < 1 && v > -1 && stat !== 'WAR' && stat !== 'wRC+' ? v.toFixed(3) : Number.isInteger(v) ? v : v.toFixed(2)) : (v || '-');
 
+    // 클래식 + 세이버매트릭스 전체 컬럼 (가로 스크롤)
     const headers = [
-        {key:null,label:'순위'},{key:null,label:'팀'},{key:null,label:'이름'},{key:null,label:'포지션'},
-        {key:'AVG',label:'AVG'},{key:'HR',label:'HR'},{key:'RBI',label:'RBI'},{key:'H',label:'H'},
-        {key:'OPS',label:'OPS'},{key:'SB',label:'SB'},{key:'BB',label:'BB'},{key:'WAR',label:'WAR'},
-        {key:'G',label:'G'},{key:'PA',label:'PA'}
+        // 고정 (sticky)
+        {key:null,label:'#',sticky:true},{key:null,label:'팀',sticky:true},{key:null,label:'이름',sticky:true},{key:null,label:'포지션',sticky:true},
+        // 클래식
+        {key:'G',label:'G'},{key:'PA',label:'PA'},{key:'AB',label:'AB'},
+        {key:'AVG',label:'AVG'},{key:'H',label:'H'},{key:'2B',label:'2B'},{key:'3B',label:'3B'},
+        {key:'HR',label:'HR'},{key:'RBI',label:'RBI'},{key:'R',label:'R'},
+        {key:'SB',label:'SB'},{key:'CS',label:'CS'},{key:'BB',label:'BB'},
+        {key:'SO',label:'SO'},{key:'HBP',label:'HBP'},{key:'SF',label:'SF'},
+        {key:'GIDP',label:'GIDP'},
+        // 세이버매트릭스
+        {key:'OBP',label:'OBP'},{key:'SLG',label:'SLG'},{key:'OPS',label:'OPS'},
+        {key:'IsoP',label:'IsoP'},{key:'wRC+',label:'wRC+'},{key:'WAR',label:'WAR'},
+        {key:'oWAR',label:'oWAR'},{key:'dWAR',label:'dWAR'},
     ];
+
+    const thHtml = headers.map(h => {
+        const sticky = h.sticky ? 'class="col-sticky"' : '';
+        if (!h.key) return `<th ${sticky}>${h.label}</th>`;
+        const active = h.key === sortKey;
+        return `<th ${sticky} data-sort="${h.key}" style="cursor:pointer;${active ? 'color:var(--accent);' : ''}">${h.label}${active ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}</th>`;
+    }).join('');
+
+    const tbodyHtml = sorted.map((p, i) => {
+        const rs = p[statsKey];
+        const f3 = v => (v||0).toFixed(3);
+        const f2 = v => (v||0).toFixed(2);
+        const fi = v => v||0;
+        const f1 = v => (v||0).toFixed(1);
+        return `<tr>
+            <td class="col-sticky">${i+1}</td>
+            <td class="col-sticky"><img src="${teamLogo(p.team)}" style="width:18px;height:18px;vertical-align:middle"></td>
+            <td class="col-sticky" style="font-weight:600;cursor:pointer;text-decoration:underline dotted;white-space:nowrap;" onclick="if(state.players['${p.id}'])showPlayerModal(state.players['${p.id}'])">${p.name}</td>
+            <td class="col-sticky">${p.position}</td>
+            <td>${fi(rs.G)}</td><td>${fi(rs.PA)}</td><td>${fi(rs.AB)}</td>
+            <td>${f3(rs.AVG)}</td><td>${fi(rs.H)}</td><td>${fi(rs['2B'])}</td><td>${fi(rs['3B'])}</td>
+            <td>${fi(rs.HR)}</td><td>${fi(rs.RBI)}</td><td>${fi(rs.R)}</td>
+            <td>${fi(rs.SB)}</td><td>${fi(rs.CS)}</td><td>${fi(rs.BB)}</td>
+            <td>${fi(rs.SO)}</td><td>${fi(rs.HBP)}</td><td>${fi(rs.SF)}</td>
+            <td>${fi(rs.GIDP)}</td>
+            <td>${f3(rs.OBP)}</td><td>${f3(rs.SLG)}</td><td>${f3(rs.OPS)}</td>
+            <td>${f3(rs.IsoP)}</td><td>${f1(rs['wRC+'])}</td><td>${f2(rs.WAR)}</td>
+            <td>${f2(rs.oWAR)}</td><td>${f2(rs.dWAR)}</td>
+        </tr>`;
+    }).join('');
 
     container.innerHTML = `
         <h3 style="margin-bottom:8px;">타자 기록</h3>
         <button class="btn btn--sm" onclick="document.getElementById('batterFullRecords').style.display='none'" style="margin-bottom:12px;">닫기</button>
-        <table class="player-table records-full-table" id="batterRecordTable">
-            <thead><tr>${headers.map(h => h.key
-                ? `<th data-sort="${h.key}" style="cursor:pointer;${h.key === sortKey ? 'color:var(--accent);' : ''}">${h.label}${h.key === sortKey ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}</th>`
-                : `<th>${h.label}</th>`
-            ).join('')}</tr></thead>
-            <tbody>${sorted.map((p, i) => {
-                const rs = p[statsKey];
-                return `<tr><td>${i + 1}</td><td><img src="${teamLogo(p.team)}" style="width:18px;height:18px;vertical-align:middle"></td><td style="font-weight:600;cursor:pointer;text-decoration:underline dotted;" onclick="if(state.players['${p.id}'])showPlayerModal(state.players['${p.id}'])">${p.name}</td><td>${p.position}</td><td>${(rs.AVG||0).toFixed(3)}</td><td>${rs.HR||0}</td><td>${rs.RBI||0}</td><td>${rs.H||0}</td><td>${(rs.OPS||0).toFixed(3)}</td><td>${rs.SB||0}</td><td>${rs.BB||0}</td><td>${(rs.WAR||0).toFixed(1)}</td><td>${rs.G||0}</td><td>${rs.PA||0}</td></tr>`;
-            }).join('')}</tbody>
-        </table>`;
+        <div class="records-full-wrapper">
+            <table class="player-table records-full-table" id="batterRecordTable">
+                <thead><tr>${thHtml}</tr></thead>
+                <tbody>${tbodyHtml}</tbody>
+            </table>
+        </div>`;
 
     // 정렬 이벤트
     container.querySelectorAll('th[data-sort]').forEach(th => {
@@ -3012,26 +3048,58 @@ function showFullPitcherRecord(stat) {
     });
     const container = document.getElementById('pitcherFullRecords');
 
+    // 클래식 + 세이버매트릭스 전체 컬럼 (가로 스크롤)
     const headers = [
-        {key:null,label:'순위'},{key:null,label:'팀'},{key:null,label:'이름'},{key:null,label:'역할'},
-        {key:'ERA',label:'ERA'},{key:'W',label:'W'},{key:'L',label:'L'},{key:'S',label:'S'},
-        {key:'SO',label:'SO'},{key:'IP',label:'IP'},{key:'WHIP',label:'WHIP'},{key:'WAR',label:'WAR'},
-        {key:'G',label:'G'},{key:'HLD',label:'HLD'}
+        {key:null,label:'#',sticky:true},{key:null,label:'팀',sticky:true},{key:null,label:'이름',sticky:true},{key:null,label:'역할',sticky:true},
+        // 클래식
+        {key:'G',label:'G'},{key:'GS',label:'GS'},{key:'IP',label:'IP'},
+        {key:'ERA',label:'ERA'},{key:'W',label:'W'},{key:'L',label:'L'},
+        {key:'S',label:'S'},{key:'HLD',label:'HLD'},
+        {key:'SO',label:'SO'},{key:'H',label:'H'},{key:'HR',label:'HR'},
+        {key:'BB',label:'BB'},{key:'HBP',label:'HBP'},{key:'ER',label:'ER'},{key:'R',label:'R'},
+        // 세이버매트릭스
+        {key:'WHIP',label:'WHIP'},{key:'FIP',label:'FIP'},{key:'BABIP',label:'BABIP'},
+        {key:'WAR',label:'WAR'},
     ];
+
+    const thHtml = headers.map(h => {
+        const sticky = h.sticky ? 'class="col-sticky"' : '';
+        if (!h.key) return `<th ${sticky}>${h.label}</th>`;
+        const active = h.key === sortKey;
+        return `<th ${sticky} data-sort="${h.key}" style="cursor:pointer;${active ? 'color:var(--accent);' : ''}">${h.label}${active ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}</th>`;
+    }).join('');
+
+    const tbodyHtml = sorted.map((p, i) => {
+        const rs = p[statsKey];
+        const f2 = v => (v||0).toFixed(2);
+        const f3 = v => (v||0).toFixed(3);
+        const fi = v => v||0;
+        // K/9, BB/9 계산
+        const ipVal = rs.IP || 0;
+        return `<tr>
+            <td class="col-sticky">${i+1}</td>
+            <td class="col-sticky"><img src="${teamLogo(p.team)}" style="width:18px;height:18px;vertical-align:middle"></td>
+            <td class="col-sticky" style="font-weight:600;cursor:pointer;text-decoration:underline dotted;white-space:nowrap;" onclick="if(state.players['${p.id}'])showPlayerModal(state.players['${p.id}'])">${p.name}</td>
+            <td class="col-sticky">${p.role||'-'}</td>
+            <td>${fi(rs.G)}</td><td>${fi(rs.GS)}</td><td>${fmtIP(ipVal)}</td>
+            <td>${f2(rs.ERA)}</td><td>${fi(rs.W)}</td><td>${fi(rs.L)}</td>
+            <td>${fi(rs.S)}</td><td>${fi(rs.HLD)}</td>
+            <td>${fi(rs.SO)}</td><td>${fi(rs.H)}</td><td>${fi(rs.HR)}</td>
+            <td>${fi(rs.BB)}</td><td>${fi(rs.HBP)}</td><td>${fi(rs.ER)}</td><td>${fi(rs.R)}</td>
+            <td>${f2(rs.WHIP)}</td><td>${f2(rs.FIP)}</td><td>${f3(rs.BABIP)}</td>
+            <td>${f2(rs.WAR)}</td>
+        </tr>`;
+    }).join('');
 
     container.innerHTML = `
         <h3 style="margin-bottom:8px;">투수 기록</h3>
         <button class="btn btn--sm" onclick="document.getElementById('pitcherFullRecords').style.display='none'" style="margin-bottom:12px;">닫기</button>
-        <table class="player-table records-full-table" id="pitcherRecordTable">
-            <thead><tr>${headers.map(h => h.key
-                ? `<th data-sort="${h.key}" style="cursor:pointer;${h.key === sortKey ? 'color:var(--accent);' : ''}">${h.label}${h.key === sortKey ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}</th>`
-                : `<th>${h.label}</th>`
-            ).join('')}</tr></thead>
-            <tbody>${sorted.map((p, i) => {
-                const rs = p[statsKey];
-                return `<tr><td>${i + 1}</td><td><img src="${teamLogo(p.team)}" style="width:18px;height:18px;vertical-align:middle"></td><td style="font-weight:600;cursor:pointer;text-decoration:underline dotted;" onclick="if(state.players['${p.id}'])showPlayerModal(state.players['${p.id}'])">${p.name}</td><td>${p.role || '-'}</td><td>${(rs.ERA||0).toFixed(2)}</td><td>${rs.W||0}</td><td>${rs.L||0}</td><td>${rs.S||0}</td><td>${rs.SO||0}</td><td>${fmtIP(rs.IP||0)}</td><td>${(rs.WHIP||0).toFixed(2)}</td><td>${(rs.WAR||0).toFixed(1)}</td><td>${rs.G||0}</td><td>${rs.HLD||0}</td></tr>`;
-            }).join('')}</tbody>
-        </table>`;
+        <div class="records-full-wrapper">
+            <table class="player-table records-full-table" id="pitcherRecordTable">
+                <thead><tr>${thHtml}</tr></thead>
+                <tbody>${tbodyHtml}</tbody>
+            </table>
+        </div>`;
 
     container.querySelectorAll('th[data-sort]').forEach(th => {
         th.addEventListener('click', () => {
@@ -3227,6 +3295,27 @@ async function runPO(matchNum) {
     showToast(`플레이오프 ${matchNum}: ${state.teams[winner].name} 승리!`, 'success');
 }
 
+async function showAwardsCeremony(awards) {
+    const container = document.getElementById('awardsContent');
+    container.innerHTML = '';
+    for (const a of awards) {
+        await delay(850);
+        const div = document.createElement('div');
+        div.className = 'award-item award-item--reveal';
+        div.innerHTML = `
+            <span class="award-item__icon">${a.icon}</span>
+            <span class="award-item__title">${a.title}</span>
+            <span class="award-item__team">${a.team}</span>
+            <span class="award-item__desc">${a.desc}</span>
+        `;
+        container.appendChild(div);
+        // reflow → 애니메이션 트리거
+        div.getBoundingClientRect();
+        div.classList.add('award-item--visible');
+        container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
 async function runKS() {
     const teamA = postseasonState.po1.winner;
     const teamB = postseasonState.po2.winner;
@@ -3298,14 +3387,7 @@ async function runKS() {
     const awards = computeAwards(state);
     awards.unshift({ icon: '🥇', title: '올해의 단장상', team: state.teams[result.winner].name, desc: '한국시리즈 우승' });
 
-    document.getElementById('awardsContent').innerHTML = awards.map(a =>
-        `<div class="award-item">
-            <span class="award-item__icon">${a.icon}</span>
-            <span class="award-item__title">${a.title}</span>
-            <span class="award-item__team">${a.team}</span>
-            <span style="color:#8899aa; font-size:12px;">${a.desc}</span>
-        </div>`
-    ).join('');
+    showAwardsCeremony(awards);
 
     showToast(`🏆 ${state.teams[result.winner].name} 한국시리즈 우승!`, 'success');
 

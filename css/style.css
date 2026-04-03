@@ -1243,10 +1243,33 @@ body {
 .record-card__name { font-weight: 600; flex: 1; }
 .record-card__value { font-weight: 700; color: var(--accent); min-width: 50px; text-align: right; }
 
-/* 전체 기록 테이블 */
-.records-full-table { width: 100%; margin-top: 16px; }
-.records-full-table th { font-size: 12px; }
-.records-full-table td { font-size: 12px; }
+/* 전체 기록 테이블 — 가로 스크롤 */
+.records-full-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-top: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+.records-full-table { width: max-content; min-width: 100%; margin-top: 0; border-collapse: separate; border-spacing: 0; }
+.records-full-table th { font-size: 11px; white-space: nowrap; padding: 6px 10px; }
+.records-full-table td { font-size: 11px; white-space: nowrap; padding: 5px 10px; }
+
+/* 스티키 왼쪽 4개 컬럼 */
+.records-full-table .col-sticky {
+    position: sticky;
+    background: var(--bg-card);
+    z-index: 1;
+}
+.records-full-table thead .col-sticky {
+    background: var(--bg-secondary, #1a2030);
+    z-index: 2;
+}
+/* 각 sticky 컬럼 left 위치 */
+.records-full-table .col-sticky:nth-child(1) { left: 0; min-width: 30px; }
+.records-full-table .col-sticky:nth-child(2) { left: 30px; min-width: 26px; }
+.records-full-table .col-sticky:nth-child(3) { left: 56px; min-width: 80px; }
+.records-full-table .col-sticky:nth-child(4) { left: 136px; min-width: 50px; box-shadow: 2px 0 4px rgba(0,0,0,0.3); }
 
 .quarter-btn {
     padding: 8px 16px;
@@ -1499,10 +1522,21 @@ body {
     border-bottom: 1px solid var(--border);
     font-size: 14px;
 }
+/* 순차 공개 애니메이션 */
+.award-item--reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.award-item--visible {
+    opacity: 1;
+    transform: translateY(0);
+}
 
-.award-item__icon { font-size: 24px; }
-.award-item__title { font-weight: 500; min-width: 120px; }
-.award-item__team { color: var(--accent); }
+.award-item__icon { font-size: 28px; }
+.award-item__title { font-weight: 600; min-width: 130px; }
+.award-item__team { color: var(--accent); font-weight: 700; min-width: 100px; }
+.award-item__desc { color: #8899aa; font-size: 12px; }
 
 /* ===== PLAYER MODAL ===== */
 .modal--player {
