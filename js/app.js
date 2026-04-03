@@ -2852,11 +2852,19 @@ function getAllBattersWithSimStats() {
     return Object.values(state.players).filter(p => p.position !== 'P' && p.simStats && (p.simStats.PA || 0) >= qualPA);
 }
 
-// simStats가 있는 투수 목록 (KBO 규정이닝 기준)
+// simStats가 있는 투수 — 규정이닝 충족 (ERA/WHIP 등 비율 스탯용)
 function getAllPitchersWithSimStats() {
     const gamesPlayed = getTotalGamesPlayed(state);
     const qualIP = getQualificationIP(gamesPlayed);
     return Object.values(state.players).filter(p => p.position === 'P' && p.simStats && (p.simStats.IP || 0) >= qualIP);
+}
+// simStats가 있는 투수 — 1경기 이상 등판 (승/S/HLD/SO 등 누적 스탯용)
+function getAllPitchersWithAnySimStats() {
+    return Object.values(state.players).filter(p => p.position === 'P' && p.simStats && (p.simStats.G || 0) >= 1);
+}
+// 2025 실제 기록 — 누적 스탯용 (1경기 이상)
+function getAllPitchersWithAnyStats() {
+    return Object.values(state.players).filter(p => p.position === 'P' && p.realStats && (p.realStats.G || 0) >= 1);
 }
 
 function renderBatterRecords() {
@@ -2907,31 +2915,34 @@ function renderPitcherRecords() {
     if (active === 'sim') {
         const gp = getTotalGamesPlayed(state);
         const qualIP = getQualificationIP(gp);
-        const pitchers = getAllPitchersWithSimStats();
-        if (!pitchers.length) { grid.innerHTML = `<div class="pm-no-data">규정이닝(${qualIP} IP) 충족 선수가 없습니다.<br><span style="font-size:11px;color:var(--text-dim);">현재 ${gp}경기 진행 (규정이닝 = ${gp} × 1.0 = ${qualIP})</span></div>`; return; }
+        const qualPitchers = getAllPitchersWithSimStats();  // 규정이닝 충족 (비율 스탯)
+        const allPitchers = getAllPitchersWithAnySimStats(); // 1G+ 등판 (누적 스탯)
+        if (!allPitchers.length) { grid.innerHTML = `<div class="pm-no-data">아직 등판 기록이 없습니다.</div>`; return; }
         const sk = 'simStats';
-        grid.innerHTML = [
-            renderRecordCardAsc('평균자책 (ERA)', pitchers, p => p[sk].ERA||99, fmt2, "showFullPitcherRecord('ERA')"),
-            renderRecordCard('승리 (W)', pitchers, p => p[sk].W||0, fmtInt, "showFullPitcherRecord('W')"),
-            renderRecordCard('삼진 (SO)', pitchers, p => p[sk].SO||0, fmtInt, "showFullPitcherRecord('SO')"),
-            renderRecordCard('세이브 (S)', pitchers, p => p[sk].S||0, fmtInt, "showFullPitcherRecord('S')"),
-            renderRecordCard('홀드 (HLD)', pitchers, p => p[sk].HLD||0, fmtInt, "showFullPitcherRecord('HLD')"),
-            renderRecordCardAsc('WHIP', pitchers, p => p[sk].WHIP||99, fmt2, "showFullPitcherRecord('WHIP')"),
-            renderRecordCard('WAR', pitchers, p => p[sk].WAR||0, fmt2, "showFullPitcherRecord('WAR')"),
-            renderRecordCard('이닝 (IP)', pitchers, p => p[sk].IP||0, fmtIP, "showFullPitcherRecord('IP')"),
-            renderRecordCard('경기 (G)', pitchers, p => p[sk].G||0, fmtInt, "showFullPitcherRecord('G')"),
+        const rateMsg = qualPitchers.length === 0 ? `<div style="text-align:center;margin-bottom:8px;color:var(--text-dim);font-size:11px;">규정이닝(${qualIP}IP) 충족 선수 없음 — ERA/WHIP는 규정 충족 후 표시</div>` : '';
+        grid.innerHTML = rateMsg + [
+            ...(qualPitchers.length > 0 ? [renderRecordCardAsc('평균자책 (ERA)', qualPitchers, p => p[sk].ERA||99, fmt2, "showFullPitcherRecord('ERA')")] : []),
+            renderRecordCard('승리 (W)', allPitchers, p => p[sk].W||0, fmtInt, "showFullPitcherRecord('W')"),
+            renderRecordCard('삼진 (SO)', allPitchers, p => p[sk].SO||0, fmtInt, "showFullPitcherRecord('SO')"),
+            renderRecordCard('세이브 (S)', allPitchers, p => p[sk].S||0, fmtInt, "showFullPitcherRecord('S')"),
+            renderRecordCard('홀드 (HLD)', allPitchers, p => p[sk].HLD||0, fmtInt, "showFullPitcherRecord('HLD')"),
+            ...(qualPitchers.length > 0 ? [renderRecordCardAsc('WHIP', qualPitchers, p => p[sk].WHIP||99, fmt2, "showFullPitcherRecord('WHIP')")] : []),
+            renderRecordCard('WAR', allPitchers, p => p[sk].WAR||0, fmt2, "showFullPitcherRecord('WAR')"),
+            renderRecordCard('이닝 (IP)', allPitchers, p => p[sk].IP||0, fmtIP, "showFullPitcherRecord('IP')"),
+            renderRecordCard('경기 (G)', allPitchers, p => p[sk].G||0, fmtInt, "showFullPitcherRecord('G')"),
         ].join('');
     } else {
-        const pitchers = getAllPitchersWithStats();
-        if (!pitchers.length) { grid.innerHTML = '<div class="pm-no-data">2026 시즌이 아직 시작되지 않았습니다.</div>'; return; }
+        const qualPitchers = getAllPitchersWithStats(); // 규정이닝 충족
+        const allPitchers = getAllPitchersWithAnyStats(); // 1G+ 등판
+        if (!allPitchers.length) { grid.innerHTML = '<div class="pm-no-data">2026 시즌이 아직 시작되지 않았습니다.</div>'; return; }
         grid.innerHTML = '<div style="text-align:center;margin-bottom:12px;color:var(--text-dim);font-size:12px;">📋 2025 시즌 기록 (참고용) — 시뮬레이션 시작 후 2026 데이터로 전환됩니다</div>' + [
-            renderRecordCardAsc('평균자책 (ERA)', pitchers, p => p.realStats.ERA, fmt2, "showFullPitcherRecord('ERA')"),
-            renderRecordCard('승리 (W)', pitchers, p => p.realStats.W, fmtInt, "showFullPitcherRecord('W')"),
-            renderRecordCard('삼진 (SO)', pitchers, p => p.realStats.SO, fmtInt, "showFullPitcherRecord('SO')"),
-            renderRecordCard('세이브 (S)', pitchers, p => p.realStats.S, fmtInt, "showFullPitcherRecord('S')"),
-            renderRecordCard('홀드 (HLD)', pitchers, p => p.realStats.HLD, fmtInt, "showFullPitcherRecord('HLD')"),
-            renderRecordCardAsc('WHIP', pitchers, p => p.realStats.WHIP, fmt2, "showFullPitcherRecord('WHIP')"),
-            renderRecordCardAsc('FIP', pitchers, p => p.realStats.FIP, fmt2, "showFullPitcherRecord('FIP')"),
+            ...(qualPitchers.length > 0 ? [renderRecordCardAsc('평균자책 (ERA)', qualPitchers, p => p.realStats.ERA, fmt2, "showFullPitcherRecord('ERA')")] : []),
+            renderRecordCard('승리 (W)', allPitchers, p => p.realStats.W||0, fmtInt, "showFullPitcherRecord('W')"),
+            renderRecordCard('삼진 (SO)', allPitchers, p => p.realStats.SO||0, fmtInt, "showFullPitcherRecord('SO')"),
+            renderRecordCard('세이브 (S)', allPitchers, p => p.realStats.S||0, fmtInt, "showFullPitcherRecord('S')"),
+            renderRecordCard('홀드 (HLD)', allPitchers, p => p.realStats.HLD||0, fmtInt, "showFullPitcherRecord('HLD')"),
+            ...(qualPitchers.length > 0 ? [renderRecordCardAsc('WHIP', qualPitchers, p => p.realStats.WHIP, fmt2, "showFullPitcherRecord('WHIP')")] : []),
+            ...(qualPitchers.length > 0 ? [renderRecordCardAsc('FIP', qualPitchers, p => p.realStats.FIP, fmt2, "showFullPitcherRecord('FIP')")] : []),
             renderRecordCard('WAR', pitchers, p => p.realStats.WAR, fmt2, "showFullPitcherRecord('WAR')"),
             renderRecordCard('이닝 (IP)', pitchers, p => p.realStats.IP, fmtIP, "showFullPitcherRecord('IP')"),
             renderRecordCard('WPA', pitchers, p => p.realStats.WPA, fmt2, "showFullPitcherRecord('WPA')"),
