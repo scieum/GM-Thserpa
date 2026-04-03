@@ -486,3 +486,23 @@ async function loadClassroom() {
     if (error) throw new Error('교실 정보 로드 실패: ' + error.message);
     return data;
 }
+
+// ── 전역 export ──
+window.isAdmin = isAdmin;
+window.isStudent = isStudent;
+window.session = session;
+window.createClassroom = createClassroom;
+window.saveGameState = saveGameState;
+window.saveAllGameStates = saveAllGameStates;
+window.loadTeamSlots = loadTeamSlots;
+window.updateTeamSlot = updateTeamSlot;
+window.loadForeignScoutStateDB = loadForeignScoutStateDB;
+window.saveForeignScoutStateDB = saveForeignScoutStateDB;
+window.saveSimResult = saveSimResult;
+window.loadSimResults = loadSimResults;
+window.logActivity = logActivity;
+window.loadActivityLog = loadActivityLog;
+window.subscribeRealtime = subscribeRealtime;
+window.unsubscribeRealtime = unsubscribeRealtime;
+window.updateClassroom = updateClassroom;
+window.loadClassroom = loadClassroom;
