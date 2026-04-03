@@ -606,11 +606,14 @@ function generatePitcherSimStats(p, totalGames, seasonPct, teamW, teamL) {
 }
 
 /**
- * AI 팀 1/2군 교체 — 시뮬레이션 배치마다 실행
- * 부진한 선수 강등, 유망주 승격
+ * AI 팀 1/2군 교체 — KBO 현실 반영 (팀당 배치마다 1~2건)
+ * 실제 KBO: 팀당 하루 평균 0.8~1.2건 엔트리 변동
+ * 5경기 배치 = 약 5일 → 팀당 4~6건 시도
  */
 function aiRosterShuffle(state) {
     const teamCodes = Object.keys(state.teams);
+    const totalGames = getTotalGamesPlayed(state);
+
     for (const code of teamCodes) {
         const team = state.teams[code];
         // 학생 팀은 건드리지 않음
@@ -620,46 +623,85 @@ function aiRosterShuffle(state) {
         const roster2 = team.futuresRoster || [];
         if (roster2.length === 0) continue;
 
-        // 1군에서 가장 부진한 타자 찾기 (simStats 기준)
-        const batters1 = roster1.map(id => state.players[id]).filter(p => p && p.position !== 'P' && p.simStats);
-        const pitchers1 = roster1.map(id => state.players[id]).filter(p => p && p.position === 'P' && p.simStats);
+        // 배치(5경기)당 교체 횟수: 3~6회 시도
+        const swapAttempts = Math.floor(3 + Math.random() * 4);
 
-        // 2군에서 유망주 찾기
-        const prospects2 = roster2.map(id => state.players[id]).filter(p => p && p.ovr >= 40);
+        for (let attempt = 0; attempt < swapAttempts; attempt++) {
+            // 1군 선수 중 비보호 대상 (외국인, 프랜차이즈스타 제외)
+            const demotable1 = roster1.map(id => state.players[id]).filter(p =>
+                p && !p.isForeign && !p.isFranchiseStar
+            );
+            const prospects2 = roster2.map(id => state.players[id]).filter(p => p);
 
-        // 10% 확률로 교체 시도 (매 배치마다)
-        if (Math.random() > 0.10) continue;
+            if (demotable1.length === 0 || prospects2.length === 0) break;
 
-        // 부진 타자 교체
-        if (batters1.length > 0 && prospects2.filter(p => p.position !== 'P').length > 0) {
-            const worst = batters1.filter(b => !b.isForeign).sort((a, b) => (a.simStats.OPS || 0) - (b.simStats.OPS || 0))[0];
-            const bestProspect = prospects2.filter(p => p.position !== 'P').sort((a, b) => (b.ovr || 0) - (a.ovr || 0))[0];
-            if (worst && bestProspect && (worst.simStats.OPS || 0) < 0.550 && bestProspect.ovr >= worst.ovr - 5) {
-                // 교체 실행
-                const idx1 = roster1.indexOf(worst.id);
-                const idx2 = roster2.indexOf(bestProspect.id);
-                if (idx1 >= 0 && idx2 >= 0) {
-                    roster1[idx1] = bestProspect.id;
-                    roster2[idx2] = worst.id;
-                    bestProspect.team = code;
+            // 교체 사유를 랜덤으로 선택
+            const reason = Math.random();
+
+            if (reason < 0.40) {
+                // ── 부진 타자 강등 + 유망 타자 승격 (40%) ──
+                const batters1 = demotable1.filter(p => p.position !== 'P' && p.simStats);
+                const batProspects = prospects2.filter(p => p.position !== 'P');
+                if (batters1.length === 0 || batProspects.length === 0) continue;
+
+                // OPS 하위 30% 중 랜덤 선택
+                batters1.sort((a, b) => (a.simStats.OPS || 0) - (b.simStats.OPS || 0));
+                const cutoff = Math.max(1, Math.floor(batters1.length * 0.3));
+                const demoteIdx = Math.floor(Math.random() * cutoff);
+                const demoteP = batters1[demoteIdx];
+
+                // 2군에서 OVR 높은 순 + 약간의 랜덤
+                batProspects.sort((a, b) => (b.ovr || 0) - (a.ovr || 0));
+                const promoteP = batProspects[Math.floor(Math.random() * Math.min(3, batProspects.length))];
+
+                if (demoteP && promoteP && (demoteP.simStats.OPS || 0) < 0.650) {
+                    swapPlayers(roster1, roster2, demoteP, promoteP, code);
+                }
+
+            } else if (reason < 0.75) {
+                // ── 부진 투수 강등 + 유망 투수 승격 (35%) ──
+                const pitchers1 = demotable1.filter(p => p.position === 'P' && p.role !== '마무리' && p.simStats);
+                const pitProspects = prospects2.filter(p => p.position === 'P');
+                if (pitchers1.length === 0 || pitProspects.length === 0) continue;
+
+                // ERA 상위 30% 중 랜덤
+                pitchers1.sort((a, b) => (b.simStats.ERA || 0) - (a.simStats.ERA || 0));
+                const cutoff = Math.max(1, Math.floor(pitchers1.length * 0.3));
+                const demoteP = pitchers1[Math.floor(Math.random() * cutoff)];
+
+                pitProspects.sort((a, b) => (b.ovr || 0) - (a.ovr || 0));
+                const promoteP = pitProspects[Math.floor(Math.random() * Math.min(3, pitProspects.length))];
+
+                if (demoteP && promoteP && (demoteP.simStats.ERA || 0) > 5.0) {
+                    swapPlayers(roster1, roster2, demoteP, promoteP, code);
+                }
+
+            } else {
+                // ── 컨디션/로테이션 관리 교체 (25%) ──
+                // 출전 많은 1군 → 휴식 강등, 신선한 2군 승격
+                const tired1 = demotable1.filter(p => p.simStats && (p.simStats.G || 0) > totalGames * 0.85);
+                if (tired1.length === 0) continue;
+                const demoteP = tired1[Math.floor(Math.random() * tired1.length)];
+                const samePos = prospects2.filter(p => p.position === demoteP.position || (p.position !== 'P' && demoteP.position !== 'P'));
+                if (samePos.length === 0) continue;
+                const promoteP = samePos[Math.floor(Math.random() * Math.min(3, samePos.length))];
+
+                if (demoteP && promoteP) {
+                    swapPlayers(roster1, roster2, demoteP, promoteP, code);
                 }
             }
         }
+    }
+}
 
-        // 부진 투수 교체
-        if (pitchers1.length > 0 && prospects2.filter(p => p.position === 'P').length > 0) {
-            const worstP = pitchers1.filter(p => !p.isForeign && p.role !== '마무리').sort((a, b) => (b.simStats.ERA || 99) - (a.simStats.ERA || 99))[0];
-            const bestPProspect = prospects2.filter(p => p.position === 'P').sort((a, b) => (b.ovr || 0) - (a.ovr || 0))[0];
-            if (worstP && bestPProspect && (worstP.simStats.ERA || 99) > 6.0 && bestPProspect.ovr >= worstP.ovr - 5) {
-                const idx1 = roster1.indexOf(worstP.id);
-                const idx2 = roster2.indexOf(bestPProspect.id);
-                if (idx1 >= 0 && idx2 >= 0) {
-                    roster1[idx1] = bestPProspect.id;
-                    roster2[idx2] = worstP.id;
-                    bestPProspect.team = code;
-                }
-            }
-        }
+/** 1군 ↔ 2군 선수 교체 실행 */
+function swapPlayers(roster1, roster2, demoteP, promoteP, teamCode) {
+    const idx1 = roster1.indexOf(demoteP.id);
+    const idx2 = roster2.indexOf(promoteP.id);
+    if (idx1 >= 0 && idx2 >= 0) {
+        roster1[idx1] = promoteP.id;
+        roster2[idx2] = demoteP.id;
+        promoteP.team = teamCode;
     }
 }
 
