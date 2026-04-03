@@ -2520,14 +2520,55 @@ function renderSimulator() {
     }
 }
 
-function renderStandings() {
-    const standings = getStandings(state);
-    const tbody = document.querySelector('#standingsTable tbody');
+let standingSortKey = null;
+let standingSortDir = 'desc';
 
-    tbody.innerHTML = standings.map(s => {
+function renderStandings() {
+    let standings = getStandings(state);
+    const tbody = document.querySelector('#standingsTable tbody');
+    const thead = document.querySelector('#standingsTable thead');
+
+    // 헤더 정렬 기능
+    if (thead && !thead.dataset.sortBound) {
+        thead.dataset.sortBound = '1';
+        const headers = [
+            {key:'rank',label:'순위'},{key:'name',label:'팀'},{key:'wins',label:'승'},{key:'losses',label:'패'},
+            {key:'rate',label:'승률'},{key:'gb',label:'GB'},{key:'pitchPower',label:'투수력'},{key:'batPower',label:'타력'}
+        ];
+        thead.innerHTML = '<tr>' + headers.map(h =>
+            `<th data-sort="${h.key}" style="cursor:pointer;">${h.label}</th>`
+        ).join('') + '</tr>';
+        thead.querySelectorAll('th[data-sort]').forEach(th => {
+            th.addEventListener('click', () => {
+                const key = th.dataset.sort;
+                if (standingSortKey === key) standingSortDir = standingSortDir === 'asc' ? 'desc' : 'asc';
+                else { standingSortKey = key; standingSortDir = 'desc'; }
+                renderStandings();
+            });
+        });
+    }
+
+    // 정렬 적용
+    if (standingSortKey) {
+        standings = [...standings].sort((a, b) => {
+            let va = a[standingSortKey], vb = b[standingSortKey];
+            if (standingSortKey === 'name') return standingSortDir === 'asc' ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
+            return standingSortDir === 'asc' ? va - vb : vb - va;
+        });
+    }
+
+    // 정렬 인디케이터
+    if (thead) {
+        thead.querySelectorAll('th').forEach(th => {
+            th.classList.remove('sort-asc', 'sort-desc');
+            if (th.dataset.sort === standingSortKey) th.classList.add(standingSortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+        });
+    }
+
+    tbody.innerHTML = standings.map((s, i) => {
         const rankClass = s.rank <= 3 ? `rank-${s.rank}` : '';
         return `<tr class="${rankClass}">
-            <td>${s.rank}</td>
+            <td>${standingSortKey ? i + 1 : s.rank}</td>
             <td><div class="team-name-cell">
                 <img class="team-logo-sm" src="${teamLogo(s.code)}" alt="${s.name}">
                 ${s.name}
@@ -2624,87 +2665,205 @@ function renderRecordCardAsc(title, players, valueFn, formatFn, moreCallback) {
     </div>`;
 }
 
-const fmt3 = v => v.toFixed(3);
-const fmt2 = v => v.toFixed(2);
-const fmt1 = v => v.toFixed(1);
-const fmtInt = v => Math.round(v);
+const fmt3 = v => v != null ? v.toFixed(3) : '-';
+const fmt2 = v => v != null ? v.toFixed(2) : '-';
+const fmt1 = v => v != null ? v.toFixed(1) : '-';
+const fmtInt = v => v != null ? Math.round(v) : '-';
+
+// 시즌 시작 여부 확인: 1Q 첫 경기가 진행되었으면 true
+function isSeasonStarted() {
+    return state && getTotalGamesPlayed(state) > 0;
+}
+
+// 현재 활성 스탯 소스: 시즌 시작 전 = 'real', 시즌 시작 후 = 'sim'
+function getActiveStats() {
+    return isSeasonStarted() ? 'sim' : 'real';
+}
+
+// simStats가 있는 타자 목록
+function getAllBattersWithSimStats() {
+    return Object.values(state.players).filter(p => p.position !== 'P' && p.simStats && (p.simStats.PA || 0) >= 10);
+}
+
+// simStats가 있는 투수 목록
+function getAllPitchersWithSimStats() {
+    return Object.values(state.players).filter(p => p.position === 'P' && p.simStats && (p.simStats.IP || 0) >= 3);
+}
 
 function renderBatterRecords() {
-    const batters = getAllBattersWithStats();
     const grid = document.getElementById('batterTop5Grid');
-    if (!batters.length) { grid.innerHTML = '<div class="pm-no-data">규정타석(100PA) 이상 타자가 없습니다.</div>'; return; }
+    const active = getActiveStats();
 
-    grid.innerHTML = [
-        renderRecordCard('타율 (AVG)', batters, p => p.realStats.AVG, fmt3, "showFullBatterRecord('AVG')"),
-        renderRecordCard('홈런 (HR)', batters, p => p.realStats.HR, fmtInt, "showFullBatterRecord('HR')"),
-        renderRecordCard('타점 (RBI)', batters, p => p.realStats.RBI, fmtInt, "showFullBatterRecord('RBI')"),
-        renderRecordCard('도루 (SB)', batters, p => p.realStats.SB, fmtInt, "showFullBatterRecord('SB')"),
-        renderRecordCard('OPS', batters, p => p.realStats.OPS, fmt3, "showFullBatterRecord('OPS')"),
-        renderRecordCard('wRC+', batters, p => p.realStats['wRC+'], fmt1, "showFullBatterRecord('wRC+')"),
-        renderRecordCard('WAR', batters, p => p.realStats.WAR, fmt2, "showFullBatterRecord('WAR')"),
-        renderRecordCard('안타 (H)', batters, p => p.realStats.H, fmtInt, "showFullBatterRecord('H')"),
-        renderRecordCard('출루율 (OBP)', batters, p => p.realStats.OBP, fmt3, "showFullBatterRecord('OBP')"),
-        renderRecordCard('장타율 (SLG)', batters, p => p.realStats.SLG, fmt3, "showFullBatterRecord('SLG')"),
-    ].join('');
+    if (active === 'sim') {
+        const batters = getAllBattersWithSimStats();
+        if (!batters.length) { grid.innerHTML = '<div class="pm-no-data">아직 시뮬레이션 데이터가 부족합니다.</div>'; return; }
+        const sk = 'simStats';
+        grid.innerHTML = [
+            renderRecordCard('타율 (AVG)', batters, p => p[sk].AVG||0, fmt3, "showFullBatterRecord('AVG')"),
+            renderRecordCard('홈런 (HR)', batters, p => p[sk].HR||0, fmtInt, "showFullBatterRecord('HR')"),
+            renderRecordCard('타점 (RBI)', batters, p => p[sk].RBI||0, fmtInt, "showFullBatterRecord('RBI')"),
+            renderRecordCard('도루 (SB)', batters, p => p[sk].SB||0, fmtInt, "showFullBatterRecord('SB')"),
+            renderRecordCard('OPS', batters, p => p[sk].OPS||0, fmt3, "showFullBatterRecord('OPS')"),
+            renderRecordCard('WAR', batters, p => p[sk].WAR||0, fmt2, "showFullBatterRecord('WAR')"),
+            renderRecordCard('안타 (H)', batters, p => p[sk].H||0, fmtInt, "showFullBatterRecord('H')"),
+            renderRecordCard('출루율 (OBP)', batters, p => p[sk].OBP||0, fmt3, "showFullBatterRecord('OBP')"),
+            renderRecordCard('장타율 (SLG)', batters, p => p[sk].SLG||0, fmt3, "showFullBatterRecord('SLG')"),
+            renderRecordCard('경기 (G)', batters, p => p[sk].G||0, fmtInt, "showFullBatterRecord('G')"),
+        ].join('');
+    } else {
+        // 시즌 시작 전: 2025 데이터 표시 (참고용)
+        const batters = getAllBattersWithStats();
+        if (!batters.length) { grid.innerHTML = '<div class="pm-no-data">2026 시즌이 아직 시작되지 않았습니다.<br><span style="font-size:11px;color:var(--text-dim);">아래는 2025 시즌 참고 기록입니다.</span></div>'; return; }
+        grid.innerHTML = '<div style="text-align:center;margin-bottom:12px;color:var(--text-dim);font-size:12px;">📋 2025 시즌 기록 (참고용) — 시뮬레이션 시작 후 2026 데이터로 전환됩니다</div>' + [
+            renderRecordCard('타율 (AVG)', batters, p => p.realStats.AVG, fmt3, "showFullBatterRecord('AVG')"),
+            renderRecordCard('홈런 (HR)', batters, p => p.realStats.HR, fmtInt, "showFullBatterRecord('HR')"),
+            renderRecordCard('타점 (RBI)', batters, p => p.realStats.RBI, fmtInt, "showFullBatterRecord('RBI')"),
+            renderRecordCard('도루 (SB)', batters, p => p.realStats.SB, fmtInt, "showFullBatterRecord('SB')"),
+            renderRecordCard('OPS', batters, p => p.realStats.OPS, fmt3, "showFullBatterRecord('OPS')"),
+            renderRecordCard('wRC+', batters, p => p.realStats['wRC+'], fmt1, "showFullBatterRecord('wRC+')"),
+            renderRecordCard('WAR', batters, p => p.realStats.WAR, fmt2, "showFullBatterRecord('WAR')"),
+            renderRecordCard('안타 (H)', batters, p => p.realStats.H, fmtInt, "showFullBatterRecord('H')"),
+            renderRecordCard('출루율 (OBP)', batters, p => p.realStats.OBP, fmt3, "showFullBatterRecord('OBP')"),
+            renderRecordCard('장타율 (SLG)', batters, p => p.realStats.SLG, fmt3, "showFullBatterRecord('SLG')"),
+        ].join('');
+    }
 }
 
 function renderPitcherRecords() {
-    const pitchers = getAllPitchersWithStats();
     const grid = document.getElementById('pitcherTop5Grid');
-    if (!pitchers.length) { grid.innerHTML = '<div class="pm-no-data">규정이닝(30IP) 이상 투수가 없습니다.</div>'; return; }
+    const active = getActiveStats();
 
-    grid.innerHTML = [
-        renderRecordCardAsc('평균자책 (ERA)', pitchers, p => p.realStats.ERA, fmt2, "showFullPitcherRecord('ERA')"),
-        renderRecordCard('승리 (W)', pitchers, p => p.realStats.W, fmtInt, "showFullPitcherRecord('W')"),
-        renderRecordCard('삼진 (SO)', pitchers, p => p.realStats.SO, fmtInt, "showFullPitcherRecord('SO')"),
-        renderRecordCard('세이브 (S)', pitchers, p => p.realStats.S, fmtInt, "showFullPitcherRecord('S')"),
-        renderRecordCard('홀드 (HLD)', pitchers, p => p.realStats.HLD, fmtInt, "showFullPitcherRecord('HLD')"),
-        renderRecordCardAsc('WHIP', pitchers, p => p.realStats.WHIP, fmt2, "showFullPitcherRecord('WHIP')"),
-        renderRecordCardAsc('FIP', pitchers, p => p.realStats.FIP, fmt2, "showFullPitcherRecord('FIP')"),
-        renderRecordCard('WAR', pitchers, p => p.realStats.WAR, fmt2, "showFullPitcherRecord('WAR')"),
-        renderRecordCard('이닝 (IP)', pitchers, p => p.realStats.IP, fmt1, "showFullPitcherRecord('IP')"),
-        renderRecordCard('WPA', pitchers, p => p.realStats.WPA, fmt2, "showFullPitcherRecord('WPA')"),
-    ].join('');
+    if (active === 'sim') {
+        const pitchers = getAllPitchersWithSimStats();
+        if (!pitchers.length) { grid.innerHTML = '<div class="pm-no-data">아직 시뮬레이션 데이터가 부족합니다.</div>'; return; }
+        const sk = 'simStats';
+        grid.innerHTML = [
+            renderRecordCardAsc('평균자책 (ERA)', pitchers, p => p[sk].ERA||99, fmt2, "showFullPitcherRecord('ERA')"),
+            renderRecordCard('승리 (W)', pitchers, p => p[sk].W||0, fmtInt, "showFullPitcherRecord('W')"),
+            renderRecordCard('삼진 (SO)', pitchers, p => p[sk].SO||0, fmtInt, "showFullPitcherRecord('SO')"),
+            renderRecordCard('세이브 (S)', pitchers, p => p[sk].S||0, fmtInt, "showFullPitcherRecord('S')"),
+            renderRecordCard('홀드 (HLD)', pitchers, p => p[sk].HLD||0, fmtInt, "showFullPitcherRecord('HLD')"),
+            renderRecordCardAsc('WHIP', pitchers, p => p[sk].WHIP||99, fmt2, "showFullPitcherRecord('WHIP')"),
+            renderRecordCard('WAR', pitchers, p => p[sk].WAR||0, fmt2, "showFullPitcherRecord('WAR')"),
+            renderRecordCard('이닝 (IP)', pitchers, p => p[sk].IP||0, fmt1, "showFullPitcherRecord('IP')"),
+            renderRecordCard('경기 (G)', pitchers, p => p[sk].G||0, fmtInt, "showFullPitcherRecord('G')"),
+        ].join('');
+    } else {
+        const pitchers = getAllPitchersWithStats();
+        if (!pitchers.length) { grid.innerHTML = '<div class="pm-no-data">2026 시즌이 아직 시작되지 않았습니다.</div>'; return; }
+        grid.innerHTML = '<div style="text-align:center;margin-bottom:12px;color:var(--text-dim);font-size:12px;">📋 2025 시즌 기록 (참고용) — 시뮬레이션 시작 후 2026 데이터로 전환됩니다</div>' + [
+            renderRecordCardAsc('평균자책 (ERA)', pitchers, p => p.realStats.ERA, fmt2, "showFullPitcherRecord('ERA')"),
+            renderRecordCard('승리 (W)', pitchers, p => p.realStats.W, fmtInt, "showFullPitcherRecord('W')"),
+            renderRecordCard('삼진 (SO)', pitchers, p => p.realStats.SO, fmtInt, "showFullPitcherRecord('SO')"),
+            renderRecordCard('세이브 (S)', pitchers, p => p.realStats.S, fmtInt, "showFullPitcherRecord('S')"),
+            renderRecordCard('홀드 (HLD)', pitchers, p => p.realStats.HLD, fmtInt, "showFullPitcherRecord('HLD')"),
+            renderRecordCardAsc('WHIP', pitchers, p => p.realStats.WHIP, fmt2, "showFullPitcherRecord('WHIP')"),
+            renderRecordCardAsc('FIP', pitchers, p => p.realStats.FIP, fmt2, "showFullPitcherRecord('FIP')"),
+            renderRecordCard('WAR', pitchers, p => p.realStats.WAR, fmt2, "showFullPitcherRecord('WAR')"),
+            renderRecordCard('이닝 (IP)', pitchers, p => p.realStats.IP, fmt1, "showFullPitcherRecord('IP')"),
+            renderRecordCard('WPA', pitchers, p => p.realStats.WPA, fmt2, "showFullPitcherRecord('WPA')"),
+        ].join('');
+    }
 }
 
+let batterRecordSortKey = null;
+let batterRecordSortDir = 'desc';
+
 function showFullBatterRecord(stat) {
-    const batters = getAllBattersWithStats();
-    const asc = false;
-    const sorted = [...batters].sort((a, b) => asc ? (a.realStats[stat] - b.realStats[stat]) : (b.realStats[stat] - a.realStats[stat]));
+    const batters = getActiveStats() === 'sim' ? getAllBattersWithSimStats() : getAllBattersWithStats();
+    if (!batterRecordSortKey) { batterRecordSortKey = stat; batterRecordSortDir = 'desc'; }
+    const sortKey = batterRecordSortKey;
+    const sortDir = batterRecordSortDir;
+    const statsKey = getActiveStats() === 'sim' ? 'simStats' : 'realStats';
+
+    const sorted = [...batters].sort((a, b) => {
+        const va = a[statsKey][sortKey] || 0, vb = b[statsKey][sortKey] || 0;
+        return sortDir === 'asc' ? va - vb : vb - va;
+    });
     const container = document.getElementById('batterFullRecords');
-    const formatVal = v => typeof v === 'number' ? (v < 1 && v > -1 && stat !== 'WAR' && stat !== 'wRC+' ? v.toFixed(3) : Number.isInteger(v) ? v : v.toFixed(2)) : v;
+    const formatVal = v => typeof v === 'number' ? (v < 1 && v > -1 && stat !== 'WAR' && stat !== 'wRC+' ? v.toFixed(3) : Number.isInteger(v) ? v : v.toFixed(2)) : (v || '-');
+
+    const headers = [
+        {key:null,label:'순위'},{key:null,label:'팀'},{key:null,label:'이름'},{key:null,label:'포지션'},
+        {key:'AVG',label:'AVG'},{key:'HR',label:'HR'},{key:'RBI',label:'RBI'},{key:'H',label:'H'},
+        {key:'OPS',label:'OPS'},{key:'SB',label:'SB'},{key:'BB',label:'BB'},{key:'WAR',label:'WAR'},
+        {key:'G',label:'G'},{key:'PA',label:'PA'}
+    ];
 
     container.innerHTML = `
-        <h3 style="margin-bottom:8px;">${stat} 순위</h3>
+        <h3 style="margin-bottom:8px;">타자 기록</h3>
         <button class="btn btn--sm" onclick="document.getElementById('batterFullRecords').style.display='none'" style="margin-bottom:12px;">닫기</button>
-        <table class="player-table records-full-table">
-            <thead><tr><th>순위</th><th>팀</th><th>이름</th><th>포지션</th><th>${stat}</th><th>G</th><th>PA</th><th>AVG</th><th>HR</th><th>OPS</th></tr></thead>
+        <table class="player-table records-full-table" id="batterRecordTable">
+            <thead><tr>${headers.map(h => h.key
+                ? `<th data-sort="${h.key}" style="cursor:pointer;${h.key === sortKey ? 'color:var(--accent);' : ''}">${h.label}${h.key === sortKey ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}</th>`
+                : `<th>${h.label}</th>`
+            ).join('')}</tr></thead>
             <tbody>${sorted.map((p, i) => {
-                const rs = p.realStats;
-                return `<tr><td>${i + 1}</td><td><img src="${teamLogo(p.team)}" style="width:18px;height:18px;vertical-align:middle"></td><td style="font-weight:600">${p.name}</td><td>${p.position}</td><td style="font-weight:700;color:var(--accent)">${formatVal(rs[stat])}</td><td>${rs.G}</td><td>${rs.PA}</td><td>${rs.AVG.toFixed(3)}</td><td>${rs.HR}</td><td>${rs.OPS.toFixed(3)}</td></tr>`;
+                const rs = p[statsKey];
+                return `<tr><td>${i + 1}</td><td><img src="${teamLogo(p.team)}" style="width:18px;height:18px;vertical-align:middle"></td><td style="font-weight:600">${p.name}</td><td>${p.position}</td><td>${(rs.AVG||0).toFixed(3)}</td><td>${rs.HR||0}</td><td>${rs.RBI||0}</td><td>${rs.H||0}</td><td>${(rs.OPS||0).toFixed(3)}</td><td>${rs.SB||0}</td><td>${rs.BB||0}</td><td>${(rs.WAR||0).toFixed(1)}</td><td>${rs.G||0}</td><td>${rs.PA||0}</td></tr>`;
             }).join('')}</tbody>
         </table>`;
+
+    // 정렬 이벤트
+    container.querySelectorAll('th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+            const key = th.dataset.sort;
+            if (batterRecordSortKey === key) batterRecordSortDir = batterRecordSortDir === 'asc' ? 'desc' : 'asc';
+            else { batterRecordSortKey = key; batterRecordSortDir = ['AVG','ERA','WHIP','FIP'].includes(key) ? 'asc' : 'desc'; }
+            showFullBatterRecord(stat);
+        });
+    });
+
     container.style.display = 'block';
     container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+let pitcherRecordSortKey = null;
+let pitcherRecordSortDir = 'desc';
+
 function showFullPitcherRecord(stat) {
-    const pitchers = getAllPitchersWithStats();
-    const asc = ['ERA', 'WHIP', 'FIP'].includes(stat);
-    const sorted = [...pitchers].sort((a, b) => asc ? (a.realStats[stat] - b.realStats[stat]) : (b.realStats[stat] - a.realStats[stat]));
+    const pitchers = getActiveStats() === 'sim' ? getAllPitchersWithSimStats() : getAllPitchersWithStats();
+    if (!pitcherRecordSortKey) { pitcherRecordSortKey = stat; pitcherRecordSortDir = ['ERA','WHIP','FIP'].includes(stat) ? 'asc' : 'desc'; }
+    const sortKey = pitcherRecordSortKey;
+    const sortDir = pitcherRecordSortDir;
+    const statsKey = getActiveStats() === 'sim' ? 'simStats' : 'realStats';
+
+    const sorted = [...pitchers].sort((a, b) => {
+        const va = a[statsKey][sortKey] || 0, vb = b[statsKey][sortKey] || 0;
+        return sortDir === 'asc' ? va - vb : vb - va;
+    });
     const container = document.getElementById('pitcherFullRecords');
-    const formatVal = v => typeof v === 'number' ? (Number.isInteger(v) ? v : v.toFixed(2)) : v;
+
+    const headers = [
+        {key:null,label:'순위'},{key:null,label:'팀'},{key:null,label:'이름'},{key:null,label:'역할'},
+        {key:'ERA',label:'ERA'},{key:'W',label:'W'},{key:'L',label:'L'},{key:'S',label:'S'},
+        {key:'SO',label:'SO'},{key:'IP',label:'IP'},{key:'WHIP',label:'WHIP'},{key:'WAR',label:'WAR'},
+        {key:'G',label:'G'},{key:'HLD',label:'HLD'}
+    ];
 
     container.innerHTML = `
-        <h3 style="margin-bottom:8px;">${stat} 순위</h3>
+        <h3 style="margin-bottom:8px;">투수 기록</h3>
         <button class="btn btn--sm" onclick="document.getElementById('pitcherFullRecords').style.display='none'" style="margin-bottom:12px;">닫기</button>
-        <table class="player-table records-full-table">
-            <thead><tr><th>순위</th><th>팀</th><th>이름</th><th>역할</th><th>${stat}</th><th>G</th><th>IP</th><th>ERA</th><th>SO</th><th>WHIP</th></tr></thead>
+        <table class="player-table records-full-table" id="pitcherRecordTable">
+            <thead><tr>${headers.map(h => h.key
+                ? `<th data-sort="${h.key}" style="cursor:pointer;${h.key === sortKey ? 'color:var(--accent);' : ''}">${h.label}${h.key === sortKey ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}</th>`
+                : `<th>${h.label}</th>`
+            ).join('')}</tr></thead>
             <tbody>${sorted.map((p, i) => {
-                const rs = p.realStats;
-                return `<tr><td>${i + 1}</td><td><img src="${teamLogo(p.team)}" style="width:18px;height:18px;vertical-align:middle"></td><td style="font-weight:600">${p.name}</td><td>${p.role || '-'}</td><td style="font-weight:700;color:var(--accent)">${formatVal(rs[stat])}</td><td>${rs.G}</td><td>${rs.IP}</td><td>${rs.ERA.toFixed(2)}</td><td>${rs.SO}</td><td>${rs.WHIP.toFixed(2)}</td></tr>`;
+                const rs = p[statsKey];
+                return `<tr><td>${i + 1}</td><td><img src="${teamLogo(p.team)}" style="width:18px;height:18px;vertical-align:middle"></td><td style="font-weight:600">${p.name}</td><td>${p.role || '-'}</td><td>${(rs.ERA||0).toFixed(2)}</td><td>${rs.W||0}</td><td>${rs.L||0}</td><td>${rs.S||0}</td><td>${rs.SO||0}</td><td>${(rs.IP||0).toFixed(1)}</td><td>${(rs.WHIP||0).toFixed(2)}</td><td>${(rs.WAR||0).toFixed(1)}</td><td>${rs.G||0}</td><td>${rs.HLD||0}</td></tr>`;
             }).join('')}</tbody>
         </table>`;
+
+    container.querySelectorAll('th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+            const key = th.dataset.sort;
+            if (pitcherRecordSortKey === key) pitcherRecordSortDir = pitcherRecordSortDir === 'asc' ? 'desc' : 'asc';
+            else { pitcherRecordSortKey = key; pitcherRecordSortDir = ['ERA','WHIP','FIP'].includes(key) ? 'asc' : 'desc'; }
+            showFullPitcherRecord(stat);
+        });
+    });
+
     container.style.display = 'block';
     container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
