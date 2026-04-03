@@ -834,16 +834,23 @@ const REAL_SEASON_STATS = {
         '손성빈': { pos:'C', AVG:.145, OBP:.209, SLG:.194, OPS:.403, 'wRC+':1.7, WAR:-0.20, oWAR:-0.42, dWAR:0.22, H:9, '2B':0, '3B':0, HR:1, RBI:3, R:6, SB:0, CS:0, BB:4, SO:20, G:51, PA:69, AB:62, IsoP:.049, defRAA:2.20, rangeRAA:1.19, errRAA:0.18, csRAA:1.22, frmRAA:0.00 },
         // ── 소표본 / 극소표본 ──
         '박재엽': { pos:'DH', AVG:.286, OBP:.375, SLG:.571, OPS:.946, 'wRC+':148.3, WAR:0.22, oWAR:0.28, dWAR:-0.05, H:4, '2B':1, '3B':0, HR:1, RBI:3, R:2, SB:0, CS:0, BB:2, SO:5, G:9, PA:16, AB:14, IsoP:.285 },
-        '신윤후': { pos:'RF', AVG:.167, OBP:.167, SLG:.167, OPS:.334, 'wRC+':-31.0, WAR:-0.21, oWAR:-0.19, dWAR:-0.02, H:2, '2B':0, '3B':0, HR:0, RBI:0, R:1, SB:1, CS:0, BB:0, SO:3, G:12, PA:13, AB:12, IsoP:.000 },
+        // 신윤후: 13PA 소표본 → _ratings 수동 (육성 중인 젊은 외야수)
+        '신윤후': { pos:'RF', AVG:.167, OBP:.167, SLG:.167, OPS:.334, 'wRC+':-31.0, WAR:-0.21, oWAR:-0.19, dWAR:-0.02, H:2, '2B':0, '3B':0, HR:0, RBI:0, R:1, SB:1, CS:0, BB:0, SO:3, G:12, PA:13, AB:12, IsoP:.000, _ratings:{contact:32, power:28, eye:25, speed:45, defense:40} },
         '한승현': { pos:'SS', AVG:.059, OBP:.105, SLG:.059, OPS:.164, 'wRC+':-71.1, WAR:-0.18, oWAR:-0.34, dWAR:0.16, H:1, '2B':0, '3B':0, HR:0, RBI:1, R:1, SB:1, CS:1, BB:1, SO:6, G:19, PA:19, AB:17, IsoP:.000 },
         // 한동희: 상무 전역. 상무 100G AVG.400 OBP.480 SLG.675 27HR 115RBI. 3루수.
         '한동희': { pos:'3B', _ratings:{ contact:65, power:65, eye:55, speed:35, defense:42 } },
         // 이서준: 신인
         '이서준': { pos:'SS', _ratings:{ contact:30, power:25, eye:28, speed:48, defense:45 } },
-        // 박정민: 신인 투수
-        '박정민': { pos:'P', role:'중계' },
-        // 이준서: 신인 투수
-        '이준서': { pos:'P', role:'중계' },
+        // 박정민/이준서: 신인 → REAL_SEASON_STATS 미등록 → 랜덤 OVR
+        // 비슬리: MLB+NPB. NPB 통산 40G 147IP ERA2.82 143K WHIP1.17. 1선발급이나 부상 이력.
+        '비슬리':     { pos:'P', role:'선발', G:40, GS:40, W:10, L:8, S:0, HLD:0, IP:147.0, H:123, HR:7, BB:49, HBP:9, SO:143, ER:46, R:51, ERA:2.82, WHIP:1.17, FIP:3.20, WAR:0.00,
+            pitches:[{name:'포심',pct:35,velo:151},{name:'슬라이더',pct:30,velo:135},{name:'커터',pct:20,velo:144},{name:'스플리터',pct:15,velo:140}] },
+        // 로드리게스: MLB+NPB. NPB 통산 39G 78IP ERA2.77 67K WHIP1.26. 포심 ivb 18.4인치 엘리트.
+        '로드리게스': { pos:'P', role:'선발', G:39, GS:0, W:2, L:6, S:1, HLD:8, IP:78.0, H:73, HR:6, BB:25, HBP:2, SO:67, ER:24, R:33, ERA:2.77, WHIP:1.26, FIP:3.50, WAR:0.00,
+            pitches:[{name:'포심',pct:40,velo:152},{name:'슬라이더',pct:25,velo:137},{name:'체인지업',pct:15,velo:140},{name:'커터',pct:12,velo:145},{name:'커브',pct:8,velo:128}] },
+        // 쿄야마: NPB 통산 6시즌 84G 277.1IP ERA4.60 222K WHIP1.68. 와일드씽 파이어볼러. 제구 나쁨.
+        '쿄야마':     { pos:'P', role:'중계', G:84, GS:49, W:14, L:23, S:0, HLD:5, IP:277.1, H:306, HR:30, BB:160, HBP:9, SO:222, ER:142, R:157, ERA:4.60, WHIP:1.68, FIP:4.80, WAR:0.00,
+            pitches:[{name:'포심',pct:40,velo:148},{name:'포크',pct:25,velo:136},{name:'슬라이더',pct:15,velo:132},{name:'커브',pct:10,velo:122},{name:'커터',pct:10,velo:140}] },
         // ─── 2025 시즌 투수 성적 (Statiz 종합) ───
         // ── 선발 ──
         '데이비슨':  { pos:'P', role:'선발', G:22, GS:22, W:10, L:5,  S:0,  HLD:0,  IP:123.1, H:123, HR:10, BB:48, HBP:5,  SO:119, ER:50, R:53,  ERA:3.65, WHIP:1.39, FIP:3.85, WAR:3.38, BABIP:0.329, WPA:1.25,
