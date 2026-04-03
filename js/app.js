@@ -159,6 +159,7 @@ function showView(viewName) {
     if (viewName === 'scout') setupScoutView();
     if (viewName === 'foreign-scout') renderForeignScout();
     if (viewName === 'stadium') renderStadiumView();
+    if (viewName === 'schedule') renderScheduleView();
     if (viewName === 'simulator') renderSimulator();
     if (viewName === 'postseason') renderPostseason();
 }
@@ -808,6 +809,191 @@ function getStadiumStrategy(s, parkInfo) {
         }
     }
     return strategies;
+}
+
+// ══════════════════════════════════════════
+// ██ SCHEDULE VIEW
+// ══════════════════════════════════════════
+let scheduleTeamFilter = 'all';
+let scheduleCurrentDate = null;
+
+function renderScheduleView() {
+    const container = document.getElementById('scheduleContainer');
+    const dateLabel = document.getElementById('scheduleDate');
+    const teamBtns = document.getElementById('scheduleTeamBtns');
+    if (!container) return;
+
+    const schedule = typeof KBO_SCHEDULE_2026 !== 'undefined' ? KBO_SCHEDULE_2026 : [];
+    if (schedule.length === 0) { container.innerHTML = '<p style="text-align:center;color:var(--text-dim);">일정 데이터가 없습니다.</p>'; return; }
+
+    // Team name mapping
+    const TEAM_NAMES = {'LG':'LG 트윈스','두산':'두산 베어스','KT':'KT 위즈','SSG':'SSG 랜더스','NC':'NC 다이노스',
+        '한화':'한화 이글스','KIA':'KIA 타이거즈','롯데':'롯데 자이언츠','삼성':'삼성 라이온즈','키움':'키움 히어로즈'};
+    const ORDER = ['LG','두산','한화','SSG','삼성','NC','KT','롯데','KIA','키움'];
+
+    // Init date
+    if (!scheduleCurrentDate) {
+        scheduleCurrentDate = schedule[0].d;
+    }
+
+    // Team filter buttons
+    if (teamBtns && teamBtns.children.length === 0) {
+        ORDER.forEach(code => {
+            const btn = document.createElement('button');
+            btn.style.cssText = 'background:none;border:2px solid transparent;border-radius:50%;cursor:pointer;padding:4px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;';
+            btn.innerHTML = `<img src="${teamLogo(code)}" alt="${code}" style="width:28px;height:28px;">`;
+            btn.dataset.team = code;
+            btn.title = TEAM_NAMES[code] || code;
+            btn.onclick = () => {
+                scheduleTeamFilter = code;
+                document.querySelector('.schedule-team-btn.active')?.classList.remove('active');
+                document.querySelectorAll('#scheduleTeamBtns button').forEach(b => b.style.borderColor = 'transparent');
+                btn.style.borderColor = 'var(--accent)';
+                renderScheduleContent();
+            };
+            teamBtns.appendChild(btn);
+        });
+    }
+
+    // "전체" button
+    const allBtn = document.querySelector('.schedule-team-btn[data-team="all"]');
+    if (allBtn) {
+        allBtn.onclick = () => {
+            scheduleTeamFilter = 'all';
+            allBtn.classList.add('active');
+            document.querySelectorAll('#scheduleTeamBtns button').forEach(b => b.style.borderColor = 'transparent');
+            renderScheduleContent();
+        };
+    }
+
+    // Date navigation
+    document.getElementById('schedulePrev').onclick = () => {
+        const dates = schedule.map(d => d.d);
+        if (scheduleTeamFilter !== 'all') {
+            const teamDates = schedule.filter(day => day.g.some(g => g.h === scheduleTeamFilter || g.a === scheduleTeamFilter)).map(d => d.d);
+            const idx = teamDates.indexOf(scheduleCurrentDate);
+            if (idx > 0) scheduleCurrentDate = teamDates[idx - 1];
+            else if (idx === -1 && teamDates.length > 0) scheduleCurrentDate = teamDates[teamDates.length - 1];
+        } else {
+            const idx = dates.indexOf(scheduleCurrentDate);
+            if (idx > 0) scheduleCurrentDate = dates[idx - 1];
+        }
+        renderScheduleContent();
+    };
+    document.getElementById('scheduleNext').onclick = () => {
+        const dates = schedule.map(d => d.d);
+        if (scheduleTeamFilter !== 'all') {
+            const teamDates = schedule.filter(day => day.g.some(g => g.h === scheduleTeamFilter || g.a === scheduleTeamFilter)).map(d => d.d);
+            const idx = teamDates.indexOf(scheduleCurrentDate);
+            if (idx < teamDates.length - 1) scheduleCurrentDate = teamDates[idx + 1];
+            else if (idx === -1 && teamDates.length > 0) scheduleCurrentDate = teamDates[0];
+        } else {
+            const idx = dates.indexOf(scheduleCurrentDate);
+            if (idx < dates.length - 1) scheduleCurrentDate = dates[idx + 1];
+        }
+        renderScheduleContent();
+    };
+
+    renderScheduleContent();
+
+    function renderScheduleContent() {
+        const DAYS = ['일','월','화','수','목','금','토'];
+        const dateObj = new Date(scheduleCurrentDate);
+        const dayName = DAYS[dateObj.getDay()];
+        dateLabel.textContent = `${scheduleCurrentDate} (${dayName})`;
+
+        if (scheduleTeamFilter === 'all') {
+            // 전체 보기: 당일 5경기 카드
+            const dayData = schedule.find(d => d.d === scheduleCurrentDate);
+            if (!dayData || dayData.g.length === 0) {
+                container.innerHTML = '<p style="text-align:center;color:var(--text-dim);padding:40px;">이 날은 경기가 없습니다.</p>';
+                return;
+            }
+            container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
+                ${dayData.g.map(g => {
+                    const homeName = TEAM_NAMES[g.h] || g.h;
+                    const awayName = TEAM_NAMES[g.a] || g.a;
+                    return `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                            <div style="text-align:center;flex:1;">
+                                <img src="${teamLogo(g.h)}" style="width:48px;height:48px;margin-bottom:4px;"><br>
+                                <span style="font-weight:700;font-size:14px;color:var(--text-bright);">${homeName}</span><br>
+                                <span style="color:#22c55e;font-weight:700;font-size:12px;">H</span>
+                            </div>
+                            <div style="font-size:20px;font-weight:900;color:var(--text-dim);padding:0 12px;">VS</div>
+                            <div style="text-align:center;flex:1;">
+                                <img src="${teamLogo(g.a)}" style="width:48px;height:48px;margin-bottom:4px;"><br>
+                                <span style="font-weight:700;font-size:14px;color:var(--text-bright);">${awayName}</span><br>
+                                <span style="color:#ED1C24;font-weight:700;font-size:12px;">A</span>
+                            </div>
+                        </div>
+                        <div style="color:var(--text-dim);font-size:12px;">${g.t} | ${g.s}</div>
+                    </div>`;
+                }).join('')}
+            </div>`;
+        } else {
+            // 팀별 보기: 해당 팀 일정 리스트
+            const teamGames = [];
+            schedule.forEach(day => {
+                day.g.forEach(g => {
+                    if (g.h === scheduleTeamFilter || g.a === scheduleTeamFilter) {
+                        const isHome = g.h === scheduleTeamFilter;
+                        const opponent = isHome ? g.a : g.h;
+                        teamGames.push({ date: day.d, time: g.t, stadium: g.s, isHome, opponent });
+                    }
+                });
+            });
+
+            // Find current week range (7 days from current date)
+            const curDate = new Date(scheduleCurrentDate);
+            const weekStart = new Date(curDate);
+            weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Sunday
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6); // Saturday
+
+            const weekGames = teamGames.filter(g => {
+                const d = new Date(g.date);
+                return d >= weekStart && d <= weekEnd;
+            });
+
+            const teamName = TEAM_NAMES[scheduleTeamFilter] || scheduleTeamFilter;
+            dateLabel.textContent = `${teamName} — ${weekStart.toISOString().slice(0,10)} ~ ${weekEnd.toISOString().slice(0,10)}`;
+
+            if (weekGames.length === 0) {
+                container.innerHTML = '<p style="text-align:center;color:var(--text-dim);padding:40px;">이 주에는 경기가 없습니다.</p>';
+                return;
+            }
+
+            container.innerHTML = `<div style="background:var(--card);border-radius:12px;overflow:hidden;">
+                <table style="width:100%;border-collapse:collapse;">
+                    <thead><tr style="background:var(--bg-darker);">
+                        <th style="padding:10px;text-align:center;color:var(--text-dim);font-size:12px;">날짜</th>
+                        <th style="padding:10px;text-align:center;color:var(--text-dim);font-size:12px;">H/A</th>
+                        <th style="padding:10px;text-align:center;color:var(--text-dim);font-size:12px;">상대</th>
+                        <th style="padding:10px;text-align:center;color:var(--text-dim);font-size:12px;">시간</th>
+                        <th style="padding:10px;text-align:center;color:var(--text-dim);font-size:12px;">구장</th>
+                    </tr></thead>
+                    <tbody>
+                    ${weekGames.map(g => {
+                        const d = new Date(g.date);
+                        const dayStr = DAYS[d.getDay()];
+                        const oppName = TEAM_NAMES[g.opponent] || g.opponent;
+                        return `<tr style="border-bottom:1px solid var(--border);">
+                            <td style="padding:10px;text-align:center;font-size:13px;">${g.date.slice(5)} (${dayStr})</td>
+                            <td style="padding:10px;text-align:center;font-weight:700;color:${g.isHome ? '#22c55e' : '#ED1C24'};">${g.isHome ? 'H' : 'A'}</td>
+                            <td style="padding:10px;text-align:center;">
+                                <img src="${teamLogo(g.opponent)}" style="width:20px;height:20px;vertical-align:middle;margin-right:4px;">
+                                <span style="font-size:13px;">${oppName}</span>
+                            </td>
+                            <td style="padding:10px;text-align:center;font-size:13px;">${g.time}</td>
+                            <td style="padding:10px;text-align:center;font-size:13px;color:var(--text-dim);">${g.stadium}</td>
+                        </tr>`;
+                    }).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+        }
+    }
 }
 
 function renderStadiumView() {

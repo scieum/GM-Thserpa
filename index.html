@@ -380,6 +380,7 @@
             <button class="nav-btn" data-view="stadium">홈구장</button>
             <button class="nav-btn" data-view="trade">트레이드 마켓</button>
             <button class="nav-btn" data-view="foreign-scout" id="navForeignScout">외국인 스카우트</button>
+            <button class="nav-btn" data-view="schedule">경기 일정</button>
             <button class="nav-btn" data-view="simulator">리그 시뮬레이션</button>
             <button class="nav-btn" data-view="postseason">포스트시즌</button>
         </nav>
@@ -561,6 +562,21 @@
                 <h3>트레이드 히스토리</h3>
                 <div id="tradeHistory"></div>
             </div>
+        </section>
+
+        <!-- VIEW: Schedule -->
+        <section id="view-schedule" class="view">
+            <h2 class="view__title">2026 KBO 경기 일정</h2>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+                <button class="schedule-team-btn active" data-team="all" style="padding:6px 16px;border:2px solid var(--accent);border-radius:20px;background:var(--accent);color:#fff;cursor:pointer;font-weight:700;font-size:13px;">전체</button>
+            </div>
+            <div id="scheduleTeamBtns" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:16px;"></div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:20px;">
+                <button id="schedulePrev" style="background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:16px;">◀</button>
+                <span id="scheduleDate" style="font-size:18px;font-weight:700;color:var(--text-bright);min-width:200px;text-align:center;"></span>
+                <button id="scheduleNext" style="background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:16px;">▶</button>
+            </div>
+            <div id="scheduleContainer"></div>
         </section>
 
         <!-- VIEW: Simulator -->
