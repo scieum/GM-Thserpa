@@ -78,10 +78,30 @@ function saveState() {
 }
 
 function resetState() {
-    if (!confirm('모든 데이터를 초기 상태로 되돌립니다. 계속하시겠습니까?')) return;
+    // 교사만 초기화 가능
+    if (typeof isStudent === 'function' && isStudent()) {
+        showToast('초기화는 교사만 실행할 수 있습니다.', 'warning');
+        return;
+    }
+
+    const totalPlayed = getTotalGamesPlayed(state);
+    let msg = '모든 데이터를 초기 상태로 되돌립니다.\n계속하시겠습니까?';
+    if (totalPlayed > 0) {
+        msg = `⚠️ 현재 ${totalPlayed}/144 경기가 진행된 상태입니다.\n\n` +
+              `초기화하면 모든 시즌 기록, 트레이드 내역, 선수 데이터가 삭제됩니다.\n` +
+              `학생 화면도 함께 초기화됩니다.\n\n정말 처음부터 다시 시작하시겠습니까?`;
+    }
+    if (!confirm(msg)) return;
+
+    // 시즌 진행 중이면 2차 확인
+    if (totalPlayed >= 36) {
+        if (!confirm('정말로 초기화합니다. 되돌릴 수 없습니다!')) return;
+    }
+
     localStorage.removeItem('kbo-sim-state');
     localStorage.removeItem('kbo-foreign-scout-state');
     state = generateSampleData();
+    window.state = state;
     updateAllPowerScores();
     renderDashboard();
     renderRoster();
@@ -99,12 +119,15 @@ function resetState() {
     if (navFs) { navFs.classList.add('nav-btn--locked'); navFs.classList.remove('nav-btn--unlocked'); navFs.textContent = '🔒 외국인 스카우트'; }
     const fsTabBatter = document.getElementById('fsTabBatter');
     if (fsTabBatter) { fsTabBatter.classList.add('fs-sub-tab--locked'); fsTabBatter.textContent = '🔒 타자 후보'; }
-    showToast('초기화 완료!', 'info');
+    showToast('초기화 완료! 새로운 시즌을 시작합니다.', 'info');
 
     // ── Supabase 동기화: 학생에게 초기화 전파 ──
     try {
         const teamCodes = Object.keys(state.teams);
-        const emptyRecord = { q1:{wins:0,losses:0}, q2:{wins:0,losses:0}, q3:{wins:0,losses:0}, q4:{wins:0,losses:0} };
+        const emptyRecord = {
+            q1:{wins:0,losses:0,draws:0,rs:0,ra:0}, q2:{wins:0,losses:0,draws:0,rs:0,ra:0},
+            q3:{wins:0,losses:0,draws:0,rs:0,ra:0}, q4:{wins:0,losses:0,draws:0,rs:0,ra:0}
+        };
 
         // 1) 전체 팀 시즌 기록 초기화
         if (typeof saveAllGameStates === 'function') {
@@ -119,7 +142,7 @@ function resetState() {
         if (typeof saveSimResult === 'function') {
             const emptyStandings = teamCodes.map(code => ({
                 code,
-                wins: 0, losses: 0, rate: 0,
+                wins: 0, losses: 0, draws: 0, rate: 0,
                 seasonRecord: emptyRecord,
             }));
             saveSimResult(0, emptyStandings, { totalGames: 0, reset: true });
@@ -132,7 +155,7 @@ function resetState() {
 
         // 4) 활동 로그
         if (typeof logActivity === 'function') {
-            logActivity(null, 'reset', { message: '교사가 데이터를 초기화했습니다.' });
+            logActivity(null, 'reset', { message: '교사가 시즌을 초기화했습니다.' });
         }
     } catch (e) { console.warn('초기화 Supabase 동기화 실패:', e); }
 }
