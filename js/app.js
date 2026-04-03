@@ -2035,9 +2035,10 @@ function showPlayerModal(player) {
         ratingsEl.innerHTML = profileHTML;
     }
 
-    // 시즌 성적 (3탭)
+    // 시즌 성적 (3탭) — 시뮬 시작 후에는 simStats 우선 표시
     const statsEl = document.getElementById('playerModalStats');
-    const rs = p.realStats;
+    const rs = (isSeasonStarted() && p.simStats) ? p.simStats : p.realStats;
+    const statsLabel = (isSeasonStarted() && p.simStats) ? '2026' : '2025';
 
     if (rs && p.position !== 'P') {
         statsEl.innerHTML = `
@@ -2089,10 +2090,11 @@ function showPlayerModal(player) {
         });
     } else {
         statsEl.innerHTML = `
-            <div class="pm-stats-title">2025 시즌 성적</div>
+            <div class="pm-stats-title">${statsLabel} 시즌 성적</div>
             <div class="pm-no-data">
                 ${p.isForeign ? '외국인 선수 — KBO 이전 시즌 기록 없음' :
                   p.isFutures ? '2군 선수 — 1군 시즌 기록 없음' :
+                  isSeasonStarted() ? '아직 시뮬레이션 데이터가 부족합니다.' :
                   '시즌 기록 데이터가 등록되지 않았습니다.'}
             </div>
         `;
@@ -3656,11 +3658,12 @@ function showScoutDetailInline(p) {
     }
     ratingsEl.innerHTML = ratingsHTML;
 
-    // 우측: 시즌 성적
-    const rs = p.realStats;
+    // 우측: 시즌 성적 — 시뮬 시작 후에는 simStats 우선
+    const rs = (typeof isSeasonStarted === 'function' && isSeasonStarted() && p.simStats) ? p.simStats : p.realStats;
+    const sLabel = (typeof isSeasonStarted === 'function' && isSeasonStarted() && p.simStats) ? '2026' : '2025';
     if (rs && p.position !== 'P') {
         statsEl.innerHTML = `
-            <div class="pm-ratings-title">2025 시즌 성적</div>
+            <div class="pm-ratings-title">${sLabel} 시즌 성적</div>
             ${renderClassicStats(rs)}
             <div class="pm-ratings-title" style="margin-top:12px;">세이버메트릭스</div>
             ${renderSaberStats(rs)}
@@ -3668,7 +3671,7 @@ function showScoutDetailInline(p) {
         `;
     } else if (rs && p.position === 'P') {
         statsEl.innerHTML = `
-            <div class="pm-ratings-title">2025 시즌 성적</div>
+            <div class="pm-ratings-title">${sLabel} 시즌 성적</div>
             ${renderPitcherClassicStats(rs)}
             <div class="pm-ratings-title" style="margin-top:12px;">세이버메트릭스</div>
             ${renderPitcherSaberStats(rs)}
