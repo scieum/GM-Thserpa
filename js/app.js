@@ -3164,28 +3164,67 @@ async function runPO(matchNum) {
     const resultEl = document.getElementById(`po${matchNum}Result`);
     const btn = document.getElementById(`btnPO${matchNum}`);
     btn.disabled = true;
+    btn.textContent = '진행 중...';
 
-    const result = await playoffSeries(state, teamA, teamB, 3, (game) => {
-        resultEl.textContent = `${state.teams[teamA].name} ${game.scoreA} - ${game.scoreB} ${state.teams[teamB].name}`;
-    });
+    const resultsDiv = document.getElementById('postseasonGameResults');
 
-    resultEl.innerHTML = `<strong>${state.teams[result.winner].name} 승리!</strong> (${result.winsA} - ${result.winsB})`;
+    // 자동 라인업/선발투수 가져오기
+    ensureDepthChart(teamA);
+    ensureDepthChart(teamB);
+    const dcA = state.teams[teamA].depthChart;
+    const dcB = state.teams[teamB].depthChart;
+
+    const targetWins = 2; // 3판 2선승
+    let winsA = 0, winsB = 0;
+    const seriesGames = [];
+
+    while (winsA < targetWins && winsB < targetWins) {
+        const gameNum = seriesGames.length + 1;
+        const lineupA = (dcA.lineup.vsRHP || []).filter(Boolean);
+        const lineupB = (dcB.lineup.vsRHP || []).filter(Boolean);
+        // 로테이션에서 선발 투수 돌려쓰기
+        const spA = dcA.rotation[(gameNum - 1) % dcA.rotation.filter(Boolean).length] || getAcePitcher(state, teamA)?.id;
+        const spB = dcB.rotation[(gameNum - 1) % dcB.rotation.filter(Boolean).length] || getAcePitcher(state, teamB)?.id;
+
+        // 홈/어웨이: 높은 시드가 홈
+        const game = simulateGame(state, teamA, teamB, lineupA, lineupB, spA, spB);
+        game.homeLineup = lineupA;
+        game.awayLineup = lineupB;
+        seriesGames.push(game);
+
+        if (game.winner === teamA) winsA++;
+        else if (game.winner === teamB) winsB++;
+
+        // 경기 결과 UI
+        resultEl.textContent = `${state.teams[teamA].name} ${winsA} - ${winsB} ${state.teams[teamB].name}`;
+        resultsDiv.innerHTML += `
+            <div style="margin:12px 0;padding:12px;background:var(--bg-card);border-radius:8px;border:1px solid var(--border);">
+                <h4>PO${matchNum} ${gameNum}차전 — ${state.teams[game.winner || teamA].name} ${game.homeScore} : ${game.awayScore} ${state.teams[game.winner === teamA ? teamB : teamA].name}</h4>
+                ${renderBoxScore(game, state)}
+            </div>`;
+
+        await delay(500);
+    }
+
+    const winner = winsA >= targetWins ? teamA : teamB;
+    const loser = winsA >= targetWins ? teamB : teamA;
+    const result = { winner, loser, winsA, winsB, games: seriesGames };
+
+    resultEl.innerHTML = `<strong>${state.teams[winner].name} 승리!</strong> (${winsA} - ${winsB})`;
     btn.textContent = '완료';
 
     if (matchNum === 1) postseasonState.po1 = result;
     else postseasonState.po2 = result;
 
-    // Apply fatigue to PO winner
-    applyFatigue(state, result.winner);
+    applyFatigue(state, winner);
 
-    // Check if both PO done
     if (postseasonState.po1 && postseasonState.po2) {
         document.getElementById('btnKS').disabled = false;
         document.getElementById('ksTeamA').textContent = state.teams[postseasonState.po1.winner].name;
         document.getElementById('ksTeamB').textContent = state.teams[postseasonState.po2.winner].name;
     }
 
-    showToast(`플레이오프 ${matchNum}: ${state.teams[result.winner].name} 승리!`, 'success');
+    showToast(`플레이오프 ${matchNum}: ${state.teams[winner].name} 승리!`, 'success');
 }
 
 async function runKS() {
@@ -3194,13 +3233,49 @@ async function runKS() {
     const resultEl = document.getElementById('ksResult');
     const btn = document.getElementById('btnKS');
     btn.disabled = true;
+    btn.textContent = '진행 중...';
 
-    const result = await playoffSeries(state, teamA, teamB, 5, (game) => {
-        resultEl.textContent = `${state.teams[teamA].name} ${game.scoreA} - ${game.scoreB} ${state.teams[teamB].name}`;
-    });
+    const resultsDiv = document.getElementById('postseasonGameResults');
+    resultsDiv.innerHTML += `<hr style="margin:20px 0;"><h3>한국시리즈</h3>`;
 
+    ensureDepthChart(teamA);
+    ensureDepthChart(teamB);
+    const dcA = state.teams[teamA].depthChart;
+    const dcB = state.teams[teamB].depthChart;
+
+    const targetWins = 3; // 5판 3선승
+    let winsA = 0, winsB = 0;
+    const seriesGames = [];
+
+    while (winsA < targetWins && winsB < targetWins) {
+        const gameNum = seriesGames.length + 1;
+        const lineupA = (dcA.lineup.vsRHP || []).filter(Boolean);
+        const lineupB = (dcB.lineup.vsRHP || []).filter(Boolean);
+        const spA = dcA.rotation[(gameNum - 1) % dcA.rotation.filter(Boolean).length] || getAcePitcher(state, teamA)?.id;
+        const spB = dcB.rotation[(gameNum - 1) % dcB.rotation.filter(Boolean).length] || getAcePitcher(state, teamB)?.id;
+
+        const game = simulateGame(state, teamA, teamB, lineupA, lineupB, spA, spB);
+        game.homeLineup = lineupA;
+        game.awayLineup = lineupB;
+        seriesGames.push(game);
+
+        if (game.winner === teamA) winsA++;
+        else if (game.winner === teamB) winsB++;
+
+        resultEl.textContent = `${state.teams[teamA].name} ${winsA} - ${winsB} ${state.teams[teamB].name}`;
+        resultsDiv.innerHTML += `
+            <div style="margin:12px 0;padding:12px;background:var(--bg-card);border-radius:8px;border:1px solid var(--border);">
+                <h4>KS ${gameNum}차전 — ${state.teams[game.winner || teamA].name} ${game.homeScore} : ${game.awayScore} ${state.teams[game.winner === teamA ? teamB : teamA].name}</h4>
+                ${renderBoxScore(game, state)}
+            </div>`;
+
+        await delay(500);
+    }
+
+    const winner = winsA >= targetWins ? teamA : teamB;
+    const result = { winner, loser: winner === teamA ? teamB : teamA, winsA, winsB, games: seriesGames };
     postseasonState.ks = result;
-    resultEl.innerHTML = `<strong>${state.teams[result.winner].name} 우승!</strong> (${result.winsA} - ${result.winsB})`;
+    resultEl.innerHTML = `<strong>${state.teams[winner].name} 우승!</strong> (${winsA} - ${winsB})`;
     btn.textContent = '완료';
 
     // Remove fatigue

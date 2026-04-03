@@ -3887,3 +3887,22 @@ body {
     font-size: 13px; font-weight: 700;
     color: var(--text-primary, #e8eaf0);
 }
+
+/* ===== 박스스코어 ===== */
+.boxscore__scoreboard table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.boxscore__scoreboard th, .boxscore__scoreboard td { padding: 4px 8px; text-align: center; border: 1px solid var(--border); }
+.boxscore__scoreboard th { background: var(--bg-hover); font-weight: 700; }
+
+/* ===== 플레이바이플레이 ===== */
+.pbp-inning { margin: 8px 0; }
+.pbp-inning h4 { font-size: 13px; color: var(--accent); margin: 8px 0 4px; }
+.pbp-half { margin: 4px 0 8px 8px; }
+.pbp-half strong { font-size: 12px; color: var(--text-dim); }
+.pbp-play { font-size: 12px; padding: 2px 0; border-bottom: 1px solid var(--border-light, rgba(255,255,255,0.05)); }
+.pbp-batter { font-weight: 600; }
+.pbp-result { margin-left: 6px; }
+.pbp-rbi { color: var(--accent); font-weight: 600; margin-left: 4px; }
+.pbp-hr .pbp-result { color: #f59e0b; font-weight: 700; }
+.pbp-hit .pbp-result { color: #34d399; }
+.pbp-so .pbp-result { color: #ef4444; }
+}
