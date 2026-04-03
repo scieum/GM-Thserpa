@@ -3295,11 +3295,21 @@ async function runPO(matchNum) {
     showToast(`플레이오프 ${matchNum}: ${state.teams[winner].name} 승리!`, 'success');
 }
 
-async function showAwardsCeremony(awards) {
+function showAwardsCeremony(awards) {
     const container = document.getElementById('awardsContent');
+    const nextWrap = document.getElementById('awardsNextWrap');
+    const btnNext = document.getElementById('btnAwardNext');
+    const progressEl = document.getElementById('awardsProgress');
     container.innerHTML = '';
-    for (const a of awards) {
-        await delay(850);
+    nextWrap.style.display = 'block';
+
+    let idx = 0;
+
+    function revealNext() {
+        if (idx >= awards.length) return;
+        const a = awards[idx];
+        idx++;
+
         const div = document.createElement('div');
         div.className = 'award-item award-item--reveal';
         div.innerHTML = `
@@ -3309,11 +3319,25 @@ async function showAwardsCeremony(awards) {
             <span class="award-item__desc">${a.desc}</span>
         `;
         container.appendChild(div);
-        // reflow → 애니메이션 트리거
-        div.getBoundingClientRect();
+        div.getBoundingClientRect(); // reflow → 애니메이션 트리거
         div.classList.add('award-item--visible');
-        container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        progressEl.textContent = `${idx} / ${awards.length}`;
+
+        if (idx >= awards.length) {
+            btnNext.textContent = '완료 ✓';
+            btnNext.disabled = true;
+        }
     }
+
+    // 기존 리스너 제거 후 재등록
+    const newBtn = btnNext.cloneNode(true);
+    btnNext.parentNode.replaceChild(newBtn, btnNext);
+    newBtn.addEventListener('click', revealNext);
+
+    // 첫 번째는 바로 공개
+    revealNext();
 }
 
 async function runKS() {
