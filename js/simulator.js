@@ -212,7 +212,7 @@ function updateAllSimStats(state) {
     const totalGames = getTotalGamesPlayed(state);
     if (totalGames <= 0) return;
 
-    const seasonPct = totalGames / 144; // 시즌 진행률 (0~1)
+    const seasonPct = totalGames / 144;
     const teamCodes = Object.keys(state.teams);
 
     for (const code of teamCodes) {
@@ -221,14 +221,138 @@ function updateAllSimStats(state) {
         const teamWins = record.wins;
         const teamLosses = record.losses;
 
+        // 1) 타자 simStats 생성
         for (const pid of team.roster) {
             const p = state.players[pid];
-            if (!p) continue;
+            if (!p || p.position === 'P') continue;
+            p.simStats = generateBatterSimStats(p, totalGames, seasonPct);
+        }
 
-            if (p.position === 'P') {
-                p.simStats = generatePitcherSimStats(p, totalGames, seasonPct, teamWins, teamLosses);
+        // 2) 투수 simStats 생성 (승/패는 0으로 초기화)
+        const pitcherList = [];
+        for (const pid of team.roster) {
+            const p = state.players[pid];
+            if (!p || p.position !== 'P') continue;
+            p.simStats = generatePitcherSimStats(p, totalGames, seasonPct, teamWins, teamLosses);
+            if (p.simStats) pitcherList.push(p);
+        }
+
+        // 3) 팀 승/패를 투수들에게 배분 (개인 승/패 합 = 팀 승/패)
+        distributePitcherWinLoss(pitcherList, teamWins, teamLosses);
+    }
+}
+
+/**
+ * 팀 승/패를 투수들에게 배분
+ * 선발: GS × ERA 역수 비례로 승 배분, GS × ERA 비례로 패 배분
+ * 불펜: 잔여 승/패를 등판수 비례로 배분
+ */
+function distributePitcherWinLoss(pitchers, teamW, teamL) {
+    if (!pitchers.length || (teamW + teamL) === 0) return;
+
+    const starters = pitchers.filter(p => p.role === '선발' && p.simStats);
+    const closers = pitchers.filter(p => p.role === '마무리' && p.simStats);
+    const relievers = pitchers.filter(p => p.role === '중계' && p.simStats);
+
+    // 모든 투수 W/L/S/HLD 초기화
+    for (const p of pitchers) {
+        if (p.simStats) { p.simStats.W = 0; p.simStats.L = 0; p.simStats.S = 0; p.simStats.HLD = 0; }
+    }
+
+    // ── 선발 승/패 배분 (팀 승의 약 70~80%, 팀 패의 약 75~85%) ──
+    const starterWinShare = clamp(0.75 + randNorm(0, 0.03), 0.65, 0.85);
+    const starterLossShare = clamp(0.80 + randNorm(0, 0.03), 0.70, 0.90);
+    let starterWins = Math.round(teamW * starterWinShare);
+    let starterLosses = Math.round(teamL * starterLossShare);
+
+    if (starters.length > 0) {
+        // 승 배분: GS가 많고 ERA가 낮을수록 승 많이
+        const wWeights = starters.map(p => {
+            const gs = p.simStats.GS || 1;
+            const era = p.simStats.ERA || 4.5;
+            const sv = getSeasonVariance(p.id);
+            return gs * (1 / Math.max(era, 0.5)) * (1 + sv * 0.5);
+        });
+        const wTotal = wWeights.reduce((s, w) => s + w, 0) || 1;
+
+        // 패 배분: GS가 많고 ERA가 높을수록 패 많이
+        const lWeights = starters.map(p => {
+            const gs = p.simStats.GS || 1;
+            const era = p.simStats.ERA || 4.5;
+            return gs * Math.max(era, 0.5);
+        });
+        const lTotal = lWeights.reduce((s, w) => s + w, 0) || 1;
+
+        let wLeft = starterWins, lLeft = starterLosses;
+        for (let i = 0; i < starters.length; i++) {
+            const p = starters[i];
+            if (i === starters.length - 1) {
+                p.simStats.W = Math.max(0, wLeft);
+                p.simStats.L = Math.max(0, lLeft);
             } else {
-                p.simStats = generateBatterSimStats(p, totalGames, seasonPct);
+                p.simStats.W = Math.round(starterWins * wWeights[i] / wTotal);
+                p.simStats.L = Math.round(starterLosses * lWeights[i] / lTotal);
+                wLeft -= p.simStats.W;
+                lLeft -= p.simStats.L;
+            }
+        }
+    }
+
+    // ── 불펜 승/패 배분 (잔여분) ──
+    let bullpenWins = teamW - starters.reduce((s, p) => s + (p.simStats?.W || 0), 0);
+    let bullpenLosses = teamL - starters.reduce((s, p) => s + (p.simStats?.L || 0), 0);
+    bullpenWins = Math.max(0, bullpenWins);
+    bullpenLosses = Math.max(0, bullpenLosses);
+
+    const bullpen = [...closers, ...relievers];
+    if (bullpen.length > 0) {
+        const bWeights = bullpen.map(p => p.simStats?.G || 1);
+        const bTotal = bWeights.reduce((s, w) => s + w, 0) || 1;
+        let bwLeft = bullpenWins, blLeft = bullpenLosses;
+        for (let i = 0; i < bullpen.length; i++) {
+            const p = bullpen[i];
+            if (i === bullpen.length - 1) {
+                p.simStats.W = Math.max(0, bwLeft);
+                p.simStats.L = Math.max(0, blLeft);
+            } else {
+                p.simStats.W = Math.round(bullpenWins * bWeights[i] / bTotal);
+                p.simStats.L = Math.round(bullpenLosses * bWeights[i] / bTotal);
+                bwLeft -= p.simStats.W;
+                blLeft -= p.simStats.L;
+            }
+        }
+    }
+
+    // ── 세이브: 마무리 투수에게 팀 승의 약 35~45% ──
+    if (closers.length > 0) {
+        const teamWinRate = teamW / Math.max(teamW + teamL, 1);
+        const totalSaves = Math.round(teamW * clamp(randNorm(0.40, 0.05), 0.25, 0.55));
+        const cWeights = closers.map(p => p.simStats?.G || 1);
+        const cTotal = cWeights.reduce((s, w) => s + w, 0) || 1;
+        let sLeft = totalSaves;
+        for (let i = 0; i < closers.length; i++) {
+            if (i === closers.length - 1) {
+                closers[i].simStats.S = Math.max(0, sLeft);
+            } else {
+                closers[i].simStats.S = Math.round(totalSaves * cWeights[i] / cTotal);
+                sLeft -= closers[i].simStats.S;
+            }
+        }
+    }
+
+    // ── 홀드: 중계 투수에게 등판수 비례 ──
+    if (relievers.length > 0) {
+        const teamWinRate = teamW / Math.max(teamW + teamL, 1);
+        const totalHolds = Math.round(teamW * clamp(randNorm(0.50, 0.08), 0.30, 0.70));
+        const hWeights = relievers.map(p => p.simStats?.G || 1);
+        const hTotal = hWeights.reduce((s, w) => s + w, 0) || 1;
+        let hLeft = totalHolds;
+        for (let i = 0; i < relievers.length; i++) {
+            if (i === relievers.length - 1) {
+                relievers[i].simStats.HLD = Math.max(0, hLeft);
+            } else {
+                relievers[i].simStats.HLD = Math.round(totalHolds * hWeights[i] / hTotal);
+                hLeft -= relievers[i].simStats.HLD;
             }
         }
     }
@@ -419,31 +543,8 @@ function generatePitcherSimStats(p, totalGames, seasonPct, teamW, teamL) {
     const ER = Math.round(IP * ERA / 9);
     const R = ER + Math.round(ER * clamp(randNorm(0.1, 0.05), 0, 0.3));
 
-    // ── 승패 현실화 ──
-    const teamTotal = teamW + teamL || 1;
-    const teamWinRate = teamW / teamTotal;
+    // 승/패/세이브/홀드는 distributePitcherWinLoss()에서 팀 합계 기준으로 배분
     let W = 0, L = 0, S = 0, HLD = 0;
-    if (role === '선발') {
-        // KBO 에이스: 144경기 시 약 28~30 선발, 결정률 75%, 개인 ERA 반영
-        const decisions = Math.round(GS * clamp(randNorm(0.75, 0.05), 0.60, 0.85));
-        // 개인 ERA가 낮을수록 승률 높음 (팀 승률 + 개인 보정)
-        const personalWinRate = clamp(
-            teamWinRate * 0.6 + (1 - ERA / 7) * 0.4 + (ovr - 50) * 0.004,
-            0.25, 0.80
-        );
-        W = Math.round(decisions * personalWinRate);
-        L = decisions - W;
-        // 에이스 보너스: ERA < 3.0 이면 추가 승수
-        if (ERA < 3.0 && sv > 0) W = Math.round(W * 1.1);
-    } else if (role === '마무리') {
-        S = Math.round(G * clamp(teamWinRate * 0.75 + sv * 0.1, 0.15, 0.70));
-        W = Math.round(G * clamp(randNorm(0.06, 0.02), 0.02, 0.12));
-        L = Math.round(G * clamp(randNorm(0.06, 0.02), 0.02, 0.12));
-    } else {
-        HLD = Math.round(G * clamp(teamWinRate * 0.35 + sv * 0.05, 0.05, 0.45));
-        W = Math.round(G * clamp(randNorm(0.07, 0.02), 0.02, 0.14));
-        L = Math.round(G * clamp(randNorm(0.06, 0.02), 0.02, 0.12));
-    }
 
     // FIP
     const FIP = clamp((13 * HR + 3 * BB - 2 * SO) / Math.max(IP, 1) + 3.2, 1.0, 9.0);
