@@ -617,8 +617,8 @@ function generatePitcherSimStats(p, totalGames, seasonPct, teamW, teamL) {
     // 선발: ERA 3.0/180IP → WAR ≈ 5.4, 에이스급 최대 7 (몬스터 시즌)
     // 불펜: 마무리 최대 2~3
     const WAR = role === '선발'
-        ? clamp((4.8 - ERA) * IP / 160 * 2.5 * (1 + sv * 0.2), -2, 7)
-        : clamp((3.8 - ERA) * IP / 65 * 1.1 * (1 + sv * 0.2), -1, 3);
+        ? clamp((4.8 - ERA) * IP / 160 * 2.5 * (1 + sv * 0.2), -2, 8)
+        : clamp((3.8 - ERA) * IP / 65 * 1.1 * (1 + sv * 0.2), -1, 4);
 
     return {
         G, GS, W, L, S, HLD, IP,
