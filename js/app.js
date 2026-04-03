@@ -2249,7 +2249,7 @@ function renderPitcherClassicStats(rs) {
         { label: '패', value: rs.L },
         { label: '세이브', value: rs.S },
         { label: '홀드', value: rs.HLD },
-        { label: '이닝', value: rs.IP },
+        { label: '이닝', value: fmtIP(rs.IP) },
         { label: '피안타', value: rs.H },
         { label: '피홈런', value: rs.HR },
         { label: '볼넷', value: rs.BB },
@@ -2826,6 +2826,14 @@ const fmt3 = v => v != null ? v.toFixed(3) : '-';
 const fmt2 = v => v != null ? v.toFixed(2) : '-';
 const fmt1 = v => v != null ? v.toFixed(1) : '-';
 const fmtInt = v => v != null ? Math.round(v) : '-';
+// 이닝 표기: 5.333... → 5.1, 5.666... → 5.2, 5.0 → 5.0 (야구식 1/3이닝)
+const fmtIP = v => {
+    if (v == null) return '-';
+    const full = Math.floor(v);
+    const frac = v - full;
+    const thirds = Math.round(frac * 3);
+    return thirds >= 3 ? `${full + 1}.0` : `${full}.${thirds}`;
+};
 
 // 시즌 시작 여부 확인: 1Q 첫 경기가 진행되었으면 true
 function isSeasonStarted() {
@@ -2910,7 +2918,7 @@ function renderPitcherRecords() {
             renderRecordCard('홀드 (HLD)', pitchers, p => p[sk].HLD||0, fmtInt, "showFullPitcherRecord('HLD')"),
             renderRecordCardAsc('WHIP', pitchers, p => p[sk].WHIP||99, fmt2, "showFullPitcherRecord('WHIP')"),
             renderRecordCard('WAR', pitchers, p => p[sk].WAR||0, fmt2, "showFullPitcherRecord('WAR')"),
-            renderRecordCard('이닝 (IP)', pitchers, p => p[sk].IP||0, fmt1, "showFullPitcherRecord('IP')"),
+            renderRecordCard('이닝 (IP)', pitchers, p => p[sk].IP||0, fmtIP, "showFullPitcherRecord('IP')"),
             renderRecordCard('경기 (G)', pitchers, p => p[sk].G||0, fmtInt, "showFullPitcherRecord('G')"),
         ].join('');
     } else {
@@ -2925,7 +2933,7 @@ function renderPitcherRecords() {
             renderRecordCardAsc('WHIP', pitchers, p => p.realStats.WHIP, fmt2, "showFullPitcherRecord('WHIP')"),
             renderRecordCardAsc('FIP', pitchers, p => p.realStats.FIP, fmt2, "showFullPitcherRecord('FIP')"),
             renderRecordCard('WAR', pitchers, p => p.realStats.WAR, fmt2, "showFullPitcherRecord('WAR')"),
-            renderRecordCard('이닝 (IP)', pitchers, p => p.realStats.IP, fmt1, "showFullPitcherRecord('IP')"),
+            renderRecordCard('이닝 (IP)', pitchers, p => p.realStats.IP, fmtIP, "showFullPitcherRecord('IP')"),
             renderRecordCard('WPA', pitchers, p => p.realStats.WPA, fmt2, "showFullPitcherRecord('WPA')"),
         ].join('');
     }
@@ -3016,7 +3024,7 @@ function showFullPitcherRecord(stat) {
             ).join('')}</tr></thead>
             <tbody>${sorted.map((p, i) => {
                 const rs = p[statsKey];
-                return `<tr><td>${i + 1}</td><td><img src="${teamLogo(p.team)}" style="width:18px;height:18px;vertical-align:middle"></td><td style="font-weight:600;cursor:pointer;text-decoration:underline dotted;" onclick="if(state.players['${p.id}'])showPlayerModal(state.players['${p.id}'])">${p.name}</td><td>${p.role || '-'}</td><td>${(rs.ERA||0).toFixed(2)}</td><td>${rs.W||0}</td><td>${rs.L||0}</td><td>${rs.S||0}</td><td>${rs.SO||0}</td><td>${(rs.IP||0).toFixed(1)}</td><td>${(rs.WHIP||0).toFixed(2)}</td><td>${(rs.WAR||0).toFixed(1)}</td><td>${rs.G||0}</td><td>${rs.HLD||0}</td></tr>`;
+                return `<tr><td>${i + 1}</td><td><img src="${teamLogo(p.team)}" style="width:18px;height:18px;vertical-align:middle"></td><td style="font-weight:600;cursor:pointer;text-decoration:underline dotted;" onclick="if(state.players['${p.id}'])showPlayerModal(state.players['${p.id}'])">${p.name}</td><td>${p.role || '-'}</td><td>${(rs.ERA||0).toFixed(2)}</td><td>${rs.W||0}</td><td>${rs.L||0}</td><td>${rs.S||0}</td><td>${rs.SO||0}</td><td>${fmtIP(rs.IP||0)}</td><td>${(rs.WHIP||0).toFixed(2)}</td><td>${(rs.WAR||0).toFixed(1)}</td><td>${rs.G||0}</td><td>${rs.HLD||0}</td></tr>`;
             }).join('')}</tbody>
         </table>`;
 

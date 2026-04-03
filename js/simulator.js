@@ -241,6 +241,14 @@ function randNorm(mean, sd) {
 }
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
+/** IP를 야구식 1/3 단위로 반올림: 5.0, 5.1(1/3), 5.2(2/3) */
+function roundIP(rawIP) {
+    const full = Math.floor(rawIP);
+    const frac = rawIP - full;
+    const thirds = Math.round(frac * 3);
+    return thirds >= 3 ? full + 1 : full + thirds / 10;
+}
+
 /**
  * 시즌 변동 팩터 — 브레이크아웃(+15%) / 슬럼프(-15%) / 평년
  * 선수별로 시즌 초 1회 결정, 이후 유지 (선수 id 기반 시드)
@@ -369,16 +377,16 @@ function generatePitcherSimStats(p, totalGames, seasonPct, teamW, teamL) {
         G = GS;
         // 에이스는 이닝 더 많이 — OVR 반영 강화
         const ipPerStart = clamp(randNorm(5.8 + (ovr - 50) * 0.04, 0.5), 4.5, 7.5);
-        IP = Math.round(GS * ipPerStart * (1 + sv * 0.1) * 10) / 10;
+        IP = roundIP(GS * ipPerStart * (1 + sv * 0.1));
     } else if (role === '마무리') {
         G = Math.round(totalGames * clamp(randNorm(0.42, 0.05), 0.25, 0.55));
         GS = 0;
-        IP = Math.round(G * clamp(randNorm(1.0, 0.15), 0.7, 1.3) * 10) / 10;
+        IP = roundIP(G * clamp(randNorm(1.0, 0.15), 0.7, 1.3));
     } else {
         const reliefRate = ovr >= 55 ? 0.48 : ovr >= 45 ? 0.35 : 0.2;
         G = Math.round(totalGames * clamp(randNorm(reliefRate, 0.06), 0.1, 0.58));
         GS = 0;
-        IP = Math.round(G * clamp(randNorm(1.1, 0.2), 0.6, 2.0) * 10) / 10;
+        IP = roundIP(G * clamp(randNorm(1.1, 0.2), 0.6, 2.0));
     }
 
     if (G <= 0 || IP <= 0) return null;
