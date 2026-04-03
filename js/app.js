@@ -81,6 +81,41 @@ function resetState() {
     const fsTabBatter = document.getElementById('fsTabBatter');
     if (fsTabBatter) { fsTabBatter.classList.add('fs-sub-tab--locked'); fsTabBatter.textContent = '🔒 타자 후보'; }
     showToast('초기화 완료!', 'info');
+
+    // ── Supabase 동기화: 학생에게 초기화 전파 ──
+    try {
+        const teamCodes = Object.keys(state.teams);
+        const emptyRecord = { q1:{wins:0,losses:0}, q2:{wins:0,losses:0}, q3:{wins:0,losses:0}, q4:{wins:0,losses:0} };
+
+        // 1) 전체 팀 시즌 기록 초기화
+        if (typeof saveAllGameStates === 'function') {
+            const statesMap = {};
+            for (const code of teamCodes) {
+                statesMap[code] = { season_record: emptyRecord };
+            }
+            saveAllGameStates(statesMap);
+        }
+
+        // 2) sim_results 초기화 — 빈 standings로 덮어쓰기
+        if (typeof saveSimResult === 'function') {
+            const emptyStandings = teamCodes.map(code => ({
+                code,
+                wins: 0, losses: 0, rate: 0,
+                seasonRecord: emptyRecord,
+            }));
+            saveSimResult(0, emptyStandings, { totalGames: 0, reset: true });
+        }
+
+        // 3) 교실 상태 초기화
+        if (typeof updateClassroom === 'function') {
+            updateClassroom({ is_simulating: false, current_quarter: 0, season_phase: 'pre' });
+        }
+
+        // 4) 활동 로그
+        if (typeof logActivity === 'function') {
+            logActivity(null, 'reset', { message: '교사가 데이터를 초기화했습니다.' });
+        }
+    } catch (e) { console.warn('초기화 Supabase 동기화 실패:', e); }
 }
 
 function updateAllPowerScores() {

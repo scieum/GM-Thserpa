@@ -390,7 +390,14 @@ function handleRealtimeSimResult(payload) {
         try { localStorage.setItem('kbo-sim-state', JSON.stringify(state)); } catch(e) {}
     }
 
-    const totalGames = detail?.totalGames || '';
+    // 초기화 이벤트 감지
+    const totalGames = detail?.totalGames ?? '';
+    if (detail?.reset) {
+        showToast('교사가 데이터를 초기화했습니다. 새로고침합니다.', 'info');
+        localStorage.removeItem('kbo-sim-state');
+        setTimeout(() => location.reload(), 1500);
+        return;
+    }
     showToast(`시뮬레이션 결과 업데이트! (${totalGames}/144 경기)`, 'success');
     if (typeof renderDashboard === 'function') renderDashboard();
     if (typeof renderStandings === 'function') renderStandings();
