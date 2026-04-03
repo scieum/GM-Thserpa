@@ -2726,11 +2726,25 @@ async function runSimulation() {
 // ██ RECORDS (기록실)
 // ══════════════════════════════════════════
 
+// KBO 규정 기준: 규정타석 = 팀경기수 × 3.1, 규정이닝 = 팀경기수 × 1.0
+function getQualificationPA(gamesPlayed) {
+    const teamGames = gamesPlayed || 144;
+    return Math.floor(teamGames * 3.1);
+}
+function getQualificationIP(gamesPlayed) {
+    const teamGames = gamesPlayed || 144;
+    return Math.floor(teamGames * 1.0);
+}
+
 function getAllBattersWithStats() {
-    return Object.values(state.players).filter(p => p.position !== 'P' && p.realStats && p.realStats.PA >= 100);
+    // 2025 시즌 기록: 144경기 기준 규정타석 = 446
+    const qualPA = getQualificationPA(144);
+    return Object.values(state.players).filter(p => p.position !== 'P' && p.realStats && (p.realStats.PA || 0) >= qualPA);
 }
 function getAllPitchersWithStats() {
-    return Object.values(state.players).filter(p => p.position === 'P' && p.realStats && p.realStats.IP >= 30);
+    // 2025 시즌 기록: 144경기 기준 규정이닝 = 144
+    const qualIP = getQualificationIP(144);
+    return Object.values(state.players).filter(p => p.position === 'P' && p.realStats && (p.realStats.IP || 0) >= qualIP);
 }
 
 function renderRecordCard(title, players, valueFn, formatFn, moreCallback) {
@@ -2778,14 +2792,18 @@ function getActiveStats() {
     return isSeasonStarted() ? 'sim' : 'real';
 }
 
-// simStats가 있는 타자 목록
+// simStats가 있는 타자 목록 (KBO 규정타석 기준)
 function getAllBattersWithSimStats() {
-    return Object.values(state.players).filter(p => p.position !== 'P' && p.simStats && (p.simStats.PA || 0) >= 10);
+    const gamesPlayed = getTotalGamesPlayed(state);
+    const qualPA = getQualificationPA(gamesPlayed);
+    return Object.values(state.players).filter(p => p.position !== 'P' && p.simStats && (p.simStats.PA || 0) >= qualPA);
 }
 
-// simStats가 있는 투수 목록
+// simStats가 있는 투수 목록 (KBO 규정이닝 기준)
 function getAllPitchersWithSimStats() {
-    return Object.values(state.players).filter(p => p.position === 'P' && p.simStats && (p.simStats.IP || 0) >= 3);
+    const gamesPlayed = getTotalGamesPlayed(state);
+    const qualIP = getQualificationIP(gamesPlayed);
+    return Object.values(state.players).filter(p => p.position === 'P' && p.simStats && (p.simStats.IP || 0) >= qualIP);
 }
 
 function renderBatterRecords() {
@@ -2793,8 +2811,10 @@ function renderBatterRecords() {
     const active = getActiveStats();
 
     if (active === 'sim') {
+        const gp = getTotalGamesPlayed(state);
+        const qualPA = getQualificationPA(gp);
         const batters = getAllBattersWithSimStats();
-        if (!batters.length) { grid.innerHTML = '<div class="pm-no-data">아직 시뮬레이션 데이터가 부족합니다.</div>'; return; }
+        if (!batters.length) { grid.innerHTML = `<div class="pm-no-data">규정타석(${qualPA} PA) 충족 선수가 없습니다.<br><span style="font-size:11px;color:var(--text-dim);">현재 ${gp}경기 진행 (규정타석 = ${gp} × 3.1 = ${qualPA})</span></div>`; return; }
         const sk = 'simStats';
         grid.innerHTML = [
             renderRecordCard('타율 (AVG)', batters, p => p[sk].AVG||0, fmt3, "showFullBatterRecord('AVG')"),
@@ -2832,8 +2852,10 @@ function renderPitcherRecords() {
     const active = getActiveStats();
 
     if (active === 'sim') {
+        const gp = getTotalGamesPlayed(state);
+        const qualIP = getQualificationIP(gp);
         const pitchers = getAllPitchersWithSimStats();
-        if (!pitchers.length) { grid.innerHTML = '<div class="pm-no-data">아직 시뮬레이션 데이터가 부족합니다.</div>'; return; }
+        if (!pitchers.length) { grid.innerHTML = `<div class="pm-no-data">규정이닝(${qualIP} IP) 충족 선수가 없습니다.<br><span style="font-size:11px;color:var(--text-dim);">현재 ${gp}경기 진행 (규정이닝 = ${gp} × 1.0 = ${qualIP})</span></div>`; return; }
         const sk = 'simStats';
         grid.innerHTML = [
             renderRecordCardAsc('평균자책 (ERA)', pitchers, p => p[sk].ERA||99, fmt2, "showFullPitcherRecord('ERA')"),
