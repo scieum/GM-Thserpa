@@ -529,27 +529,27 @@ const REAL_SEASON_STATS = {
     'KIA': {
         // ─── 2025 시즌 투수 성적 (Statiz 종합) ───
         // ── 선발 ──
-        '네일':      { pos:'P', role:'선발', G:27, GS:27, W:8,  L:4,  S:0,  HLD:0,  IP:164.1, H:135, HR:6,  BB:41, HBP:15, SO:152, ER:41, R:46,  ERA:2.25, WHIP:1.07, FIP:3.13, WAR:6.59, BABIP:0.291, WPA:3.81,
+        '네일':      { pos:'P', role:'선발', G:27, GS:27, W:8,  L:4,  S:0,  HLD:0,  IP:164.1, H:135, HR:6,  BB:41, HBP:15, SO:152, ER:41, R:46,  ERA:2.25, WHIP:1.07, FIP:3.13, WAR:6.59, BABIP:0.291, WPA:3.81, salary:22.4,
             pitches:[{name:'투심',pct:38,velo:148.3},{name:'슬라이더',pct:31,velo:134.6},{name:'체인지업',pct:20,velo:139.9},{name:'커터',pct:9,velo:142.7},{name:'포심',pct:2,velo:148.5}] },
-        '올러':      { pos:'P', role:'선발', G:26, GS:26, W:11, L:7,  S:0,  HLD:0,  IP:149.0, H:125, HR:8,  BB:47, HBP:8,  SO:169, ER:60, R:64,  ERA:3.62, WHIP:1.15, FIP:2.90, WAR:3.61, BABIP:0.306, WPA:0.93,
+        '올러':      { pos:'P', role:'선발', G:26, GS:26, W:11, L:7,  S:0,  HLD:0,  IP:149.0, H:125, HR:8,  BB:47, HBP:8,  SO:169, ER:60, R:64,  ERA:3.62, WHIP:1.15, FIP:2.90, WAR:3.61, BABIP:0.306, WPA:0.93, salary:9.8,
             pitches:[{name:'포심',pct:44,velo:150.0},{name:'슬라이더',pct:31,velo:136.2},{name:'체인지업',pct:12,velo:139.8},{name:'커브',pct:8,velo:129.3},{name:'투심',pct:5,velo:149.1}] },
-        '양현종':    { pos:'P', role:'선발', G:30, GS:30, W:7,  L:9,  S:0,  HLD:0,  IP:153.0, H:171, HR:12, BB:57, HBP:4,  SO:109, ER:86, R:101, ERA:5.06, WHIP:1.49, FIP:4.35, WAR:0.86, BABIP:0.327, WPA:-2.77,
+        '양현종':    { pos:'P', role:'선발', G:30, GS:30, W:7,  L:9,  S:0,  HLD:0,  IP:153.0, H:171, HR:12, BB:57, HBP:4,  SO:109, ER:86, R:101, ERA:5.06, WHIP:1.49, FIP:4.35, WAR:0.86, BABIP:0.327, WPA:-2.77, salary:15,
             pitches:[{name:'포심',pct:48,velo:140.3},{name:'체인지업',pct:26,velo:128.5},{name:'슬라이더',pct:21,velo:128.7},{name:'커브',pct:5,velo:115.9}] },
         '김도현':    { pos:'P', role:'선발', G:24, GS:24, W:4,  L:7,  S:0,  HLD:0,  IP:125.1, H:149, HR:11, BB:33, HBP:10, SO:71,  ER:67, R:79,  ERA:4.81, WHIP:1.45, FIP:4.64, WAR:0.97, BABIP:0.322, WPA:-1.48,
             pitches:[{name:'포심',pct:27,velo:145.8},{name:'체인지업',pct:19,velo:133.0},{name:'투심',pct:19,velo:144.8},{name:'커브',pct:19,velo:127.8},{name:'슬라이더',pct:17,velo:137.2}] },
         // 이의리: 2025 부상 복귀(39.2IP ERA7.94). 통산 91G ERA4.32 435.1IP 467K. 좌투 선발 에이스 잠재력.
-        '이의리':    { pos:'P', role:'선발', G:10, GS:10, W:1,  L:4,  S:0,  HLD:0,  IP:39.2,  H:41,  HR:6,  BB:31, HBP:3,  SO:42,  ER:35, R:37,  ERA:7.94, WHIP:1.82, FIP:5.81, WAR:-0.36, BABIP:0.324, WPA:-1.37,
+        '이의리':    { pos:'P', role:'선발', G:10, GS:10, W:1,  L:4,  S:0,  HLD:0,  IP:39.2,  H:41,  HR:6,  BB:31, HBP:3,  SO:42,  ER:35, R:37,  ERA:7.94, WHIP:1.82, FIP:5.81, WAR:-0.36, BABIP:0.324, WPA:-1.37, salary:1.3,
             pitches:[{name:'포심',pct:47,velo:147.8},{name:'슬라이더',pct:23,velo:135.0},{name:'체인지업',pct:20,velo:133.1},{name:'커브',pct:9,velo:124.2}],
             _overrideStamina:55 },
         // ── 마무리 ──
-        '정해영':    { pos:'P', role:'마무리', G:60, GS:0,  W:3,  L:7,  S:27, HLD:0,  IP:61.2,  H:75,  HR:4,  BB:18, HBP:3,  SO:72,  ER:26, R:30,  ERA:3.79, WHIP:1.51, FIP:2.86, WAR:0.70, BABIP:0.401, WPA:-0.11,
+        '정해영':    { pos:'P', role:'마무리', G:60, GS:0,  W:3,  L:7,  S:27, HLD:0,  IP:61.2,  H:75,  HR:4,  BB:18, HBP:3,  SO:72,  ER:26, R:30,  ERA:3.79, WHIP:1.51, FIP:2.86, WAR:0.70, BABIP:0.401, WPA:-0.11, salary:3,
             pitches:[{name:'포심',pct:56,velo:147.7},{name:'슬라이더',pct:29,velo:135.5},{name:'포크',pct:15,velo:135.5}] },
         // ── 중계 ──
-        '성영탁':    { pos:'P', role:'중계', G:45, GS:0,  W:3,  L:2,  S:0,  HLD:7,  IP:52.1,  H:38,  HR:2,  BB:13, HBP:0,  SO:30,  ER:9,  R:11,  ERA:1.55, WHIP:0.97, FIP:3.74, WAR:1.99, BABIP:0.238, WPA:1.71,
+        '성영탁':    { pos:'P', role:'중계', G:45, GS:0,  W:3,  L:2,  S:0,  HLD:7,  IP:52.1,  H:38,  HR:2,  BB:13, HBP:0,  SO:30,  ER:9,  R:11,  ERA:1.55, WHIP:0.97, FIP:3.74, WAR:1.99, BABIP:0.238, WPA:1.71, salary:1.2,
             pitches:[{name:'슬라이더',pct:43,velo:135.7},{name:'투심',pct:40,velo:143.1},{name:'커브',pct:17,velo:125.1}] },
-        '전상현':    { pos:'P', role:'중계', G:74, GS:0,  W:7,  L:5,  S:1,  HLD:25, IP:70.0,  H:64,  HR:4,  BB:20, HBP:2,  SO:50,  ER:26, R:30,  ERA:3.34, WHIP:1.20, FIP:3.73, WAR:1.36, BABIP:0.282, WPA:1.06,
+        '전상현':    { pos:'P', role:'중계', G:74, GS:0,  W:7,  L:5,  S:1,  HLD:25, IP:70.0,  H:64,  HR:4,  BB:20, HBP:2,  SO:50,  ER:26, R:30,  ERA:3.34, WHIP:1.20, FIP:3.73, WAR:1.36, BABIP:0.282, WPA:1.06, salary:3.1,
             pitches:[{name:'포심',pct:43,velo:143.8},{name:'슬라이더',pct:29,velo:135.7},{name:'포크',pct:22,velo:134.4},{name:'커브',pct:6,velo:125.2}] },
-        '조상우':    { pos:'P', role:'중계', G:72, GS:0,  W:6,  L:6,  S:1,  HLD:28, IP:60.0,  H:64,  HR:5,  BB:27, HBP:6,  SO:55,  ER:26, R:29,  ERA:3.90, WHIP:1.52, FIP:4.27, WAR:1.03, BABIP:0.343, WPA:-0.53,
+        '조상우':    { pos:'P', role:'중계', G:72, GS:0,  W:6,  L:6,  S:1,  HLD:28, IP:60.0,  H:64,  HR:5,  BB:27, HBP:6,  SO:55,  ER:26, R:29,  ERA:3.90, WHIP:1.52, FIP:4.27, WAR:1.03, BABIP:0.343, WPA:-0.53, salary:4,
             pitches:[{name:'포심',pct:38,velo:145.5},{name:'슬라이더',pct:33,velo:129.5},{name:'투심',pct:20,velo:144.4},{name:'포크',pct:9,velo:137.1}] },
         '최지민':    { pos:'P', role:'중계', G:66, GS:0,  W:2,  L:4,  S:0,  HLD:9,  IP:53.1,  H:46,  HR:5,  BB:51, HBP:4,  SO:39,  ER:39, R:40,  ERA:6.58, WHIP:1.82, FIP:6.51, WAR:-0.15, BABIP:0.270, WPA:-0.25,
             pitches:[{name:'포심',pct:68,velo:145.8},{name:'슬라이더',pct:21,velo:134.3},{name:'체인지업',pct:10,velo:134.4}] },
@@ -571,12 +571,12 @@ const REAL_SEASON_STATS = {
         '임기영':    { pos:'P', role:'중계', G:10, GS:0,  W:1,  L:1,  S:0,  HLD:0,  IP:9.0,   H:23,  HR:2,  BB:4,  HBP:0,  SO:5,   ER:13, R:13,  ERA:13.00, WHIP:3.00, FIP:6.60, WAR:-0.48, BABIP:0.525, WPA:-0.45,
             pitches:[{name:'포심',pct:40,velo:137.9},{name:'체인지업',pct:32,velo:126.2},{name:'슬라이더',pct:24,velo:126.5},{name:'투심',pct:4,velo:135.1}] },
         // 김범수: 2025 한화 소속 → KIA 이적
-        '김범수':    { pos:'P', role:'중계', G:73, GS:0, W:2, L:1, S:2, HLD:6, IP:48.0, H:30, HR:0, BB:22, HBP:4, SO:41, ER:12, R:17, ERA:2.25, WHIP:1.08, FIP:3.45, WAR:1.33, BABIP:0.238, WPA:1.02,
+        '김범수':    { pos:'P', role:'중계', G:73, GS:0, W:2, L:1, S:2, HLD:6, IP:48.0, H:30, HR:0, BB:22, HBP:4, SO:41, ER:12, R:17, ERA:2.25, WHIP:1.08, FIP:3.45, WAR:1.33, BABIP:0.238, WPA:1.02, salary:4,
             pitches:[{name:'슬라이더',pct:38,velo:135.8},{name:'포심',pct:36,velo:147.3},{name:'포크',pct:14,velo:136.4},{name:'커브',pct:12,velo:117.1}] },
         // ─── 2025 시즌 타자 성적 (Statiz 종합) ───
         // ── 주전 (100+ PA) ──
         // 김도영: 2025 부상시즌(122PA) → 2024 몬스터 시즌 기반 OVR 유지, 2025 기록만 업데이트
-        '김도영': { pos:'3B', AVG:.309, OBP:.361, SLG:.582, OPS:.943, 'wRC+':152.4, WAR:1.33, oWAR:1.11, dWAR:0.22, H:34, '2B':9, '3B':0, HR:7, RBI:27, R:20, SB:3, CS:0, BB:10, SO:23, G:30, PA:122, AB:110, IsoP:.273, salary:3.0, defRAA:2.22, rangeRAA:1.96, errRAA:-1.15, dpRAA:1.34,
+        '김도영': { pos:'3B', AVG:.309, OBP:.361, SLG:.582, OPS:.943, 'wRC+':152.4, WAR:1.33, oWAR:1.11, dWAR:0.22, H:34, '2B':9, '3B':0, HR:7, RBI:27, R:20, SB:3, CS:0, BB:10, SO:23, G:30, PA:122, AB:110, IsoP:.273, salary:2.5, defRAA:2.22, rangeRAA:1.96, errRAA:-1.15, dpRAA:1.34,
             _ratings:{ contact:70, power:75, eye:65, speed:70, defense:45 } },
         '김호령': { pos:'CF', AVG:.283, OBP:.359, SLG:.434, OPS:.793, 'wRC+':123.2, WAR:2.82, oWAR:2.57, dWAR:0.24, H:94, '2B':26, '3B':3, HR:6, RBI:39, R:46, SB:12, CS:1, BB:34, SO:94, G:105, PA:381, AB:332, IsoP:.151, defRAA:2.43, rangeRAA:2.95, errRAA:-1.64, armRAA:1.11 , salary:2.5 },
         '김선빈': { pos:'2B', AVG:.321, OBP:.395, SLG:.428, OPS:.823, 'wRC+':136.6, WAR:2.11, oWAR:2.74, dWAR:-0.63, H:87, '2B':18, '3B':1, HR:3, RBI:46, R:31, SB:4, CS:0, BB:31, SO:35, G:84, PA:308, AB:271, IsoP:.107, defRAA:-6.31, rangeRAA:-4.86, errRAA:-0.02, dpRAA:-1.43 , salary:6 },
