@@ -317,11 +317,16 @@ async function handleSlotLockToggle(teamCode, locked) {
 
 // ── Realtime 이벤트 핸들러 ──
 function handleRealtimeGameState(payload) {
-    // 다른 팀의 데이터 변경 시 UI 갱신
+    // 다른 팀의 데이터 변경 시 로컬 state + UI 갱신
     if (payload.new) {
         const teamCode = payload.new.team_code;
+        // 시즌 기록 동기화 (시뮬레이션 결과 반영)
+        if (payload.new.season_record && typeof state !== 'undefined' && state.teams && state.teams[teamCode]) {
+            state.teams[teamCode].seasonRecord = payload.new.season_record;
+        }
         // 대시보드, 순위표 등 갱신
         if (typeof renderDashboard === 'function') renderDashboard();
+        if (typeof renderStandings === 'function') renderStandings();
     }
 }
 
@@ -342,8 +347,12 @@ function handleRealtimeActivity(payload) {
 
 function handleRealtimeSimResult(payload) {
     // 시뮬레이션 결과 → 순위표 갱신
-    showToast('시뮬레이션 결과가 업데이트되었습니다!');
+    const quarter = payload.new?.quarter;
+    showToast(`시뮬레이션 결과가 업데이트되었습니다!${quarter ? ` (Q${quarter})` : ''}`);
     if (typeof renderDashboard === 'function') renderDashboard();
+    if (typeof renderStandings === 'function') renderStandings();
+    if (typeof renderSimulator === 'function') renderSimulator();
+    if (typeof updateQuarterBadge === 'function') updateQuarterBadge();
     // 1Q 완료 시 외국인 스카우트 잠금 해제 체크
     applyForeignScoutLock();
 }

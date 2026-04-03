@@ -2603,6 +2603,13 @@ async function runSimulation() {
     const progress = document.getElementById('simProgress');
     progress.style.display = 'flex';
 
+    // ── Supabase 동기화: 시뮬레이션 시작 알림 ──
+    try {
+        if (typeof updateClassroom === 'function') {
+            await updateClassroom({ is_simulating: true, current_quarter: getCurrentQuarter(state) });
+        }
+    } catch (e) { console.warn('교실 상태 업데이트 실패:', e); }
+
     await simulateBatch(state, batch, (game, total) => {
         const pct = (game / total) * 100;
         document.getElementById('simFill').style.width = pct + '%';
@@ -2617,8 +2624,53 @@ async function runSimulation() {
     const newTotal = getTotalGamesPlayed(state);
     showToast(`${batch}경기 완료! (${newTotal}/144 경기 진행)`, 'success');
 
-    // Auto-save
+    // Auto-save (로컬)
     localStorage.setItem('kbo-sim-state', JSON.stringify(state));
+
+    // ── Supabase 동기화: 시뮬레이션 결과 전체 팀에 전파 ──
+    try {
+        const teamCodes = Object.keys(state.teams);
+        const standings = getStandings(state);
+        const quarter = getCompletedQuarters(state);
+        const phaseMap = { 0: 'pre', 1: 'q1', 2: 'q2', 3: 'q3', 4: 'post' };
+
+        // 1) 전체 팀 시즌 기록 동기화
+        if (typeof saveAllGameStates === 'function') {
+            const statesMap = {};
+            for (const code of teamCodes) {
+                const team = state.teams[code];
+                statesMap[code] = {
+                    season_record: team.seasonRecord,
+                    players_json: team.roster.map(id => {
+                        const p = state.players[id];
+                        return p ? { id: p.id, name: p.name, ovr: p.ovr, position: p.position } : null;
+                    }).filter(Boolean),
+                };
+            }
+            await saveAllGameStates(statesMap);
+        }
+
+        // 2) 시뮬레이션 결과(순위표) 저장
+        if (typeof saveSimResult === 'function') {
+            await saveSimResult(quarter, standings, { totalGames: newTotal, batch });
+        }
+
+        // 3) 교실 상태 업데이트 (시뮬레이션 완료)
+        if (typeof updateClassroom === 'function') {
+            await updateClassroom({
+                is_simulating: false,
+                current_quarter: quarter,
+                season_phase: phaseMap[quarter] || 'pre',
+            });
+        }
+
+        // 4) 활동 로그
+        if (typeof logActivity === 'function') {
+            await logActivity(null, 'sim', { quarter, totalGames: newTotal, batch });
+        }
+    } catch (e) {
+        console.warn('Supabase 동기화 실패 (로컬 저장은 완료):', e);
+    }
 
     // 외국인 스카우트 미션 체크 (1Q/2Q 완료 시)
     checkForeignMissionTrigger();
