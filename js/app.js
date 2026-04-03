@@ -2590,7 +2590,7 @@ function renderStandings() {
     if (thead && !thead.dataset.sortBound) {
         thead.dataset.sortBound = '1';
         const headers = [
-            {key:'rank',label:'순위'},{key:'name',label:'팀'},{key:'wins',label:'승'},{key:'losses',label:'패'},
+            {key:'rank',label:'순위'},{key:'name',label:'팀'},{key:'wins',label:'승'},{key:'losses',label:'패'},{key:'draws',label:'무'},
             {key:'rate',label:'승률'},{key:'gb',label:'GB'},{key:'pitchPower',label:'투수력'},{key:'batPower',label:'타력'}
         ];
         thead.innerHTML = '<tr>' + headers.map(h =>
@@ -2633,6 +2633,7 @@ function renderStandings() {
             </div></td>
             <td>${s.wins}</td>
             <td>${s.losses}</td>
+            <td>${s.draws || 0}</td>
             <td>${formatRate(s.rate)}</td>
             <td>${s.gb}</td>
             <td>${s.pitchPower.toFixed(1)}</td>

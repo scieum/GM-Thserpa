@@ -3333,10 +3333,10 @@ function generateSampleData() {
             militaryRoster,
             injuredRoster,
             seasonRecord: {
-                q1: { wins: 0, losses: 0 },
-                q2: { wins: 0, losses: 0 },
-                q3: { wins: 0, losses: 0 },
-                q4: { wins: 0, losses: 0 },
+                q1: { wins: 0, losses: 0, draws: 0, rs: 0, ra: 0 },
+                q2: { wins: 0, losses: 0, draws: 0, rs: 0, ra: 0 },
+                q3: { wins: 0, losses: 0, draws: 0, rs: 0, ra: 0 },
+                q4: { wins: 0, losses: 0, draws: 0, rs: 0, ra: 0 },
             },
             tradeHistory: [],
         };

@@ -393,12 +393,19 @@ function calcLeagueAvgBatPower(state) {
 
 function getTeamTotalRecord(team) {
     const r = team.seasonRecord;
-    let w = 0, l = 0;
+    let w = 0, l = 0, d = 0, rs = 0, ra = 0;
     for (const q of ['q1','q2','q3','q4']) {
-        w += r[q].wins;
-        l += r[q].losses;
+        w += r[q].wins || 0;
+        l += r[q].losses || 0;
+        d += r[q].draws || 0;
+        rs += r[q].rs || 0;
+        ra += r[q].ra || 0;
     }
-    return { wins: w, losses: l, rate: (w + l) > 0 ? w / (w + l) : 0 };
+    // KBO 승률 = 승 / (승+패), 무승부는 제외
+    const rate = (w + l) > 0 ? w / (w + l) : 0;
+    // 피타고리안 기대 승률 = RS^2 / (RS^2 + RA^2)
+    const pythag = (rs + ra) > 0 ? (rs * rs) / (rs * rs + ra * ra) : 0;
+    return { wins: w, losses: l, draws: d, rate, rs, ra, pythag };
 }
 
 function getAcePitcher(state, teamCode) {

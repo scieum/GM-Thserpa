@@ -53,18 +53,20 @@ function getStandings(state) {
             color: team.color,
             wins: record.wins,
             losses: record.losses,
+            draws: record.draws,
             rate: record.rate,
+            rs: record.rs,
+            ra: record.ra,
+            pythag: record.pythag,
             pitchPower: calcTeamPitchPower(state, code),
             batPower: calcTeamBatPower(state, code),
         };
     });
 
-    // Sort by win rate desc, then wins desc
+    // KBO 순위: 승률 내림 → 승수 내림
     standings.sort((a, b) => b.rate - a.rate || b.wins - a.wins);
 
-    // Calculate games behind
-    const topRate = standings[0].rate;
-    const topGames = standings[0].wins + standings[0].losses;
+    // 게임차 (승+패 기준, 무 제외)
     standings.forEach((s, i) => {
         if (i === 0) {
             s.gb = '-';
@@ -101,42 +103,81 @@ function getCompletedQuarters(state) {
     return completed;
 }
 
-// 총 진행 경기 수
+// 총 진행 경기 수 (승+패+무)
 function getTotalGamesPlayed(state) {
     const first = Object.values(state.teams)[0];
     if (!first) return 0;
     let total = 0;
     for (let q = 1; q <= 4; q++) {
         const r = first.seasonRecord[`q${q}`];
-        total += (r.wins || 0) + (r.losses || 0);
+        total += (r.wins || 0) + (r.losses || 0) + (r.draws || 0);
     }
     return total;
 }
 
-// 5경기 단위 시뮬레이션
+// 5경기 단위 시뮬레이션 — 실제 대전 방식 (팀 vs 팀, 무승부 포함)
 async function simulateBatch(state, batchSize, onProgress) {
     const teamCodes = Object.keys(state.teams);
 
-    // 현재 쿼터 파악 및 남은 경기
-    const winRates = {};
+    // 팀별 전력 사전 계산
+    const teamPower = {};
     for (const code of teamCodes) {
         const pp = calcTeamPitchPower(state, code);
         const bp = calcTeamBatPower(state, code);
-        winRates[code] = calcWinRate(pp, bp);
+        // 피타고리안 기대 득점 (전력 기반)
+        teamPower[code] = { pitch: pp, bat: bp, total: pp * 0.5 + bp * 0.5 };
     }
 
+    // 10팀 → 5경기(매치) per 라운드
+    // KBO: 연장 12회 제한, 무승부 발생률 약 2-4%
+    const DRAW_RATE = 0.03;
+
     for (let game = 1; game <= batchSize; game++) {
-        // 현재 총 경기 수로 어느 쿼터인지 결정
         const totalPlayed = getTotalGamesPlayed(state);
         const q = Math.min(4, Math.floor(totalPlayed / 36) + 1);
         const qKey = `q${q}`;
 
-        for (const code of teamCodes) {
-            if (Math.random() < winRates[code]) {
-                state.teams[code].seasonRecord[qKey].wins++;
+        // 팀 셔플하여 5개 매치 생성
+        const shuffled = [...teamCodes].sort(() => Math.random() - 0.5);
+        for (let m = 0; m < 5; m++) {
+            const home = shuffled[m * 2];
+            const away = shuffled[m * 2 + 1];
+
+            // 피타고리안 기반 득점 생성
+            const homePwr = teamPower[home].total;
+            const awayPwr = teamPower[away].total;
+            // 기대 득점: 리그 평균 4.5점, 전력 비례
+            const homeExpR = 4.5 * (homePwr / 50) * (1 + 0.04); // 홈 어드밴티지 4%
+            const awayExpR = 4.5 * (awayPwr / 50);
+            // 포아송 근사 득점 (정수)
+            const homeRuns = poissonRandom(Math.max(0.5, homeExpR));
+            const awayRuns = poissonRandom(Math.max(0.5, awayExpR));
+
+            if (homeRuns === awayRuns && Math.random() < DRAW_RATE) {
+                // 무승부 (연장 12회 동점)
+                state.teams[home].seasonRecord[qKey].draws = (state.teams[home].seasonRecord[qKey].draws || 0) + 1;
+                state.teams[away].seasonRecord[qKey].draws = (state.teams[away].seasonRecord[qKey].draws || 0) + 1;
             } else {
-                state.teams[code].seasonRecord[qKey].losses++;
+                // 승패 결정 (동점이면 연장 승부)
+                let winner, loser;
+                if (homeRuns !== awayRuns) {
+                    winner = homeRuns > awayRuns ? home : away;
+                    loser = homeRuns > awayRuns ? away : home;
+                } else {
+                    // 동점 → 연장 승부 (전력 기반)
+                    const homeProb = homePwr / (homePwr + awayPwr);
+                    winner = Math.random() < homeProb ? home : away;
+                    loser = winner === home ? away : home;
+                }
+                state.teams[winner].seasonRecord[qKey].wins++;
+                state.teams[loser].seasonRecord[qKey].losses++;
             }
+
+            // 득실점 누적 (피타고리안 승률 산출용)
+            state.teams[home].seasonRecord[qKey].rs = (state.teams[home].seasonRecord[qKey].rs || 0) + homeRuns;
+            state.teams[home].seasonRecord[qKey].ra = (state.teams[home].seasonRecord[qKey].ra || 0) + awayRuns;
+            state.teams[away].seasonRecord[qKey].rs = (state.teams[away].seasonRecord[qKey].rs || 0) + awayRuns;
+            state.teams[away].seasonRecord[qKey].ra = (state.teams[away].seasonRecord[qKey].ra || 0) + homeRuns;
         }
 
         if (onProgress) onProgress(game, batchSize);
@@ -147,6 +188,13 @@ async function simulateBatch(state, batchSize, onProgress) {
     updateAllSimStats(state);
 
     return getStandings(state);
+}
+
+/** 포아송 분포 난수 생성 */
+function poissonRandom(lambda) {
+    let L = Math.exp(-lambda), k = 0, p = 1;
+    do { k++; p *= Math.random(); } while (p > L);
+    return k - 1;
 }
 
 // ══════════════════════════════════════════
