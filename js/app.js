@@ -3013,28 +3013,41 @@ function showFullPitcherRecord(stat) {
 function renderTeamRecords() {
     const standings = getStandings(state);
     const container = document.getElementById('teamRecordsContent');
-    // 팀 공격/수비 기록
+    const active = getActiveStats();
+    const sk = active === 'sim' ? 'simStats' : 'realStats';
+    const yearLabel = active === 'sim' ? '2026' : '2025';
+
     const teamStats = standings.map(s => {
-        const batters = Object.values(state.players).filter(p => p.team === s.code && p.position !== 'P' && p.realStats);
-        const pitchers = Object.values(state.players).filter(p => p.team === s.code && p.position === 'P' && p.realStats);
-        const avgAVG = batters.length ? batters.reduce((sum, b) => sum + (b.realStats.AVG || 0), 0) / batters.length : 0;
-        const totalHR = batters.reduce((sum, b) => sum + (b.realStats.HR || 0), 0);
-        const totalSB = batters.reduce((sum, b) => sum + (b.realStats.SB || 0), 0);
-        const avgOPS = batters.length ? batters.reduce((sum, b) => sum + (b.realStats.OPS || 0), 0) / batters.length : 0;
-        const avgERA = pitchers.filter(p => p.realStats.IP > 0).length ? pitchers.filter(p => p.realStats.IP > 0).reduce((sum, p) => sum + p.realStats.ERA, 0) / pitchers.filter(p => p.realStats.IP > 0).length : 0;
-        return { ...s, avgAVG, totalHR, totalSB, avgOPS, avgERA };
+        const batters = Object.values(state.players).filter(p => p.team === s.code && p.position !== 'P' && p[sk]);
+        const pitchers = Object.values(state.players).filter(p => p.team === s.code && p.position === 'P' && p[sk]);
+        const avgAVG = batters.length ? batters.reduce((sum, b) => sum + (b[sk].AVG || 0), 0) / batters.length : 0;
+        const totalHR = batters.reduce((sum, b) => sum + (b[sk].HR || 0), 0);
+        const totalRBI = batters.reduce((sum, b) => sum + (b[sk].RBI || 0), 0);
+        const totalSB = batters.reduce((sum, b) => sum + (b[sk].SB || 0), 0);
+        const avgOPS = batters.length ? batters.reduce((sum, b) => sum + (b[sk].OPS || 0), 0) / batters.length : 0;
+        const qualPitchers = pitchers.filter(p => (p[sk].IP || 0) > 0);
+        const avgERA = qualPitchers.length ? qualPitchers.reduce((sum, p) => sum + (p[sk].ERA || 0), 0) / qualPitchers.length : 0;
+        const totalSO = pitchers.reduce((sum, p) => sum + (p[sk].SO || 0), 0);
+        return { ...s, avgAVG, totalHR, totalRBI, totalSB, avgOPS, avgERA, totalSO };
     });
 
+    // 시즌 시작 전이고 simStats가 없으면 0값 표시
+    if (active === 'sim' && teamStats.every(t => t.avgAVG === 0)) {
+        container.innerHTML = `<div class="pm-no-data">아직 시뮬레이션이 진행되지 않았습니다.</div>`;
+        return;
+    }
+
     container.innerHTML = `
-        <h3 style="margin-bottom:12px;">공격 기록</h3>
-        <table class="player-table"><thead><tr><th>순위</th><th>팀</th><th>타율</th><th>홈런</th><th>도루</th><th>OPS</th></tr></thead>
+        <div style="text-align:center;margin-bottom:12px;color:var(--text-dim);font-size:12px;">${yearLabel} 시즌 팀 기록</div>
+        <h3 style="margin-bottom:12px;">팀 공격 기록</h3>
+        <table class="player-table"><thead><tr><th>순위</th><th>팀</th><th>타율</th><th>홈런</th><th>타점</th><th>도루</th><th>OPS</th><th>득점</th></tr></thead>
         <tbody>${[...teamStats].sort((a, b) => b.avgAVG - a.avgAVG).map((s, i) => `
-            <tr><td>${i + 1}</td><td><div class="team-name-cell"><img class="team-logo-sm" src="${teamLogo(s.code)}" alt="">${s.name}</div></td><td>${s.avgAVG.toFixed(3)}</td><td>${s.totalHR}</td><td>${s.totalSB}</td><td>${s.avgOPS.toFixed(3)}</td></tr>
+            <tr><td>${i + 1}</td><td><div class="team-name-cell"><img class="team-logo-sm" src="${teamLogo(s.code)}" alt="">${s.name}</div></td><td>${s.avgAVG.toFixed(3)}</td><td>${s.totalHR}</td><td>${s.totalRBI}</td><td>${s.totalSB}</td><td>${s.avgOPS.toFixed(3)}</td><td>${s.rs || 0}</td></tr>
         `).join('')}</tbody></table>
-        <h3 style="margin:20px 0 12px;">수비 기록</h3>
-        <table class="player-table"><thead><tr><th>순위</th><th>팀</th><th>평균자책</th><th>승</th><th>패</th><th>승률</th></tr></thead>
+        <h3 style="margin:20px 0 12px;">팀 투수 기록</h3>
+        <table class="player-table"><thead><tr><th>순위</th><th>팀</th><th>평균자책</th><th>삼진</th><th>실점</th><th>승</th><th>패</th><th>무</th><th>승률</th></tr></thead>
         <tbody>${[...teamStats].sort((a, b) => a.avgERA - b.avgERA).map((s, i) => `
-            <tr><td>${i + 1}</td><td><div class="team-name-cell"><img class="team-logo-sm" src="${teamLogo(s.code)}" alt="">${s.name}</div></td><td>${s.avgERA.toFixed(2)}</td><td>${s.wins}</td><td>${s.losses}</td><td>${formatRate(s.rate)}</td></tr>
+            <tr><td>${i + 1}</td><td><div class="team-name-cell"><img class="team-logo-sm" src="${teamLogo(s.code)}" alt="">${s.name}</div></td><td>${s.avgERA.toFixed(2)}</td><td>${s.totalSO}</td><td>${s.ra || 0}</td><td>${s.wins}</td><td>${s.losses}</td><td>${s.draws || 0}</td><td>${formatRate(s.rate)}</td></tr>
         `).join('')}</tbody></table>
     `;
 }

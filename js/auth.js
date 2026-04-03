@@ -143,6 +143,8 @@ async function onLoginSuccess() {
                             team.seasonRecord = s.seasonRecord;
                         }
                     }
+                    // 개인 선수 simStats 생성
+                    if (typeof updateAllSimStats === 'function') updateAllSimStats(state);
                     // 로컬 저장 + UI 갱신
                     try { localStorage.setItem('kbo-sim-state', JSON.stringify(state)); } catch(e) {}
                     if (typeof renderStandings === 'function') renderStandings();
@@ -385,6 +387,10 @@ function handleRealtimeSimResult(payload) {
             if (s.seasonRecord) {
                 team.seasonRecord = s.seasonRecord;
             }
+        }
+        // 학생 측에서도 개인 선수 simStats 생성
+        if (typeof updateAllSimStats === 'function') {
+            updateAllSimStats(state);
         }
         // 로컬 저장소도 갱신
         try { localStorage.setItem('kbo-sim-state', JSON.stringify(state)); } catch(e) {}
