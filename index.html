@@ -11,7 +11,7 @@
     <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
     <!-- Pretendard (보조 한글 폰트) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-    <link rel="stylesheet" href="css/style.css?v=20">
+    <link rel="stylesheet" href="css/style.css?v=21">
 </head>
 <body>
     <!-- ===== LOGIN SCREEN (Premium Landing) ===== -->
@@ -1042,16 +1042,26 @@
                     <!-- JS로 부진 투수 데이터 채움 -->
                 </div>
                 <div class="mission-card__choices">
-                    <button class="mission-choice mission-choice--replace" id="missionReplace">
-                        <span class="mission-choice__icon">🔄</span>
-                        <span class="mission-choice__label">교체한다</span>
-                        <span class="mission-choice__desc">외국인 스카우트에서 새 투수를 찾는다</span>
-                    </button>
-                    <button class="mission-choice mission-choice--keep" id="missionKeep">
-                        <span class="mission-choice__icon">🛡️</span>
-                        <span class="mission-choice__label">유지한다</span>
-                        <span class="mission-choice__desc">반등 근거 데이터를 분석한다</span>
-                    </button>
+                    <!-- 판단 선택 영역 -->
+                    <div class="mission-card__question">
+                        <p class="mission-card__question-text">이 투수, 어떻게 판단하시겠습니까?</p>
+                        <div class="mission-card__choice-btns">
+                            <button class="mission-choice-btn" id="missionChoiceReplace" onclick="selectMissionChoice('replace')">
+                                🔄 교체
+                            </button>
+                            <button class="mission-choice-btn" id="missionChoiceKeep" onclick="selectMissionChoice('keep')">
+                                🛡️ 유지
+                            </button>
+                        </div>
+                    </div>
+                    <!-- 외국인 스카우트 탭 안내 -->
+                    <div class="mission-card__scout-notice">
+                        <div class="mission-card__scout-unlock">🔓 외국인 스카우트 탭이 열렸습니다!</div>
+                        <p>후보 투수들의 데이터를 직접 비교하고 최종 계약 여부를 결정해보세요.</p>
+                        <button class="mission-choice mission-choice--go" onclick="closeMissionCard(foreignScoutState.missionChoice || 'replace')">
+                            외국인 스카우트로 이동 →
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="mission-card__footer">
@@ -1065,20 +1075,20 @@
 
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="js/supabase.js?v=20"></script>
+    <script src="js/supabase.js?v=21"></script>
 
     <!-- Scripts -->
-    <script src="js/data.js?v=20"></script>
-    <script src="js/models.js?v=20"></script>
-    <script src="js/charts.js?v=20"></script>
-    <script src="js/simulator.js?v=20"></script>
-    <script src="js/postseason.js?v=20"></script>
-    <script src="js/trade.js?v=20"></script>
+    <script src="js/data.js?v=21"></script>
+    <script src="js/models.js?v=21"></script>
+    <script src="js/charts.js?v=21"></script>
+    <script src="js/simulator.js?v=21"></script>
+    <script src="js/postseason.js?v=21"></script>
+    <script src="js/trade.js?v=21"></script>
 
-    <script src="js/foreign-scout.js?v=20"></script>
-    <script src="js/ui.js?v=20"></script>
-    <script src="js/depthchart.js?v=20"></script>
-    <script src="js/app.js?v=20"></script>
-    <script src="js/auth.js?v=20"></script>
+    <script src="js/foreign-scout.js?v=21"></script>
+    <script src="js/ui.js?v=21"></script>
+    <script src="js/depthchart.js?v=21"></script>
+    <script src="js/app.js?v=21"></script>
+    <script src="js/auth.js?v=21"></script>
 </body>
 </html>

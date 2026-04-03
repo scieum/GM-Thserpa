@@ -1048,7 +1048,7 @@ function showMissionCard() {
     if (targetPitcher) {
         dataEl.innerHTML = `
             <div style="margin-bottom:8px;font-weight:700;color:var(--text-primary);">
-                <span style="font-size:16px;">📊</span> ${targetPitcher.name} — 최근 성적 분석
+                <span style="font-size:16px;">📊</span> 현재 외국인 에이스 — 최근 성적 분석 (예시)
             </div>
             <table>
                 <tr><th>지표</th><th>현재</th><th>리그 평균</th><th>판단</th></tr>
@@ -1084,6 +1084,13 @@ function showMissionCard() {
     modal.style.display = 'flex';
     foreignScoutState.missionShown = true;
     saveForeignScoutState();
+}
+
+function selectMissionChoice(choice) {
+    foreignScoutState.missionChoice = choice;
+    saveForeignScoutState();
+    document.getElementById('missionChoiceReplace')?.classList.toggle('mission-choice-btn--selected', choice === 'replace');
+    document.getElementById('missionChoiceKeep')?.classList.toggle('mission-choice-btn--selected', choice === 'keep');
 }
 
 function closeMissionCard(choice) {
