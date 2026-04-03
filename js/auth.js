@@ -346,9 +346,27 @@ function handleRealtimeActivity(payload) {
 }
 
 function handleRealtimeSimResult(payload) {
-    // 시뮬레이션 결과 → 순위표 갱신
+    // 시뮬레이션 결과 → 순위표 + 시즌 기록 즉시 갱신
     const quarter = payload.new?.quarter;
-    showToast(`시뮬레이션 결과가 업데이트되었습니다!${quarter ? ` (Q${quarter})` : ''}`);
+    const standings = payload.new?.standings;
+    const detail = payload.new?.detail_json;
+
+    // standings에서 시즌 기록을 로컬 state에 즉시 반영
+    if (standings && typeof state !== 'undefined' && state.teams) {
+        for (const s of standings) {
+            const team = state.teams[s.code];
+            if (!team) continue;
+            // 교사가 보낸 seasonRecord가 있으면 그대로 적용
+            if (s.seasonRecord) {
+                team.seasonRecord = s.seasonRecord;
+            }
+        }
+        // 로컬 저장소도 갱신
+        try { localStorage.setItem('kbo-sim-state', JSON.stringify(state)); } catch(e) {}
+    }
+
+    const totalGames = detail?.totalGames || '';
+    showToast(`시뮬레이션 결과 업데이트! (${totalGames}/144 경기)`, 'success');
     if (typeof renderDashboard === 'function') renderDashboard();
     if (typeof renderStandings === 'function') renderStandings();
     if (typeof renderSimulator === 'function') renderSimulator();

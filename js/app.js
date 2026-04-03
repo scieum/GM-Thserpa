@@ -2650,9 +2650,13 @@ async function runSimulation() {
             await saveAllGameStates(statesMap);
         }
 
-        // 2) 시뮬레이션 결과(순위표) 저장
+        // 2) 시뮬레이션 결과(순위표) 저장 — 학생이 바로 적용 가능하도록 상세 포함
         if (typeof saveSimResult === 'function') {
-            await saveSimResult(quarter, standings, { totalGames: newTotal, batch });
+            const richStandings = standings.map(s => ({
+                ...s,
+                seasonRecord: state.teams[s.code]?.seasonRecord || {},
+            }));
+            await saveSimResult(quarter, richStandings, { totalGames: newTotal, batch });
         }
 
         // 3) 교실 상태 업데이트 (시뮬레이션 완료)
