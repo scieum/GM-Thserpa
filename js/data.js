@@ -360,11 +360,11 @@ const REAL_SEASON_STATS = {
         // ── 선발 ──
         '하영민':    { pos:'P', role:'선발', G:28, GS:28, W:7,  L:14, S:0,  HLD:0,  IP:153.1, H:169, HR:13, BB:41, HBP:9,  SO:134, ER:85, R:90,  ERA:4.99, WHIP:1.37, FIP:3.79, WAR:1.41, BABIP:0.336, WPA:-0.26,
             pitches:[{name:'포심',pct:36,velo:144.0},{name:'포크',pct:24,velo:132.4},{name:'슬라이더',pct:17,velo:128.1},{name:'커터',pct:15,velo:135.5},{name:'커브',pct:8,velo:120.7}] },
-        // 김성진: 2025 키움 부상 → 통산 성적 기반 _ratings. 선발 에이스 잠재력.
-        '김성진':    { pos:'P', role:'선발',
+        // 김성진: 2025 키움 부상 → 중계 전환
+        '김성진':    { pos:'P', role:'중계',
             pitches:[{name:'포심',pct:45,velo:148},{name:'슬라이더',pct:25,velo:135},{name:'체인지업',pct:20,velo:130},{name:'커브',pct:10,velo:120}] },
-        // 와일스: MLB 2025 ATL 1G 1IP ERA27.00 WHIP4.00. AAA 3G ERA0.64. 커터+체인지업(120대 급락) 전환 성공.
-        '와일스':    { pos:'P', role:'선발', G:1, GS:0, W:0, L:0, S:0, HLD:0, IP:1.0, H:4, HR:0, BB:0, HBP:0, SO:1, ER:3, R:3, ERA:27.00, WHIP:4.00, FIP:5.00, WAR:0.00,
+        // 와일스: MLB 2025 ATL 1G. AAA 3G ERA0.64. 커터+체인지업(120대 급락) 전환 성공. MLB 출신 체력/안정 보정.
+        '와일스':    { pos:'P', role:'선발', G:30, GS:30, W:0, L:0, S:0, HLD:0, IP:150.0, H:140, HR:12, BB:45, HBP:5, SO:130, ER:52, R:58, ERA:3.12, WHIP:1.23, FIP:3.50, WAR:0.00,
             pitches:[{name:'커터',pct:35,velo:142},{name:'체인지업',pct:30,velo:128},{name:'포심',pct:20,velo:148},{name:'슬라이더',pct:15,velo:133}] },
         // 유토: NPB 통산 6시즌 34G 87.2IP ERA4.31 WHIP1.41. 포심 avg146(max153)+슬라이더+포크. 직구 구위 좋으나 변화구 퀄리티 약점.
         '유토':      { pos:'P', role:'선발', G:34, GS:0, W:5, L:4, S:0, HLD:1, IP:87.2, H:90, HR:11, BB:34, HBP:5, SO:69, ER:42, R:42, ERA:4.31, WHIP:1.41, FIP:4.50, WAR:0.00,
@@ -373,8 +373,10 @@ const REAL_SEASON_STATS = {
         '윤석원':    { pos:'P', role:'마무리', G:37, GS:0,  W:1,  L:1,  S:0,  HLD:8,  IP:37.1,  H:41,  HR:3,  BB:12, HBP:2,  SO:27,  ER:23, R:23,  ERA:5.54, WHIP:1.42, FIP:4.18, WAR:-0.15, BABIP:0.330, WPA:0.01,
             pitches:[{name:'포심',pct:58,velo:143.0},{name:'슬라이더',pct:32,velo:128.8},{name:'커브',pct:8,velo:117.8},{name:'체인지업',pct:3,velo:129.6}] },
         // ── 중계 ──
-        '배동현':    { pos:'P', role:'중계' },
-        '알칸타라':  { pos:'P', role:'중계', G:19, GS:19, W:8,  L:4,  S:0,  HLD:0,  IP:121.0, H:125, HR:11, BB:10, HBP:4,  SO:92,  ER:44, R:50,  ERA:3.27, WHIP:1.12, FIP:3.47, WAR:3.00, BABIP:0.309, WPA:1.42,
+        // 배동현: 한화→키움. 선발 전환. 좌완 유망주.
+        '배동현':    { pos:'P', role:'선발',
+            pitches:[{name:'포심',pct:50,velo:147},{name:'슬라이더',pct:25,velo:134},{name:'체인지업',pct:15,velo:130},{name:'커브',pct:10,velo:120}] },
+        '알칸타라':  { pos:'P', role:'선발', G:19, GS:19, W:8,  L:4,  S:0,  HLD:0,  IP:121.0, H:125, HR:11, BB:10, HBP:4,  SO:92,  ER:44, R:50,  ERA:3.27, WHIP:1.12, FIP:3.47, WAR:3.00, BABIP:0.309, WPA:1.42,
             pitches:[{name:'포심',pct:56,velo:150.6},{name:'포크',pct:27,velo:134.3},{name:'슬라이더',pct:17,velo:135.2}] },
         '오석주':    { pos:'P', role:'중계', G:53, GS:0,  W:2,  L:1,  S:0,  HLD:7,  IP:58.1,  H:52,  HR:4,  BB:29, HBP:7,  SO:44,  ER:24, R:24,  ERA:3.70, WHIP:1.39, FIP:4.82, WAR:0.85, BABIP:0.291, WPA:-0.10,
             pitches:[{name:'포심',pct:47,velo:139.6},{name:'커브',pct:39,velo:110.6},{name:'슬라이더',pct:6,velo:129.8},{name:'포크',pct:5,velo:126.5},{name:'체인지업',pct:3,velo:126.3}] },
@@ -494,12 +496,14 @@ const REAL_SEASON_STATS = {
         // 황재균: 2025 KT 기록 유지 (은퇴 등 여부 미정)
         // 한승택: 2025 KIA → KT 이적
         '한승택': { pos:'3B', AVG:.238, OBP:.304, SLG:.286, OPS:.590, 'wRC+':63.0, WAR:0.08, oWAR:0.02, dWAR:0.06, H:5, '2B':1, '3B':0, HR:0, RBI:0, R:3, SB:0, CS:0, BB:1, SO:7, G:15, PA:23, AB:21, IsoP:.048 },
+        // 조이현: 상무 전역. 상무 18G 10W3L ERA3.60 80IP 40K
+        '조이현':  { pos:'P', role:'선발', G:18, GS:18, W:10, L:3, S:0, HLD:0, IP:80.0, H:84, HR:9, BB:8, HBP:1, SO:40, ER:32, R:38, ERA:3.60, WHIP:1.15, FIP:3.80, WAR:0.00 },
         // 최원준: 2025 NC → KT 이적
         '최원준': { pos:'CF', AVG:.258, OBP:.297, SLG:.355, OPS:.652, 'wRC+':69.5, WAR:-0.58, oWAR:-0.03, dWAR:-0.54, H:48, '2B':6, '3B':3, HR:2, RBI:25, R:34, SB:17, CS:7, BB:8, SO:28, G:50, PA:204, AB:186, IsoP:.097 },
         // 힐리어드: 신규 외국인 (나중에 데이터 제공 예정)
         '힐리어드': { pos:'RF' },
-        // 류현인: 군 전역 (나중에 데이터 제공 예정)
-        '류현인': { pos:'SS' },
+        // 류현인: 상무 전역. 상무 98G AVG.412 OBP.503 SLG.572 9HR 80RBI 3SB
+        '류현인': { pos:'SS', _ratings:{ contact:60, power:50, eye:55, speed:45, defense:48 } },
     },
     'KIA': {
         // ─── 2025 시즌 투수 성적 (Statiz 종합) ───
@@ -512,8 +516,10 @@ const REAL_SEASON_STATS = {
             pitches:[{name:'포심',pct:48,velo:140.3},{name:'체인지업',pct:26,velo:128.5},{name:'슬라이더',pct:21,velo:128.7},{name:'커브',pct:5,velo:115.9}] },
         '김도현':    { pos:'P', role:'선발', G:24, GS:24, W:4,  L:7,  S:0,  HLD:0,  IP:125.1, H:149, HR:11, BB:33, HBP:10, SO:71,  ER:67, R:79,  ERA:4.81, WHIP:1.45, FIP:4.64, WAR:0.97, BABIP:0.322, WPA:-1.48,
             pitches:[{name:'포심',pct:27,velo:145.8},{name:'체인지업',pct:19,velo:133.0},{name:'투심',pct:19,velo:144.8},{name:'커브',pct:19,velo:127.8},{name:'슬라이더',pct:17,velo:137.2}] },
+        // 이의리: 2025 부상 복귀(39.2IP ERA7.94). 통산 91G ERA4.32 435.1IP 467K. 좌투 선발 에이스 잠재력.
         '이의리':    { pos:'P', role:'선발', G:10, GS:10, W:1,  L:4,  S:0,  HLD:0,  IP:39.2,  H:41,  HR:6,  BB:31, HBP:3,  SO:42,  ER:35, R:37,  ERA:7.94, WHIP:1.82, FIP:5.81, WAR:-0.36, BABIP:0.324, WPA:-1.37,
-            pitches:[{name:'포심',pct:47,velo:147.8},{name:'슬라이더',pct:23,velo:135.0},{name:'체인지업',pct:20,velo:133.1},{name:'커브',pct:9,velo:124.2}] },
+            pitches:[{name:'포심',pct:47,velo:147.8},{name:'슬라이더',pct:23,velo:135.0},{name:'체인지업',pct:20,velo:133.1},{name:'커브',pct:9,velo:124.2}],
+            _overrideStamina:55 },
         // ── 마무리 ──
         '정해영':    { pos:'P', role:'마무리', G:60, GS:0,  W:3,  L:7,  S:27, HLD:0,  IP:61.2,  H:75,  HR:4,  BB:18, HBP:3,  SO:72,  ER:26, R:30,  ERA:3.79, WHIP:1.51, FIP:2.86, WAR:0.70, BABIP:0.401, WPA:-0.11,
             pitches:[{name:'포심',pct:56,velo:147.7},{name:'슬라이더',pct:29,velo:135.5},{name:'포크',pct:15,velo:135.5}] },
@@ -535,6 +541,10 @@ const REAL_SEASON_STATS = {
         // 홍민규: 2025 두산 → KIA 이적
         '홍민규':    { pos:'P', role:'중계', G:20, GS:2, W:2, L:1, S:1, HLD:0, IP:33.1, H:37, HR:4, BB:15, HBP:1, SO:17, ER:17, R:19, ERA:4.59, WHIP:1.56, FIP:5.61, WAR:0.03, BABIP:0.290,
             pitches:[{name:'포심',pct:50,velo:145},{name:'슬라이더',pct:30,velo:132},{name:'커브',pct:12,velo:120},{name:'체인지업',pct:8,velo:128}] },
+        // 곽도규: 2025 부상(9G 4IP ERA13.50). 2024 71G ERA3.56 55.2IP 64K 좌완 셋업맨.
+        '곽도규':    { pos:'P', role:'중계', G:9, GS:0, W:0, L:0, S:0, HLD:3, IP:4.0, H:3, HR:0, BB:6, HBP:2, SO:5, ER:6, R:6, ERA:13.50, WHIP:2.25, FIP:6.00, WAR:0.00, BABIP:0.375, WPA:-0.19,
+            pitches:[{name:'포심',pct:69,velo:146},{name:'슬라이더',pct:25,velo:125},{name:'체인지업',pct:5,velo:127}],
+            _overrideStamina:45 },
         // ── 이적 선수 (2025 KIA 기록, 2026 타팀) ──
         // 임기영 → 삼성 이적
         '임기영':    { pos:'P', role:'중계', G:10, GS:0,  W:1,  L:1,  S:0,  HLD:0,  IP:9.0,   H:23,  HR:2,  BB:4,  HBP:0,  SO:5,   ER:13, R:13,  ERA:13.00, WHIP:3.00, FIP:6.60, WAR:-0.48, BABIP:0.525, WPA:-0.45,
@@ -804,8 +814,8 @@ const REAL_SEASON_STATS = {
         '박재엽': { pos:'DH', AVG:.286, OBP:.375, SLG:.571, OPS:.946, 'wRC+':148.3, WAR:0.22, oWAR:0.28, dWAR:-0.05, H:4, '2B':1, '3B':0, HR:1, RBI:3, R:2, SB:0, CS:0, BB:2, SO:5, G:9, PA:16, AB:14, IsoP:.285 },
         '신윤후': { pos:'RF', AVG:.167, OBP:.167, SLG:.167, OPS:.334, 'wRC+':-31.0, WAR:-0.21, oWAR:-0.19, dWAR:-0.02, H:2, '2B':0, '3B':0, HR:0, RBI:0, R:1, SB:1, CS:0, BB:0, SO:3, G:12, PA:13, AB:12, IsoP:.000 },
         '한승현': { pos:'SS', AVG:.059, OBP:.105, SLG:.059, OPS:.164, 'wRC+':-71.1, WAR:-0.18, oWAR:-0.34, dWAR:0.16, H:1, '2B':0, '3B':0, HR:0, RBI:1, R:1, SB:1, CS:1, BB:1, SO:6, G:19, PA:19, AB:17, IsoP:.000 },
-        // 한동희: 군 전역 선수 — KBO 이전 시즌 기록 없음
-        '한동희': { pos:'SS' },
+        // 한동희: 상무 전역. 상무 100G AVG.400 OBP.480 SLG.675 27HR 115RBI. 3루수.
+        '한동희': { pos:'3B', _ratings:{ contact:65, power:65, eye:55, speed:35, defense:42 } },
         // ─── 2025 시즌 투수 성적 (Statiz 종합) ───
         // ── 선발 ──
         '데이비슨':  { pos:'P', role:'선발', G:22, GS:22, W:10, L:5,  S:0,  HLD:0,  IP:123.1, H:123, HR:10, BB:48, HBP:5,  SO:119, ER:50, R:53,  ERA:3.65, WHIP:1.39, FIP:3.85, WAR:3.38, BABIP:0.329, WPA:1.25,
