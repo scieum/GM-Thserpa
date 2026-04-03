@@ -2776,7 +2776,7 @@ function renderRecordCard(title, players, valueFn, formatFn, moreCallback) {
             <li class="record-card__item">
                 <span class="record-card__rank ${i < 3 ? 'rank-' + (i + 1) : ''}">${i + 1}</span>
                 <img class="record-card__team-logo" src="${teamLogo(p.team)}" alt="">
-                <span class="record-card__name">${p.name}</span>
+                <span class="record-card__name" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px;" onclick="if(state.players['${p.id}'])showPlayerModal(state.players['${p.id}'])">${p.name}</span>
                 <span class="record-card__value">${formatFn(valueFn(p))}</span>
             </li>
         `).join('')}</ul>
@@ -2791,7 +2791,7 @@ function renderRecordCardAsc(title, players, valueFn, formatFn, moreCallback) {
             <li class="record-card__item">
                 <span class="record-card__rank ${i < 3 ? 'rank-' + (i + 1) : ''}">${i + 1}</span>
                 <img class="record-card__team-logo" src="${teamLogo(p.team)}" alt="">
-                <span class="record-card__name">${p.name}</span>
+                <span class="record-card__name" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px;" onclick="if(state.players['${p.id}'])showPlayerModal(state.players['${p.id}'])">${p.name}</span>
                 <span class="record-card__value">${formatFn(valueFn(p))}</span>
             </li>
         `).join('')}</ul>
@@ -2941,7 +2941,7 @@ function showFullBatterRecord(stat) {
             ).join('')}</tr></thead>
             <tbody>${sorted.map((p, i) => {
                 const rs = p[statsKey];
-                return `<tr><td>${i + 1}</td><td><img src="${teamLogo(p.team)}" style="width:18px;height:18px;vertical-align:middle"></td><td style="font-weight:600">${p.name}</td><td>${p.position}</td><td>${(rs.AVG||0).toFixed(3)}</td><td>${rs.HR||0}</td><td>${rs.RBI||0}</td><td>${rs.H||0}</td><td>${(rs.OPS||0).toFixed(3)}</td><td>${rs.SB||0}</td><td>${rs.BB||0}</td><td>${(rs.WAR||0).toFixed(1)}</td><td>${rs.G||0}</td><td>${rs.PA||0}</td></tr>`;
+                return `<tr><td>${i + 1}</td><td><img src="${teamLogo(p.team)}" style="width:18px;height:18px;vertical-align:middle"></td><td style="font-weight:600;cursor:pointer;text-decoration:underline dotted;" onclick="if(state.players['${p.id}'])showPlayerModal(state.players['${p.id}'])">${p.name}</td><td>${p.position}</td><td>${(rs.AVG||0).toFixed(3)}</td><td>${rs.HR||0}</td><td>${rs.RBI||0}</td><td>${rs.H||0}</td><td>${(rs.OPS||0).toFixed(3)}</td><td>${rs.SB||0}</td><td>${rs.BB||0}</td><td>${(rs.WAR||0).toFixed(1)}</td><td>${rs.G||0}</td><td>${rs.PA||0}</td></tr>`;
             }).join('')}</tbody>
         </table>`;
 
@@ -2992,7 +2992,7 @@ function showFullPitcherRecord(stat) {
             ).join('')}</tr></thead>
             <tbody>${sorted.map((p, i) => {
                 const rs = p[statsKey];
-                return `<tr><td>${i + 1}</td><td><img src="${teamLogo(p.team)}" style="width:18px;height:18px;vertical-align:middle"></td><td style="font-weight:600">${p.name}</td><td>${p.role || '-'}</td><td>${(rs.ERA||0).toFixed(2)}</td><td>${rs.W||0}</td><td>${rs.L||0}</td><td>${rs.S||0}</td><td>${rs.SO||0}</td><td>${(rs.IP||0).toFixed(1)}</td><td>${(rs.WHIP||0).toFixed(2)}</td><td>${(rs.WAR||0).toFixed(1)}</td><td>${rs.G||0}</td><td>${rs.HLD||0}</td></tr>`;
+                return `<tr><td>${i + 1}</td><td><img src="${teamLogo(p.team)}" style="width:18px;height:18px;vertical-align:middle"></td><td style="font-weight:600;cursor:pointer;text-decoration:underline dotted;" onclick="if(state.players['${p.id}'])showPlayerModal(state.players['${p.id}'])">${p.name}</td><td>${p.role || '-'}</td><td>${(rs.ERA||0).toFixed(2)}</td><td>${rs.W||0}</td><td>${rs.L||0}</td><td>${rs.S||0}</td><td>${rs.SO||0}</td><td>${(rs.IP||0).toFixed(1)}</td><td>${(rs.WHIP||0).toFixed(2)}</td><td>${(rs.WAR||0).toFixed(1)}</td><td>${rs.G||0}</td><td>${rs.HLD||0}</td></tr>`;
             }).join('')}</tbody>
         </table>`;
 
