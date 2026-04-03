@@ -2494,7 +2494,9 @@ function renderSimulator() {
         lockMsg.style.display = 'none';
     } else {
         const canSim = canSimulateAll(state);
-        const batch = Math.min(5, remaining);
+        const giq = totalPlayed % 36;
+        const riq = 36 - giq;
+        const batch = (riq > 0 && riq <= 6) ? Math.min(riq, remaining) : Math.min(5, remaining);
         btn.disabled = !canSim.valid || simRunning;
         btn.textContent = simRunning ? '시뮬레이션 중...' : `${batch}경기 진행 (${totalPlayed}/${totalGames})`;
 
@@ -2593,7 +2595,12 @@ async function runSimulation() {
     const remaining = 144 - totalPlayed;
     if (remaining <= 0 || simRunning) return;
 
-    const batch = Math.min(5, remaining);
+    // 쿼터(36경기) 경계 처리: 쿼터 내 남은 경기가 6 이하면 한번에 마무리
+    const gamesInQuarter = totalPlayed % 36;
+    const remainInQuarter = 36 - gamesInQuarter;
+    const batch = (remainInQuarter > 0 && remainInQuarter <= 6)
+        ? Math.min(remainInQuarter, remaining)
+        : Math.min(5, remaining);
     simRunning = true;
     const btn = document.getElementById('btnSimulate');
     btn.disabled = true;

@@ -99,7 +99,7 @@ async function initializeClassroomData() {
 }
 
 // ── 로그인 성공 후 처리 ──
-function onLoginSuccess() {
+async function onLoginSuccess() {
     // 로그인 화면 숨기기
     document.getElementById('loginScreen').style.display = 'none';
 
@@ -127,6 +127,31 @@ function onLoginSuccess() {
 
     // 앱 초기화
     initApp();
+
+    // ── Supabase에서 최신 시뮬레이션 결과 로드 (새로고침 시 데이터 복원) ──
+    try {
+        if (typeof loadSimResults === 'function') {
+            const simResults = await loadSimResults();
+            if (simResults && simResults.length > 0 && typeof state !== 'undefined' && state.teams) {
+                // 가장 최근 결과의 standings에서 seasonRecord 복원
+                const latest = simResults[simResults.length - 1];
+                const standings = latest.standings;
+                if (Array.isArray(standings)) {
+                    for (const s of standings) {
+                        const team = state.teams[s.code];
+                        if (team && s.seasonRecord) {
+                            team.seasonRecord = s.seasonRecord;
+                        }
+                    }
+                    // 로컬 저장 + UI 갱신
+                    try { localStorage.setItem('kbo-sim-state', JSON.stringify(state)); } catch(e) {}
+                    if (typeof renderStandings === 'function') renderStandings();
+                    if (typeof renderDashboard === 'function') renderDashboard();
+                    if (typeof updateQuarterBadge === 'function') updateQuarterBadge();
+                }
+            }
+        }
+    } catch (e) { console.warn('시뮬 결과 로드 실패:', e); }
 
     // Realtime 구독 시작
     subscribeRealtime({
