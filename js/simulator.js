@@ -443,7 +443,7 @@ function getSeasonVariance(playerId) {
               roll < 0.40 ? randNorm(-0.10, 0.04) :
               randNorm(0, 0.03);
     _currentRng = oldRng;
-    window._seasonVarCache[playerId] = clamp(v, -0.20, 0.25);
+    window._seasonVarCache[playerId] = clamp(v, -0.15, 0.18);
     return window._seasonVarCache[playerId];
 }
 
@@ -526,10 +526,11 @@ function generateBatterSimStats(p, totalGames, seasonPct) {
     // wRC+ — OPS 기반이지만 변동폭 확대
     const wrcPlus = clamp(randNorm(OPS * 140 - 5, 15), 20, 230);
 
-    // WAR — 분산 확대, 엘리트는 7+ 가능
-    const dWAR = real.dWAR != null ? real.dWAR * seasonPct * (1 + sv * 0.3) : randNorm(0, 0.5) * seasonPct;
-    const oWAR = clamp((wrcPlus - 95) / 15 * seasonPct * 3.5, -3, 10);
-    const WAR = clamp(oWAR + dWAR, -4, 14);
+    // WAR — KBO 현실 기준: 풀시즌 MVP급 5~6, 몬스터 시즌(공수 모두) 최대 8
+    const dWARraw = real.dWAR != null ? real.dWAR * seasonPct * (1 + sv * 0.2) : randNorm(0, 0.35) * seasonPct;
+    const dWAR = clamp(dWARraw, -1.5, 2.0); // 수비 기여 상한 현실화
+    const oWAR = clamp((wrcPlus - 100) / 18 * seasonPct * 2.5, -2, 6);
+    const WAR = clamp(oWAR + dWAR, -3, 8);
 
     return {
         G, PA, AB, H, '2B': doubles, '3B': triples, HR, RBI, R,
@@ -576,15 +577,16 @@ function generatePitcherSimStats(p, totalGames, seasonPct, teamW, teamL) {
 
     if (G <= 0 || IP <= 0) return null;
 
-    // ERA — 시즌 변동 강하게 적용 (에이스 커리어하이 / 부진 가능)
-    const ratingERA = clamp(6.5 - ovr * 0.07, 1.5, 8.5);
-    const baseERA = real.ERA ? real.ERA * 0.3 + ratingERA * 0.7 : ratingERA; // 70% 랜덤
-    const ERA = clamp(randNorm(baseERA * (1 - sv * 0.8), 0.6), 0.80, 10.0);
+    // ERA — KBO 현실 기준: 리그 평균 4.5, 에이스 3.0~3.5, 최고 2.5 수준
+    // OVR 50 → ~5.0, OVR 60 → ~4.2, OVR 70 → ~3.8, OVR 80+ → 3.5 하한
+    const ratingERA = clamp(9.5 - ovr * 0.08, 3.50, 10.5);
+    const baseERA = real.ERA ? real.ERA * 0.4 + ratingERA * 0.6 : ratingERA;
+    const ERA = clamp(randNorm(baseERA * (1 - sv * 0.5), 0.5), 2.30, 10.0);
 
-    // WHIP
-    const ratingWHIP = clamp(2.0 - ovr * 0.014, 0.80, 2.3);
-    const baseWHIP = real.WHIP ? real.WHIP * 0.3 + ratingWHIP * 0.7 : ratingWHIP;
-    const WHIP = clamp(randNorm(baseWHIP * (1 - sv * 0.5), 0.12), 0.65, 2.60);
+    // WHIP — 하한 현실화 (0.65는 불가능한 수치)
+    const ratingWHIP = clamp(2.2 - ovr * 0.012, 0.95, 2.5);
+    const baseWHIP = real.WHIP ? real.WHIP * 0.4 + ratingWHIP * 0.6 : ratingWHIP;
+    const WHIP = clamp(randNorm(baseWHIP * (1 - sv * 0.3), 0.12), 0.88, 2.60);
 
     const hPerIP = WHIP * 0.7;
     const bbPerIP = WHIP * 0.3;
@@ -611,10 +613,12 @@ function generatePitcherSimStats(p, totalGames, seasonPct, teamW, teamL) {
     const FIP = clamp((13 * HR + 3 * BB - 2 * SO) / Math.max(IP, 1) + 3.2, 1.0, 9.0);
     const BABIP = clamp(randNorm(0.300, 0.025), 0.230, 0.390);
 
-    // WAR — 분산 확대, 에이스는 8+ 가능
+    // WAR — KBO 현실 기준
+    // 선발: ERA 3.0/180IP → WAR ≈ 5.4, 에이스급 최대 7 (몬스터 시즌)
+    // 불펜: 마무리 최대 2~3
     const WAR = role === '선발'
-        ? clamp((4.8 - ERA) * IP / 160 * 6.5 * (1 + sv * 0.3), -3, 12)
-        : clamp((3.8 - ERA) * IP / 65 * 2.5 * (1 + sv * 0.3), -1.5, 6);
+        ? clamp((4.8 - ERA) * IP / 160 * 2.5 * (1 + sv * 0.2), -2, 7)
+        : clamp((3.8 - ERA) * IP / 65 * 1.1 * (1 + sv * 0.2), -1, 3);
 
     return {
         G, GS, W, L, S, HLD, IP,
