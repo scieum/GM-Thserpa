@@ -2040,12 +2040,12 @@ const INJURED_ROSTERS = {
     '롯데': {
         P: [], C: [],
         IF: [
-            { name: '고승민', no: 2, tb: '우투좌타', injury: '도박 징계 (72경기 출장정지)', recovery: '시즌 중반', birth: '2000-08-11' },
-            { name: '김세민', no: 5, tb: '우투우타', injury: '도박 징계 (72경기 출장정지)', recovery: '시즌 중반', birth: '2003-06-14' },
-            { name: '나승엽', no: 51, tb: '우투좌타', injury: '도박 징계 (72경기 출장정지)', recovery: '시즌 중반', birth: '2002-02-15' },
+            { name: '고승민', no: 2, tb: '우투좌타', injury: '도박 징계 72경기', recovery: '시즌 중반', birth: '2000-08-11' },
+            { name: '김세민', no: 5, tb: '우투우타', injury: '도박 징계 72경기', recovery: '시즌 중반', birth: '2003-06-14' },
+            { name: '나승엽', no: 51, tb: '우투좌타', injury: '도박 징계 72경기', recovery: '시즌 중반', birth: '2002-02-15' },
         ],
         OF: [
-            { name: '김동혁', no: 50, tb: '좌투좌타', injury: '도박 징계 (72경기 출장정지)', recovery: '시즌 중반', birth: '2000-09-15' },
+            { name: '김동혁', no: 50, tb: '좌투좌타', injury: '도박 징계 72경기', recovery: '시즌 중반', birth: '2000-09-15' },
         ],
     },
 };
@@ -3249,13 +3249,54 @@ function generateSampleData() {
                         injuryRecovery: ip.recovery,
                     };
                     if (ip.pitches) players[id].pitches = ip.pitches;
-                    const injAge = ip.birth ? calcAge(ip.birth) : null;
-                    if (isPitcher) {
-                        players[id].ratings = genFuturesPitcherRatings(rng, injAge, false);
+                    // 부상/징계 선수도 REAL_SEASON_STATS에서 기록 적용
+                    const injReal = teamRealStats && teamRealStats[ip.name];
+                    if (injReal && injReal.pos === 'P') {
+                        players[id].realStats = { ...injReal };
+                        if (injReal.role) players[id].role = injReal.role;
+                        if (injReal.salary) players[id].salary = injReal.salary;
+                        players[id].ratings = calcPitcherRatings(injReal);
+                        if (injReal._overrideStamina) players[id].ratings.stamina = injReal._overrideStamina;
+                        if (injReal._overrides) {
+                            for (const [k, v] of Object.entries(injReal._overrides)) {
+                                if (players[id].ratings[k] != null) players[id].ratings[k] = Math.max(players[id].ratings[k], v);
+                            }
+                        }
                         players[id].ovr = calcPitcherOVR(players[id].ratings);
-                    } else {
-                        players[id].ratings = genFuturesBatterRatings(rng, injAge, false);
+                    } else if (injReal && !isPitcher) {
+                        players[id].realStats = { ...injReal };
+                        if (injReal.pos) players[id].position = injReal.pos;
+                        if (injReal.salary) players[id].salary = injReal.salary;
+                        if (injReal._ratings) {
+                            players[id].ratings = { ...injReal._ratings };
+                        } else {
+                            players[id].ratings = calcBatterRatings(injReal);
+                            const pa = injReal.PA || 400;
+                            const sw = Math.min(pa / 400, 1.0);
+                            if (sw < 1.0) {
+                                for (const key of Object.keys(players[id].ratings)) {
+                                    players[id].ratings[key] = Math.round(players[id].ratings[key] * sw + 50 * (1 - sw));
+                                }
+                            }
+                        }
+                        if (injReal._minSpeed && players[id].ratings.speed < injReal._minSpeed) {
+                            players[id].ratings.speed = injReal._minSpeed;
+                        }
+                        if (injReal._overrides) {
+                            for (const [k, v] of Object.entries(injReal._overrides)) {
+                                if (players[id].ratings[k] != null) players[id].ratings[k] = Math.max(players[id].ratings[k], v);
+                            }
+                        }
                         players[id].ovr = calcBatterOVR(players[id].ratings);
+                    } else {
+                        const injAge = ip.birth ? calcAge(ip.birth) : null;
+                        if (isPitcher) {
+                            players[id].ratings = genFuturesPitcherRatings(rng, injAge, false);
+                            players[id].ovr = calcPitcherOVR(players[id].ratings);
+                        } else {
+                            players[id].ratings = genFuturesBatterRatings(rng, injAge, false);
+                            players[id].ovr = calcBatterOVR(players[id].ratings);
+                        }
                     }
                     injuredRoster.push(id);
                 }

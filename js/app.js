@@ -1053,11 +1053,11 @@ function renderRoster() {
             milTab.parentNode.insertBefore(subTabInj, milTab.nextSibling);
         }
         if (subTabInj) {
-            subTabInj.textContent = `부상 (${injPlayers.length}명)`;
+            subTabInj.textContent = `부상 및 징계 (${injPlayers.length}명)`;
             if (futuresTier === '부상') subTabInj.classList.add('active');
         }
         const displayPlayers = futuresTier === '부상' ? injPlayers : (futuresTier === '군보류' ? milPlayers : (futuresTier === '육성' ? devFutPlayers : regFutPlayers));
-        const tierLabel = futuresTier === '부상' ? '부상' : (futuresTier === '군보류' ? '군보류' : (futuresTier === '육성' ? '육성선수' : '퓨처스리그'));
+        const tierLabel = futuresTier === '부상' ? '부상 및 징계' : (futuresTier === '군보류' ? '군보류' : (futuresTier === '육성' ? '육성선수' : '퓨처스리그'));
         document.getElementById('futuresInfo').innerHTML = displayPlayers.length > 0
             ? `${tierLabel} 등록 선수 <strong>${displayPlayers.length}명</strong> (투수 ${displayPlayers.filter(p=>p.position==='P').length}명 / 야수 ${displayPlayers.filter(p=>p.position!=='P').length}명)${futuresTier === '군보류' ? ' <span style="color:#ED1C24;font-size:11px;">※ 이번 시즌 등록 불가</span>' : (futuresTier === '부상' ? ' <span style="color:#D97706;font-size:11px;">※ 복귀일까지 1군 등록 불가</span>' : '')}`
             : `<em>${tierLabel} 선수가 없습니다.</em>`;
@@ -1208,7 +1208,7 @@ function renderRoster() {
     const pTbody = document.querySelector('#pitcherTable tbody');
     pTbody.innerHTML = pitchers.map(p => {
         const actionBtn = rosterTier === '2군'
-            ? (p.isMilitary ? `<td><span style="color:#4A6741;font-size:11px;">복무중</span></td>` : (p.isInjured ? `<td><span style="color:#D97706;font-size:11px;">${p.injuryType || '부상'}<br>${p.injuryRecovery || ''} 복귀</span></td>` : `<td><button class="promote-btn" data-id="${p.id}" data-team="${code}">↑ 등록</button></td>`))
+            ? (p.isMilitary ? `<td><span style="color:#4A6741;font-size:11px;">복무중</span></td>` : (p.isInjured ? `<td><span style="${p.injuryType && p.injuryType.includes('징계') ? 'color:#ED1C24' : 'color:#D97706'};font-size:11px;">${p.injuryType || '부상'}<br>${p.injuryRecovery || ''} 복귀</span></td>` : `<td><button class="promote-btn" data-id="${p.id}" data-team="${code}">↑ 등록</button></td>`))
             : `<td><button class="demote-btn" data-id="${p.id}" data-team="${code}">↓ 말소</button></td>`;
         const roleSelect = `<select class="role-select" data-id="${p.id}">
             <option value="선발" ${p.role==='선발'?'selected':''}>선발</option>
@@ -1219,7 +1219,7 @@ function renderRoster() {
         const hasRatings = !!r;
         return `<tr data-player-id="${p.id}">
             <td class="num-cell" style="color:var(--text-dim);cursor:pointer;" onclick="event.stopPropagation(); editPlayerNumber('${p.id}', this)" title="클릭하여 등번호 변경">${p.number != null ? p.number : '-'}</td>
-            <td>${p.name}${p.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''}${p.isForeign ? ' <span style="color:#B3A177;font-size:10px;">외</span>' : ''}${p.isInjured ? ' <span class="injured-badge">부상</span>' : (p.isMilitary ? ' <span class="mil-badge">군보류</span>' : (p.isFutures ? (p.number >= 100 ? ' <span class="dev-badge">육성</span>' : ' <span class="futures-badge">2군</span>') : ''))}</td>
+            <td>${p.name}${p.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''}${p.isForeign ? ' <span style="color:#B3A177;font-size:10px;">외</span>' : ''}${p.isInjured ? ` <span class="injured-badge">${p.injuryType && p.injuryType.includes('징계') ? '징계' : '부상'}</span>` : (p.isMilitary ? ' <span class="mil-badge">군보류</span>' : (p.isFutures ? (p.number >= 100 ? ' <span class="dev-badge">육성</span>' : ' <span class="futures-badge">2군</span>') : ''))}</td>
             <td>${roleSelect}</td>
             <td style="font-size:11px;color:${p.throwBat && p.throwBat.startsWith('좌') ? '#00AEEF' : '#8899aa'};">${p.throwBat ? p.throwBat.substring(0, 2) : '-'}</td>
             <td style="font-size:11px;">${p.age != null ? p.age + '세' : '-'}</td>
@@ -1240,7 +1240,7 @@ function renderRoster() {
     const bTbody = document.querySelector('#batterTable tbody');
     bTbody.innerHTML = batters.map(b => {
         const actionBtn = rosterTier === '2군'
-            ? (b.isMilitary ? `<td><span style="color:#4A6741;font-size:11px;">복무중</span></td>` : (b.isInjured ? `<td><span style="color:#D97706;font-size:11px;">부상중</span></td>` : `<td><button class="promote-btn" data-id="${b.id}" data-team="${code}">↑ 등록</button></td>`))
+            ? (b.isMilitary ? `<td><span style="color:#4A6741;font-size:11px;">복무중</span></td>` : (b.isInjured ? `<td><span style="${b.injuryType && b.injuryType.includes('징계') ? 'color:#ED1C24' : 'color:#D97706'};font-size:11px;">${b.injuryType && b.injuryType.includes('징계') ? b.injuryType : '부상중'}</span></td>` : `<td><button class="promote-btn" data-id="${b.id}" data-team="${code}">↑ 등록</button></td>`))
             : `<td><button class="demote-btn" data-id="${b.id}" data-team="${code}">↓ 말소</button></td>`;
         const r = b.ratings;
         const hasRatings = !!r;
@@ -1521,7 +1521,7 @@ function generateScoutReport(player) {
 
     if (!r) {
         if (player.isForeign) return '외국인 선수 — KBO 기록 분석 필요';
-        if (player.isInjured) return `부상 선수 — ${player.injuryType || '부상'} (복귀: ${player.injuryRecovery || '미정'})`;
+        if (player.isInjured) return `${player.injuryType && player.injuryType.includes('징계') ? '징계 선수' : '부상 선수'} — ${player.injuryType || '부상'} (복귀: ${player.injuryRecovery || '미정'})`;
         if (player.isMilitary) return '군보류 선수 — 이번 시즌 등록 불가';
         if (player.isFutures) return '2군 유망주 — 성장 가능성 주목';
         if (player.position === 'P') return '';
