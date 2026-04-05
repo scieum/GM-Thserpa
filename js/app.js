@@ -3597,7 +3597,7 @@ async function runPSGame(lineupA, lineupB, spA, spB) {
             // 타자 성적 업데이트
             updateBatterDisplay(play, 'B', lineupB);
 
-            await delay(350);
+            await delay(1000);
         }
 
         // 말 (홈 공격) — 타석별 표시
@@ -3616,7 +3616,7 @@ async function runPSGame(lineupA, lineupB, spA, spB) {
 
                 updateBatterDisplay(play2, 'A', lineupA);
 
-                await delay(350);
+                await delay(1000);
             }
         }
         clearBalls();
