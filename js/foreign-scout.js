@@ -1159,14 +1159,17 @@ function closeMissionCard(choice) {
 
 // ── 미션 트리거 체크 (시뮬레이션 배치 후 호출) ──
 function checkForeignMissionTrigger() {
-    // 교사는 미션 카드 표시 안 함 (학생 전용)
-    if (typeof isAdmin === 'function' && isAdmin()) return;
-
     const totalPlayed = getTotalGamesPlayed(state);
-    for (const [key, mission] of Object.entries(GM_MISSIONS)) {
+    // 명시적 순서로 미션 체크 (trigger 오름차순)
+    const missionOrder = ['mission2', 'mission3', 'mission4', 'mission6'];
+    for (let i = 0; i < missionOrder.length; i++) {
+        const key = missionOrder[i];
+        const mission = GM_MISSIONS[key];
+        if (!mission) continue;
         if (totalPlayed >= mission.trigger && !foreignScoutState['done_'+key]) {
+            console.log('[미션] ' + key + ' 발동 (경기수: ' + totalPlayed + ', trigger: ' + mission.trigger + ')');
             setTimeout(() => showMissionCard(key), 800);
-            return;
+            return; // 한 번에 하나만
         }
     }
 }

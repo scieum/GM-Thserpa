@@ -416,6 +416,8 @@ function handleRealtimeSimResult(payload) {
     if (typeof updateQuarterBadge === 'function') updateQuarterBadge();
     // 1Q 완료 시 외국인 스카우트 잠금 해제 체크
     applyForeignScoutLock();
+    // 미션 카드 체크 (학생 측)
+    if (typeof checkForeignMissionTrigger === 'function') checkForeignMissionTrigger();
 }
 
 function handleRealtimeClassroom(payload) {
