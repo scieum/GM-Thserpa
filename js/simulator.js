@@ -586,10 +586,10 @@ function generateBatterSimStats(p, totalGames, seasonPct) {
     // wRC+ — OPS 기반이지만 변동폭 확대
     const wrcPlus = clamp(randNorm(OPS * 140 - 5, 15), 20, 230);
 
-    // WAR — 분산 확대, 엘리트는 7+ 가능
-    const dWAR = real.dWAR != null ? real.dWAR * seasonPct * (1 + sv * 0.3) : randNorm(0, 0.5) * seasonPct;
-    const oWAR = clamp((wrcPlus - 95) / 15 * seasonPct * 3.5, -3, 10);
-    const WAR = clamp(oWAR + dWAR, -4, 14);
+    // WAR — 상한 8.0 (KBO 현실 기준)
+    const dWAR = real.dWAR != null ? real.dWAR * seasonPct * (1 + sv * 0.2) : randNorm(0, 0.3) * seasonPct;
+    const oWAR = clamp((wrcPlus - 100) / 18 * seasonPct * 3.0, -2, 7);
+    const WAR = clamp(oWAR + dWAR, -3, 8);
 
     return {
         G, PA, AB, H, '2B': doubles, '3B': triples, HR, RBI, R,
@@ -674,10 +674,10 @@ function generatePitcherSimStats(p, totalGames, seasonPct, teamW, teamL) {
     const FIP = IP > 0 ? clamp((13 * HR + 3 * BB - 2 * SO) / IP + 3.2, 1.0, 9.0) : 0;
     const BABIP = clamp(randNorm(0.300, 0.025), 0.230, 0.390);
 
-    // WAR
+    // WAR — 상한 8.0 (KBO 현실 기준)
     const WAR = role === '선발'
-        ? clamp((4.8 - ERA) * IP / 160 * 6.5 * (1 + sv * 0.3), -3, 12)
-        : clamp((3.8 - ERA) * IP / 65 * 2.5 * (1 + sv * 0.3), -1.5, 6);
+        ? clamp((4.5 - ERA) * IP / 170 * 5.0 * (1 + sv * 0.2), -2, 8)
+        : clamp((3.5 - ERA) * IP / 70 * 2.0 * (1 + sv * 0.2), -1, 4);
 
     return {
         G, GS, W, L, S, HLD, IP,
