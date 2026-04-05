@@ -191,11 +191,11 @@ async function simulateBatch(state, batchSize, onProgress) {
             state.teams[away].seasonRecord[qKey].rs = (state.teams[away].seasonRecord[qKey].rs || 0) + awayRuns;
             state.teams[away].seasonRecord[qKey].ra = (state.teams[away].seasonRecord[qKey].ra || 0) + homeRuns;
 
-            // 이닝별 스코어 생성 (총 득점을 9이닝에 분배)
+            // 이닝별 스코어 + 팀 상세 통계 생성
             const homeInnings = distributeRunsToInnings(homeRuns);
             const awayInnings = distributeRunsToInnings(awayRuns);
-            const homeH = Math.round(homeRuns * 1.8 + Math.random() * 3);
-            const awayH = Math.round(awayRuns * 1.8 + Math.random() * 3);
+            const homeDetail = generateGameTeamStats(state, home, homeRuns);
+            const awayDetail = generateGameTeamStats(state, away, awayRuns);
 
             // 게임 로그 저장
             state.gameLog.push({
@@ -205,10 +205,10 @@ async function simulateBatch(state, batchSize, onProgress) {
                 stadium: match.stadium,
                 home, away,
                 homeRuns, awayRuns,
-                homeHits: homeH, awayHits: awayH,
-                homeErrors: Math.random() < 0.3 ? 1 : 0,
-                awayErrors: Math.random() < 0.3 ? 1 : 0,
+                homeHits: homeDetail.H, awayHits: awayDetail.H,
+                homeErrors: homeDetail.E, awayErrors: awayDetail.E,
                 homeInnings, awayInnings,
+                homeDetail, awayDetail,
                 winner,
                 result,
                 quarter: q,
@@ -229,6 +229,37 @@ async function simulateBatch(state, batchSize, onProgress) {
     updateAllSimStats(state);
 
     return getStandings(state);
+}
+
+/** 경기별 팀 상세 통계 생성 (안타/홈런/삼진/도루/에러 + 승리투수/패전투수) */
+function generateGameTeamStats(state, teamCode, runs) {
+    const team = state.teams[teamCode];
+    const batPower = (team ? calcTeamBatPower(state, teamCode) : 50) / 50;
+    const pitPower = (team ? calcTeamPitchPower(state, teamCode) : 50) / 50;
+
+    const H = Math.max(runs, Math.round(runs * 1.5 + Math.random() * 4 + 2));
+    const HR = Math.floor(Math.random() * (runs > 3 ? 3 : 2));
+    const doubles = Math.floor(Math.random() * Math.min(H - HR, 4));
+    const BB = Math.round(2 + Math.random() * 4);
+    const SO = Math.round(4 + Math.random() * 6);
+    const SB = Math.random() < 0.3 ? Math.floor(1 + Math.random() * 2) : 0;
+    const E = Math.random() < 0.25 ? 1 : (Math.random() < 0.05 ? 2 : 0);
+    const DP = Math.random() < 0.3 ? 1 : 0;
+
+    // 선발투수 정보
+    const pitchers = team ? team.roster.map(id => state.players[id]).filter(p => p && p.position === 'P') : [];
+    const starters = pitchers.filter(p => p.role === '선발').sort((a, b) => (b.ovr || 0) - (a.ovr || 0));
+    const relievers = pitchers.filter(p => p.role === '중계' || p.role === '마무리');
+    const sp = starters.length > 0 ? starters[Math.floor(Math.random() * Math.min(5, starters.length))] : null;
+    const spIP = roundIP(5 + Math.random() * 2);
+    const spER = Math.floor(runs * (0.3 + Math.random() * 0.4));
+    const rpCount = Math.floor(1 + Math.random() * 3);
+
+    return {
+        H, HR, '2B': doubles, BB, SO, SB, E, DP, runs,
+        sp: sp ? { name: sp.name, id: sp.id, IP: spIP, H: Math.round(H * 0.6), ER: spER, SO: Math.round(SO * 0.5) } : null,
+        rpCount,
+    };
 }
 
 /** 총 득점을 9이닝에 랜덤 분배 */
@@ -605,20 +636,15 @@ function generatePitcherSimStats(p, totalGames, seasonPct, teamW, teamL) {
 
     if (G <= 0 || IP <= 0) return null;
 
-    // ERA — 시즌 변동 강하게 적용 (에이스 커리어하이 / 부진 가능)
-    const ratingERA = clamp(6.5 - ovr * 0.07, 1.5, 8.5);
-    const baseERA = real.ERA ? real.ERA * 0.3 + ratingERA * 0.7 : ratingERA; // 70% 랜덤
-    const ERA = clamp(randNorm(baseERA * (1 - sv * 0.8), 0.6), 0.80, 10.0);
+    // 피안타율 (H/IP 비율) — OVR 기반
+    const ratingH9 = clamp(10.5 - ovr * 0.06, 6, 13);
+    const baseH9 = real.H && real.IP ? real.H / real.IP * 9 * 0.3 + ratingH9 * 0.7 : ratingH9;
+    const H = Math.round(IP * clamp(randNorm(baseH9 * (1 - sv * 0.3) / 9, 0.08), 0.5, 1.6));
 
-    // WHIP
-    const ratingWHIP = clamp(2.0 - ovr * 0.014, 0.80, 2.3);
-    const baseWHIP = real.WHIP ? real.WHIP * 0.3 + ratingWHIP * 0.7 : ratingWHIP;
-    const WHIP = clamp(randNorm(baseWHIP * (1 - sv * 0.5), 0.12), 0.65, 2.60);
-
-    const hPerIP = WHIP * 0.7;
-    const bbPerIP = WHIP * 0.3;
-    const H = Math.round(IP * hPerIP);
-    const BB = Math.round(IP * bbPerIP);
+    // 볼넷
+    const ratingBB9 = clamp(4.5 - ovr * 0.04, 1.5, 6);
+    const baseBB9 = real.BB && real.IP ? real.BB / real.IP * 9 * 0.3 + ratingBB9 * 0.7 : ratingBB9;
+    const BB = Math.round(IP * clamp(randNorm(baseBB9 * (1 - sv * 0.2) / 9, 0.04), 0.1, 0.8));
     const HBP = Math.round(IP * clamp(randNorm(0.04, 0.015), 0, 0.1));
 
     // 삼진
@@ -630,17 +656,25 @@ function generatePitcherSimStats(p, totalGames, seasonPct, teamW, teamL) {
     const hrBase = real.HR && real.IP ? real.HR / real.IP * 0.3 + (0.10 - ovr * 0.0008) * 0.7 : 0.10 - ovr * 0.0008;
     const HR = Math.round(IP * clamp(randNorm(hrBase, 0.025), 0.02, 0.22));
 
-    const ER = Math.round(IP * ERA / 9);
+    // 자책점 (ER) → ERA 역산 (정확한 계산 보장)
+    const ratingER9 = clamp(6.5 - ovr * 0.07, 1.5, 8.5);
+    const baseER9 = real.ERA ? real.ERA * 0.3 + ratingER9 * 0.7 : ratingER9;
+    const targetER9 = clamp(randNorm(baseER9 * (1 - sv * 0.8), 0.6), 0.80, 10.0);
+    const ER = Math.max(0, Math.round(IP * targetER9 / 9));
     const R = ER + Math.round(ER * clamp(randNorm(0.1, 0.05), 0, 0.3));
 
-    // 승/패/세이브/홀드는 distributePitcherWinLoss()에서 팀 합계 기준으로 배분
+    // ERA = ER * 9 / IP (실제 계산)
+    const ERA = IP > 0 ? ER * 9 / IP : 0;
+    // WHIP = (H + BB) / IP (실제 계산)
+    const WHIP = IP > 0 ? (H + BB) / IP : 0;
+
     let W = 0, L = 0, S = 0, HLD = 0;
 
-    // FIP
-    const FIP = clamp((13 * HR + 3 * BB - 2 * SO) / Math.max(IP, 1) + 3.2, 1.0, 9.0);
+    // FIP = (13*HR + 3*BB - 2*SO) / IP + 3.2
+    const FIP = IP > 0 ? clamp((13 * HR + 3 * BB - 2 * SO) / IP + 3.2, 1.0, 9.0) : 0;
     const BABIP = clamp(randNorm(0.300, 0.025), 0.230, 0.390);
 
-    // WAR — 분산 확대, 에이스는 8+ 가능
+    // WAR
     const WAR = role === '선발'
         ? clamp((4.8 - ERA) * IP / 160 * 6.5 * (1 + sv * 0.3), -3, 12)
         : clamp((3.8 - ERA) * IP / 65 * 2.5 * (1 + sv * 0.3), -1.5, 6);

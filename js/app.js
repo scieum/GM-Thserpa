@@ -1114,6 +1114,28 @@ function renderScheduleView() {
     }
 }
 
+function buildCompareRows(gl) {
+    const rows = [
+        [gl.awayDetail?.H||0, '안타', gl.homeDetail?.H||0],
+        [gl.awayDetail?.HR||0, '홈런', gl.homeDetail?.HR||0],
+        [gl.awayDetail?.BB||0, '볼넷', gl.homeDetail?.BB||0],
+        [gl.awayDetail?.SO||0, '삼진', gl.homeDetail?.SO||0],
+        [gl.awayDetail?.SB||0, '도루', gl.homeDetail?.SB||0],
+        [gl.awayDetail?.E||0, '실책', gl.homeDetail?.E||0],
+        [gl.awayDetail?.DP||0, '병살', gl.homeDetail?.DP||0],
+    ];
+    return rows.map(function(r) {
+        var a = r[0], label = r[1], h = r[2];
+        var aBar = Math.min(a * 8, 100);
+        var hBar = Math.min(h * 8, 100);
+        return '<tr style="border-bottom:1px solid var(--border);">' +
+            '<td style="padding:4px 8px;"><span style="display:inline-block;background:#ef4444;height:8px;width:' + aBar + '%;border-radius:4px;vertical-align:middle;margin-right:4px;"></span><strong>' + a + '</strong></td>' +
+            '<td style="padding:4px 8px;color:var(--text-dim);">' + label + '</td>' +
+            '<td style="padding:4px 8px;"><strong>' + h + '</strong><span style="display:inline-block;background:#3b82f6;height:8px;width:' + hBar + '%;border-radius:4px;vertical-align:middle;margin-left:4px;"></span></td>' +
+            '</tr>';
+    }).join('');
+}
+
 /** 경기 상세 결과 모달 (일정 탭에서 클릭 시) */
 function showGameDetail(logIdx) {
     const gl = state.gameLog?.[logIdx];
@@ -1171,6 +1193,31 @@ function showGameDetail(logIdx) {
                 </tbody>
             </table>
         </div>
+
+        ${gl.homeDetail || gl.awayDetail ? `
+        <!-- 선발투수 정보 -->
+        <div style="display:flex;justify-content:center;gap:40px;margin:16px 0;font-size:13px;">
+            ${gl.awayDetail?.sp ? `<div style="text-align:center;">
+                <div style="font-weight:700;">${gl.awayDetail.sp.name}</div>
+                <div style="color:var(--text-dim);font-size:11px;">이닝 ${fmtIP(gl.awayDetail.sp.IP)} | 피안타 ${gl.awayDetail.sp.H} | 자책 ${gl.awayDetail.sp.ER} | 삼진 ${gl.awayDetail.sp.SO}</div>
+                <div style="color:${gl.winner === gl.away ? '#22c55e' : '#ef4444'};font-weight:700;font-size:11px;">${gl.winner === gl.away ? '승리' : '패전'}</div>
+            </div>` : ''}
+            ${gl.homeDetail?.sp ? `<div style="text-align:center;">
+                <div style="font-weight:700;">${gl.homeDetail.sp.name}</div>
+                <div style="color:var(--text-dim);font-size:11px;">이닝 ${fmtIP(gl.homeDetail.sp.IP)} | 피안타 ${gl.homeDetail.sp.H} | 자책 ${gl.homeDetail.sp.ER} | 삼진 ${gl.homeDetail.sp.SO}</div>
+                <div style="color:${gl.winner === gl.home ? '#22c55e' : '#ef4444'};font-weight:700;font-size:11px;">${gl.winner === gl.home ? '승리' : '패전'}</div>
+            </div>` : ''}
+        </div>
+
+        <!-- 팀 비교 통계 -->
+        <div style="max-width:500px;margin:0 auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;text-align:center;">
+                <thead><tr><th>${awayName}</th><th></th><th>${homeName}</th></tr></thead>
+                <tbody>
+                    ${buildCompareRows(gl, awayName, homeName)}
+                </tbody>
+            </table>
+        </div>` : ''}
     `;
 
     modal.style.display = 'flex';
