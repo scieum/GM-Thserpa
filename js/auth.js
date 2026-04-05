@@ -135,6 +135,10 @@ async function onLoginSuccess() {
             if (simResults && simResults.length > 0 && typeof state !== 'undefined' && state.teams) {
                 // 가장 최근 결과의 standings에서 seasonRecord 복원
                 const latest = simResults[simResults.length - 1];
+                // reset 데이터면 무시 (초기화된 상태)
+                if (latest.detail_json?.reset) { /* skip */ }
+                else if (latest.detail_json?.totalGames === 0) { /* skip */ }
+                else {
                 const standings = latest.standings;
                 if (Array.isArray(standings)) {
                     for (const s of standings) {
@@ -151,6 +155,7 @@ async function onLoginSuccess() {
                     if (typeof renderDashboard === 'function') renderDashboard();
                     if (typeof updateQuarterBadge === 'function') updateQuarterBadge();
                 }
+                } // else 닫기
             }
         }
     } catch (e) { console.warn('시뮬 결과 로드 실패:', e); }

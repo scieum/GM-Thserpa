@@ -307,6 +307,12 @@ async function saveSimResult(quarter, standings, detail) {
     return data;
 }
 
+/** 시뮬레이션 결과 전체 삭제 (초기화 시) */
+async function clearSimResults() {
+    if (session.role !== 'admin') return;
+    await db.from('sim_results').delete().eq('classroom_id', session.classroomId);
+}
+
 /** 시뮬레이션 결과 조회 */
 async function loadSimResults() {
     const { data, error } = await db
@@ -505,4 +511,5 @@ window.loadActivityLog = loadActivityLog;
 window.subscribeRealtime = subscribeRealtime;
 window.unsubscribeRealtime = unsubscribeRealtime;
 window.updateClassroom = updateClassroom;
+window.clearSimResults = clearSimResults;
 window.loadClassroom = loadClassroom;

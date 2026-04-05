@@ -123,7 +123,10 @@ function resetState() {
             promises.push(saveAllGameStates(statesMap));
         }
 
-        // 2) sim_results 초기화
+        // 2) sim_results 전체 삭제 후 빈 데이터 저장
+        if (typeof clearSimResults === 'function') {
+            promises.push(clearSimResults());
+        }
         if (typeof saveSimResult === 'function') {
             const emptyStandings = teamCodes.map(code => ({
                 code, wins: 0, losses: 0, draws: 0, rate: 0,
@@ -2484,20 +2487,47 @@ function renderTradeView() {
 
 function renderTradePlayerList(containerId, teamCode, side) {
     const container = document.getElementById(containerId);
-    const players = getTeamPlayers(state, teamCode);
+    const team = state.teams[teamCode];
+    // 1군 + 2군 선수 모두 (군보류 제외)
+    const rosterIds = [...(team.roster || []), ...(team.futuresRoster || [])];
+    const players = rosterIds.map(id => state.players[id]).filter(Boolean);
 
-    container.innerHTML = players.map(p => {
+    const pitchers = players.filter(p => p.position === 'P').sort((a, b) => (b.ovr || 0) - (a.ovr || 0));
+    const batters = players.filter(p => p.position !== 'P').sort((a, b) => (b.ovr || 0) - (a.ovr || 0));
+
+    function playerRow(p) {
         const power = calcPlayerPower(p);
+        const is2gun = (team.futuresRoster || []).includes(p.id);
+        const tierBadge = is2gun ? '<span style="background:#6366f1;color:#fff;font-size:9px;padding:1px 4px;border-radius:3px;margin-left:3px;">2군</span>' : '';
         return `<div class="trade-player-item" data-id="${p.id}" data-side="${side}">
             <div class="trade-player-item__info">
                 <span style="color:${powerColor(power)};">●</span>
-                <span>${p.name}</span>
-                <span style="color:#8899aa; font-size:11px;">${p.position === 'P' ? p.role : p.position}</span>
+                <span>${p.name}${tierBadge}</span>
+                <span style="color:#8899aa; font-size:11px;">${p.position === 'P' ? (p.role || 'P') : p.position}</span>
                 <span style="font-size:11px;">(${power.toFixed(1)})</span>
             </div>
             <span class="trade-player-item__salary">${p.salary}억</span>
         </div>`;
-    }).join('');
+    }
+
+    container.innerHTML = `
+        <div style="display:flex;gap:4px;margin-bottom:8px;">
+            <button class="btn btn--sm trade-pos-tab active" data-pos="pitcher" data-container="${containerId}">투수 (${pitchers.length})</button>
+            <button class="btn btn--sm trade-pos-tab" data-pos="batter" data-container="${containerId}">타자 (${batters.length})</button>
+        </div>
+        <div class="trade-pos-list" data-pos="pitcher">${pitchers.map(playerRow).join('')}</div>
+        <div class="trade-pos-list" data-pos="batter" style="display:none;">${batters.map(playerRow).join('')}</div>
+    `;
+
+    // 투수/타자 탭 전환
+    container.querySelectorAll('.trade-pos-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            container.querySelectorAll('.trade-pos-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            container.querySelectorAll('.trade-pos-list').forEach(l => l.style.display = 'none');
+            container.querySelector(`.trade-pos-list[data-pos="${tab.dataset.pos}"]`).style.display = '';
+        });
+    });
 
     container.querySelectorAll('.trade-player-item').forEach(item => {
         item.addEventListener('click', () => toggleTradePlayer(item, side));

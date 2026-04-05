@@ -794,8 +794,8 @@ function processInjuries(state) {
         }
 
         // ── 부상 발생 (배치당 0~2명) ──
-        // 확률: 선수당 약 2% per 배치 (시즌 144경기 = 29배치 × 2% ≈ 시즌당 팀 ~15명 부상)
-        const INJURY_RATE = 0.02;
+        // 확률: 선수당 약 0.8% per 배치 (시즌 29배치 × 0.8% ≈ 시즌당 팀 ~7명 부상)
+        const INJURY_RATE = 0.008;
         const injuryTypes = [
             { name: '햄스트링 부상', duration: 15, rate: 0.25 },
             { name: '어깨 염증', duration: 20, rate: 0.15 },
