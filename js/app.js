@@ -245,6 +245,7 @@ function showView(viewName) {
     if (viewName === 'schedule') renderScheduleView();
     if (viewName === 'simulator') renderSimulator();
     if (viewName === 'postseason') renderPostseason();
+    if (viewName === 'news') renderNewsView();
 }
 
 function updateQuarterBadge() {
@@ -4479,6 +4480,253 @@ function editPlayerNumber(playerId, td) {
         if (e.key === 'Escape') { td.textContent = oldVal || '-'; }
     });
 }
+
+// ══════════════════════════════════════════
+// ██ NEWS FEED (뉴스 피드)
+// ══════════════════════════════════════════
+
+const NEWS_CATEGORIES = [
+    { id: 'all', label: '전체' },
+    { id: 'trade', label: '이적/트레이드' },
+    { id: 'salary', label: '연봉/계약' },
+    { id: 'ranking', label: '팀순위' },
+    { id: 'coaching', label: '감독/코칭' },
+    { id: 'management', label: '구단경영' },
+    { id: 'prospect', label: '육성/마이너' },
+    { id: 'event', label: '시즌이벤트' },
+    { id: 'column', label: '칼럼/분석' },
+    { id: 'fan', label: '팬여론' },
+];
+
+let newsCategoryFilter = 'all';
+let newsMyTeamOnly = false;
+
+/** 시즌 이벤트 기반 뉴스 자동 생성 */
+function generateNews() {
+    if (!state || !state.teams) return [];
+    const totalPlayed = getTotalGamesPlayed(state);
+    const standings = getStandings(state);
+    const news = [];
+    const teamCodes = Object.keys(state.teams);
+    const date = '2026-01-15';
+
+    // 시드 기반 일관성
+    function seededPick(arr, seed) {
+        var h = 0;
+        for (var i = 0; i < seed.length; i++) h = ((h << 5) - h + seed.charCodeAt(i)) | 0;
+        return arr[(h >>> 0) % arr.length];
+    }
+
+    // ── 시즌 시작 전 뉴스 ──
+    teamCodes.forEach(function(code) {
+        var team = state.teams[code];
+        var name = team.name;
+        var manager = team.manager || '감독';
+
+        news.push({
+            cat: 'management', priority: '속보', team: code,
+            title: '[속보] ' + name + ', 새 단장에 테스트씨 선임…구단 쇄신 나선다',
+            date: date, tags: ['구단경영','속보','단독'],
+            body: name + '에 테스트 단장이 취임했다. 구단 쇄신의 기대감이 높지만, 그에게 주어진 시간은 많지 않다. 2026 시즌 개막까지 약 두 달, 스프링캠프 출발까지는 보름 남짓이다.\n\n' + name + '의 현재 상황을 객관적으로 점검할 필요가 있다. 지난 시즌 성적표는 겉으로는 나쁘지 않았지만, 팬들이 기대하는 수준에는 미치지 못했다는 평가가 지배적이다.\n\n테스트 단장의 첫 번째 과제는 외국인 선수 영입을 마무리하는 것이다. 이어서 FA 시장 마무리, 유망주 육성 체계 구축, 재정 운영 효율화가 뒤따라야 한다.',
+            views: Math.floor(300 + Math.random() * 500), comments: Math.floor(50 + Math.random() * 100),
+        });
+
+        news.push({
+            cat: 'coaching', priority: '일반', team: code,
+            title: manager + ' ' + name + ' 감독 "새 단장과 호흡 기대, 시즌 준비 만전"',
+            date: date, tags: ['감독/코칭','기사'],
+            body: manager + ' 감독은 "새 단장님과의 소통이 원활하다"며 "올 시즌 목표는 분명하다. 포스트시즌 진출, 그리고 한국시리즈 우승"이라고 밝혔다.\n\n' + manager + ' 감독 체제는 지난 시즌부터 이어져 온 전술적 기반 위에 새 단장의 데이터 분석 역량이 더해질 것으로 기대된다.',
+            views: Math.floor(100 + Math.random() * 200), comments: Math.floor(20 + Math.random() * 50),
+        });
+
+        news.push({
+            cat: 'prospect', priority: '일반', team: code,
+            title: name + ' 2026 기대주 TOP 5, 1군 합류 전망은?',
+            date: date, tags: ['육성/마이너','기사'],
+            body: name + '의 퓨처스리그에서 두각을 나타낸 유망주들이 2026 시즌 1군 합류를 노리고 있다. 스프링캠프에서의 경쟁이 치열할 전망이다.',
+            views: Math.floor(800 + Math.random() * 500), comments: Math.floor(30 + Math.random() * 40),
+        });
+    });
+
+    // ── 리그 공통 뉴스 ──
+    news.push({
+        cat: 'column', priority: '참고', team: null,
+        title: '[칼럼] 테스트 단장이 직면한 5가지 과제',
+        date: date, tags: ['칼럼/분석','칼럼'],
+        body: '신임 단장이 첫 시즌에 가장 중요한 것은 화려한 영입이 아니라, 조직 내 신뢰 구축이다. 감독, 코칭스태프, 스카우트, 선수까지 모든 구성원이 같은 방향을 바라보게 만드는 것이 진정한 리더십이다.\n\n첫째, 외국인 선수 영입. 둘째, FA 시장 마무리. 셋째, 유망주 육성 체계 구축. 넷째, 재정 운영 효율화. 다섯째, 감독과의 소통 체계 정립.',
+        views: Math.floor(1200 + Math.random() * 800), comments: Math.floor(60 + Math.random() * 60),
+    });
+
+    news.push({
+        cat: 'salary', priority: '참고', team: null,
+        title: 'FA 시장 마무리 국면…주요 잔류 FA 선수 동향 정리',
+        date: date, tags: ['연봉/계약','기사'],
+        body: 'KBO FA 시장이 마무리 단계에 접어들었다. 대형 FA 계약이 완료되면서, 남은 선수들의 행선지에 관심이 집중되고 있다.',
+        views: Math.floor(1500 + Math.random() * 600), comments: Math.floor(10 + Math.random() * 20),
+    });
+
+    news.push({
+        cat: 'event', priority: '주요', team: null,
+        title: '2025-26 스토브리그 중간 점검: KBO 10개 구단 보강 현황',
+        date: date, tags: ['이적/트레이드','기사'],
+        body: '각 구단의 스토브리그 성적표를 중간 점검한다. 외국인 선수 영입, FA 계약, 트레이드 현황을 종합 분석했다.',
+        views: Math.floor(500 + Math.random() * 300), comments: Math.floor(30 + Math.random() * 30),
+    });
+
+    // ── 시즌 진행 중 뉴스 (시뮬 결과 기반) ──
+    if (totalPlayed > 0 && standings.length > 0) {
+        var top = standings[0];
+        var bot = standings[standings.length - 1];
+
+        news.push({
+            cat: 'ranking', priority: '속보', team: top.code,
+            title: top.name + ', ' + totalPlayed + '경기 소화 후 ' + top.wins + '승 ' + top.losses + '패로 선두 질주!',
+            date: date, tags: ['팀순위','기사'],
+            body: top.name + '가 리그 선두를 달리고 있다. 투타 밸런스가 뛰어난 가운데, ' + (totalPlayed >= 72 ? '후반기에도 이 기세를 이어갈 수 있을지 주목된다.' : '아직 시즌 초반이지만 기세가 예사롭지 않다.'),
+            views: Math.floor(2000 + Math.random() * 1000), comments: Math.floor(100 + Math.random() * 100),
+        });
+
+        news.push({
+            cat: 'ranking', priority: '일반', team: bot.code,
+            title: bot.name + ', 시즌 ' + bot.wins + '승 ' + bot.losses + '패 부진…반등 가능할까?',
+            date: date, tags: ['팀순위','기사'],
+            body: bot.name + '가 리그 하위권에 머물고 있다. 투수력과 타선 모두 리그 평균을 밑돌고 있으며, 대대적인 보강이 필요하다는 목소리가 높다.',
+            views: Math.floor(1000 + Math.random() * 500), comments: Math.floor(50 + Math.random() * 50),
+        });
+
+        // 트레이드 뉴스
+        teamCodes.forEach(function(code) {
+            var history = state.teams[code].tradeHistory || [];
+            if (history.length > 0) {
+                var last = history[history.length - 1];
+                news.push({
+                    cat: 'trade', priority: '속보', team: code,
+                    title: '[트레이드] ' + state.teams[code].name + ', ' + (last.sent || []).join('·') + ' ↔ ' + (last.received || []).join('·'),
+                    date: last.timestamp || date, tags: ['이적/트레이드','기사'],
+                    body: state.teams[code].name + '가 트레이드를 단행했다. ' + (last.recvTeam || '상대팀') + '과의 트레이드를 통해 전력 보강에 나섰다.',
+                    views: Math.floor(500 + Math.random() * 1000), comments: Math.floor(30 + Math.random() * 80),
+                });
+            }
+        });
+
+        // 부상 뉴스
+        teamCodes.forEach(function(code) {
+            var injured = state.teams[code].injuredRoster || [];
+            injured.forEach(function(pid) {
+                var p = state.players[pid];
+                if (p && p._injuryType) {
+                    news.push({
+                        cat: 'event', priority: '속보', team: code,
+                        title: '[부상] ' + state.teams[code].name + ' ' + p.name + ', ' + p._injuryType + '으로 이탈',
+                        date: date, tags: ['시즌이벤트','기사'],
+                        body: state.teams[code].name + '의 ' + p.name + '이(가) ' + p._injuryType + '으로 부상자 명단에 등록되었다. 약 ' + (p._injuryDuration || '?') + '일간 이탈이 예상된다.',
+                        views: Math.floor(300 + Math.random() * 500), comments: Math.floor(20 + Math.random() * 40),
+                    });
+                }
+            });
+        });
+    }
+
+    // 팬여론
+    if (totalPlayed > 0) {
+        teamCodes.slice(0, 3).forEach(function(code) {
+            news.push({
+                cat: 'fan', priority: '일반', team: code,
+                title: state.teams[code].name + ' 팬들, "올 시즌 기대 반 우려 반"',
+                date: date, tags: ['팬여론','커뮤니티'],
+                body: state.teams[code].name + ' 팬 커뮤니티에서는 올 시즌 전망에 대해 다양한 의견이 나오고 있다. 일부는 보강에 만족하고, 일부는 추가 영입을 요구하고 있다.',
+                views: Math.floor(1000 + Math.random() * 700), comments: Math.floor(40 + Math.random() * 50),
+            });
+        });
+    }
+
+    // 우선순위 정렬
+    var priorityOrder = { '속보': 0, '주요': 1, '참고': 2, '일반': 3 };
+    news.sort(function(a, b) { return (priorityOrder[a.priority] || 3) - (priorityOrder[b.priority] || 3); });
+
+    return news;
+}
+
+/** 뉴스 뷰 렌더링 */
+function renderNewsView() {
+    var news = generateNews();
+    var container = document.getElementById('newsListContainer');
+    var catBtns = document.getElementById('newsCategoryBtns');
+
+    // 카테고리 버튼
+    var catCounts = {};
+    news.forEach(function(n) { catCounts[n.cat] = (catCounts[n.cat] || 0) + 1; });
+    catBtns.innerHTML = NEWS_CATEGORIES.map(function(c) {
+        var count = c.id === 'all' ? news.length : (catCounts[c.id] || 0);
+        var active = newsCategoryFilter === c.id ? ' active' : '';
+        return '<button class="btn btn--sm' + active + '" data-newscat="' + c.id + '">' + c.label + ' (' + count + ')</button>';
+    }).join('');
+
+    catBtns.querySelectorAll('[data-newscat]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            newsCategoryFilter = btn.dataset.newscat;
+            renderNewsView();
+        });
+    });
+
+    // 우리 팀 필터
+    var myTeamBtn = document.getElementById('newsMyTeamBtn');
+    myTeamBtn.className = 'btn btn--sm' + (newsMyTeamOnly ? ' active' : '');
+    myTeamBtn.onclick = function() { newsMyTeamOnly = !newsMyTeamOnly; renderNewsView(); };
+
+    // 필터링
+    var filtered = news;
+    if (newsCategoryFilter !== 'all') {
+        filtered = filtered.filter(function(n) { return n.cat === newsCategoryFilter; });
+    }
+    if (newsMyTeamOnly) {
+        var myTeam = (typeof getMyTeam === 'function' && getMyTeam()) || document.getElementById('rosterTeamSelect')?.value;
+        if (myTeam) filtered = filtered.filter(function(n) { return n.team === myTeam || n.team === null; });
+    }
+
+    // 렌더링
+    var priorityColors = { '속보': '#ef4444', '주요': '#f59e0b', '참고': '#6366f1', '일반': '#64748b' };
+    container.innerHTML = filtered.length === 0
+        ? '<div style="text-align:center;color:var(--text-dim);padding:40px;">뉴스가 없습니다.</div>'
+        : filtered.map(function(n, idx) {
+            var borderColor = priorityColors[n.priority] || '#64748b';
+            var teamLbl = n.team && state.teams[n.team] ? '<img src="' + teamLogo(n.team) + '" style="width:16px;height:16px;vertical-align:middle;margin-right:4px;">' : '';
+            return '<div class="news-item" style="border-left:3px solid ' + borderColor + ';padding:12px 16px;margin-bottom:8px;background:var(--card);border-radius:0 8px 8px 0;cursor:pointer;" onclick="showNewsDetail(' + idx + ')">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+                    '<div>' +
+                        '<span style="background:' + borderColor + ';color:#fff;font-size:10px;padding:2px 6px;border-radius:3px;margin-right:6px;">' + n.priority + '</span>' +
+                        teamLbl +
+                        '<strong style="font-size:14px;">' + n.title + '</strong>' +
+                    '</div>' +
+                    '<div style="font-size:11px;color:var(--text-dim);white-space:nowrap;margin-left:12px;">조회 ' + (n.views||0).toLocaleString() + ' · 댓글 ' + (n.comments||0) + '</div>' +
+                '</div>' +
+                '<div style="margin-top:4px;font-size:11px;color:var(--text-dim);">' +
+                    n.date + '  ' + (n.tags || []).map(function(t) { return '<span style="background:var(--bg-hover);padding:1px 5px;border-radius:3px;margin-right:3px;">' + t + '</span>'; }).join('') +
+                '</div>' +
+            '</div>';
+        }).join('');
+
+    // 상세보기용 데이터 저장
+    window._newsData = filtered;
+}
+
+function showNewsDetail(idx) {
+    var n = window._newsData?.[idx];
+    if (!n) return;
+    document.getElementById('newsDetailTitle').textContent = n.title;
+    var priorityColors = { '속보': '#ef4444', '주요': '#f59e0b', '참고': '#6366f1', '일반': '#64748b' };
+    var teamLbl = n.team && state.teams[n.team] ? '<img src="' + teamLogo(n.team) + '" style="width:20px;height:20px;vertical-align:middle;margin-right:4px;"> ' + state.teams[n.team].name : '';
+    document.getElementById('newsDetailBody').innerHTML =
+        '<div style="margin-bottom:16px;font-size:12px;color:var(--text-dim);">' +
+            '<span style="background:' + (priorityColors[n.priority]||'#64748b') + ';color:#fff;padding:2px 8px;border-radius:3px;margin-right:6px;">' + n.priority + '</span>' +
+            teamLbl + '  ' + n.date + '  ' +
+            (n.tags||[]).map(function(t) { return '<span style="background:var(--bg-hover);padding:1px 5px;border-radius:3px;margin-right:3px;">' + t + '</span>'; }).join('') +
+        '</div>' +
+        '<div style="margin-bottom:16px;font-size:12px;color:var(--text-dim);">조회 ' + (n.views||0).toLocaleString() + ' · 댓글 ' + (n.comments||0) + '</div>' +
+        '<div style="white-space:pre-wrap;line-height:2.0;">' + (n.body || '') + '</div>';
+    document.getElementById('newsDetailModal').style.display = 'flex';
+}
+window.showNewsDetail = showNewsDetail;
 
 // ── 앱 시작 ──
 // initApp은 auth.js의 onLoginSuccess()에서 호출됨
