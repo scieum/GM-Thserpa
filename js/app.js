@@ -3453,39 +3453,39 @@ function finishPSSeries() {
         document.getElementById('btnKS').textContent = '완료';
         document.getElementById('btnKS').disabled = true;
 
-    // Remove fatigue
-    removeFatigue(state, teamA);
-    removeFatigue(state, teamB);
+        // Remove fatigue
+        removeFatigue(state, winner);
+        removeFatigue(state, loser);
 
-    // Champion!
-    state.champion = result.winner;
-    const championEl = document.getElementById('champion');
-    championEl.style.display = 'block';
-    document.getElementById('championName').textContent = `🏆 ${state.teams[result.winner].name}`;
-    createConfetti();
+        // Champion!
+        state.champion = winner;
+        const championEl = document.getElementById('champion');
+        championEl.style.display = 'block';
+        document.getElementById('championName').textContent = `🏆 ${state.teams[winner].name}`;
+        createConfetti();
 
-    // 시즌 완료 저장
-    localStorage.setItem('kbo-sim-state', JSON.stringify(state));
+        // 시즌 완료 저장
+        localStorage.setItem('kbo-sim-state', JSON.stringify(state));
 
-    // Awards
-    const awardsEl = document.getElementById('postseasonAwards');
-    awardsEl.style.display = 'block';
-    const awards = computeAwards(state);
-    awards.unshift({ icon: '🥇', title: '올해의 단장상', team: state.teams[result.winner].name, desc: '한국시리즈 우승' });
+        // Awards
+        const awardsEl = document.getElementById('postseasonAwards');
+        awardsEl.style.display = 'block';
+        const awards = computeAwards(state);
+        awards.unshift({ icon: '🥇', title: '올해의 단장상', team: state.teams[winner].name, desc: '한국시리즈 우승' });
 
-    document.getElementById('awardsContent').innerHTML = awards.map(a =>
-        `<div class="award-item">
-            <span class="award-item__icon">${a.icon}</span>
-            <span class="award-item__title">${a.title}</span>
-            <span class="award-item__team">${a.team}</span>
-            <span style="color:#8899aa; font-size:12px;">${a.desc}</span>
-        </div>`
-    ).join('');
+        document.getElementById('awardsContent').innerHTML = awards.map(a =>
+            `<div class="award-item">
+                <span class="award-item__icon">${a.icon}</span>
+                <span class="award-item__title">${a.title}</span>
+                <span class="award-item__team">${a.team}</span>
+                <span style="color:#8899aa; font-size:12px;">${a.desc}</span>
+            </div>`
+        ).join('');
 
-    showToast(`🏆 ${state.teams[result.winner].name} 한국시리즈 우승!`, 'success');
+        showToast(`🏆 ${state.teams[winner].name} 한국시리즈 우승!`, 'success');
 
-    // Auto-save
-    localStorage.setItem('kbo-sim-state', JSON.stringify(state));
+        localStorage.setItem('kbo-sim-state', JSON.stringify(state));
+    }
 }
 
 // ══════════════════════════════════════════
