@@ -3098,6 +3098,7 @@ function setupPostseasonView() {
     document.getElementById('btnPO1').addEventListener('click', () => runPO(1));
     document.getElementById('btnPO2').addEventListener('click', () => runPO(2));
     document.getElementById('btnKS').addEventListener('click', runKS);
+    document.getElementById('psGameClose').addEventListener('click', closePSGameModal);
 }
 
 function renderPostseason() {
@@ -3149,134 +3150,223 @@ function renderPostseason() {
     }
 }
 
+// ── 포스트시즌 시리즈 상태 관리 ──
+let psSeriesState = null; // { seriesKey, teamA, teamB, targetWins, winsA, winsB, games, matchLabel }
+
+function openPSGameModal() { document.getElementById('psGameModal').style.display = 'flex'; }
+function closePSGameModal() { document.getElementById('psGameModal').style.display = 'none'; }
+
 async function runPO(matchNum) {
     const seeds = getPostseasonTeams(state);
-    let teamA, teamB;
+    let teamA, teamB, matchLabel;
+    if (matchNum === 1) { teamA = seeds.seed1.code; teamB = seeds.seed4.code; matchLabel = 'PO1 (1위 vs 4위)'; }
+    else { teamA = seeds.seed2.code; teamB = seeds.seed3.code; matchLabel = 'PO2 (2위 vs 3위)'; }
 
-    if (matchNum === 1) {
-        teamA = seeds.seed1.code;
-        teamB = seeds.seed4.code;
-    } else {
-        teamA = seeds.seed2.code;
-        teamB = seeds.seed3.code;
-    }
-
-    const resultEl = document.getElementById(`po${matchNum}Result`);
-    const btn = document.getElementById(`btnPO${matchNum}`);
-    btn.disabled = true;
-    btn.textContent = '진행 중...';
-
-    const resultsDiv = document.getElementById('postseasonGameResults');
-
-    // 자동 라인업/선발투수 가져오기
-    ensureDepthChart(teamA);
-    ensureDepthChart(teamB);
-    const dcA = state.teams[teamA].depthChart;
-    const dcB = state.teams[teamB].depthChart;
-
-    const targetWins = 2; // 3판 2선승
-    let winsA = 0, winsB = 0;
-    const seriesGames = [];
-
-    while (winsA < targetWins && winsB < targetWins) {
-        const gameNum = seriesGames.length + 1;
-        const lineupA = (dcA.lineup.vsRHP || []).filter(Boolean);
-        const lineupB = (dcB.lineup.vsRHP || []).filter(Boolean);
-        // 로테이션에서 선발 투수 돌려쓰기
-        const spA = dcA.rotation[(gameNum - 1) % dcA.rotation.filter(Boolean).length] || getAcePitcher(state, teamA)?.id;
-        const spB = dcB.rotation[(gameNum - 1) % dcB.rotation.filter(Boolean).length] || getAcePitcher(state, teamB)?.id;
-
-        // 홈/어웨이: 높은 시드가 홈
-        const game = simulateGame(state, teamA, teamB, lineupA, lineupB, spA, spB);
-        game.homeLineup = lineupA;
-        game.awayLineup = lineupB;
-        seriesGames.push(game);
-
-        if (game.winner === teamA) winsA++;
-        else if (game.winner === teamB) winsB++;
-
-        // 경기 결과 UI
-        resultEl.textContent = `${state.teams[teamA].name} ${winsA} - ${winsB} ${state.teams[teamB].name}`;
-        resultsDiv.innerHTML += `
-            <div style="margin:12px 0;padding:12px;background:var(--bg-card);border-radius:8px;border:1px solid var(--border);">
-                <h4>PO${matchNum} ${gameNum}차전 — ${state.teams[game.winner || teamA].name} ${game.homeScore} : ${game.awayScore} ${state.teams[game.winner === teamA ? teamB : teamA].name}</h4>
-                ${renderBoxScore(game, state)}
-            </div>`;
-
-        await delay(500);
-    }
-
-    const winner = winsA >= targetWins ? teamA : teamB;
-    const loser = winsA >= targetWins ? teamB : teamA;
-    const result = { winner, loser, winsA, winsB, games: seriesGames };
-
-    resultEl.innerHTML = `<strong>${state.teams[winner].name} 승리!</strong> (${winsA} - ${winsB})`;
-    btn.textContent = '완료';
-
-    if (matchNum === 1) postseasonState.po1 = result;
-    else postseasonState.po2 = result;
-
-    applyFatigue(state, winner);
-
-    if (postseasonState.po1 && postseasonState.po2) {
-        document.getElementById('btnKS').disabled = false;
-        document.getElementById('ksTeamA').textContent = state.teams[postseasonState.po1.winner].name;
-        document.getElementById('ksTeamB').textContent = state.teams[postseasonState.po2.winner].name;
-    }
-
-    showToast(`플레이오프 ${matchNum}: ${state.teams[winner].name} 승리!`, 'success');
+    psSeriesState = { seriesKey: `po${matchNum}`, teamA, teamB, targetWins: 2, winsA: 0, winsB: 0, games: [], matchLabel, matchNum };
+    showPSLineupScreen();
 }
 
 async function runKS() {
     const teamA = postseasonState.po1.winner;
     const teamB = postseasonState.po2.winner;
-    const resultEl = document.getElementById('ksResult');
-    const btn = document.getElementById('btnKS');
-    btn.disabled = true;
-    btn.textContent = '진행 중...';
+    psSeriesState = { seriesKey: 'ks', teamA, teamB, targetWins: 3, winsA: 0, winsB: 0, games: [], matchLabel: '한국시리즈', matchNum: 0 };
+    showPSLineupScreen();
+}
 
-    const resultsDiv = document.getElementById('postseasonGameResults');
-    resultsDiv.innerHTML += `<hr style="margin:20px 0;"><h3>한국시리즈</h3>`;
+/** 라인업 제출 화면 표시 */
+function showPSLineupScreen() {
+    const ss = psSeriesState;
+    const gameNum = ss.games.length + 1;
+    const nameA = state.teams[ss.teamA].name;
+    const nameB = state.teams[ss.teamB].name;
 
-    ensureDepthChart(teamA);
-    ensureDepthChart(teamB);
-    const dcA = state.teams[teamA].depthChart;
-    const dcB = state.teams[teamB].depthChart;
+    ensureDepthChart(ss.teamA);
+    ensureDepthChart(ss.teamB);
+    const dcA = state.teams[ss.teamA].depthChart;
+    const dcB = state.teams[ss.teamB].depthChart;
 
-    const targetWins = 3; // 5판 3선승
-    let winsA = 0, winsB = 0;
-    const seriesGames = [];
+    // 현재 라인업/선발
+    const lineupA = (dcA.lineup.vsRHP || []).filter(Boolean);
+    const lineupB = (dcB.lineup.vsRHP || []).filter(Boolean);
+    const rotA = dcA.rotation.filter(Boolean);
+    const rotB = dcB.rotation.filter(Boolean);
+    const spA = rotA[(gameNum - 1) % (rotA.length || 1)] || getAcePitcher(state, ss.teamA)?.id;
+    const spB = rotB[(gameNum - 1) % (rotB.length || 1)] || getAcePitcher(state, ss.teamB)?.id;
+    const spAname = state.players[spA]?.name || '미정';
+    const spBname = state.players[spB]?.name || '미정';
 
-    while (winsA < targetWins && winsB < targetWins) {
-        const gameNum = seriesGames.length + 1;
-        const lineupA = (dcA.lineup.vsRHP || []).filter(Boolean);
-        const lineupB = (dcB.lineup.vsRHP || []).filter(Boolean);
-        const spA = dcA.rotation[(gameNum - 1) % dcA.rotation.filter(Boolean).length] || getAcePitcher(state, teamA)?.id;
-        const spB = dcB.rotation[(gameNum - 1) % dcB.rotation.filter(Boolean).length] || getAcePitcher(state, teamB)?.id;
+    document.getElementById('psGameTitle').textContent = `${ss.matchLabel} — ${gameNum}차전 라인업`;
 
-        const game = simulateGame(state, teamA, teamB, lineupA, lineupB, spA, spB);
-        game.homeLineup = lineupA;
-        game.awayLineup = lineupB;
-        seriesGames.push(game);
-
-        if (game.winner === teamA) winsA++;
-        else if (game.winner === teamB) winsB++;
-
-        resultEl.textContent = `${state.teams[teamA].name} ${winsA} - ${winsB} ${state.teams[teamB].name}`;
-        resultsDiv.innerHTML += `
-            <div style="margin:12px 0;padding:12px;background:var(--bg-card);border-radius:8px;border:1px solid var(--border);">
-                <h4>KS ${gameNum}차전 — ${state.teams[game.winner || teamA].name} ${game.homeScore} : ${game.awayScore} ${state.teams[game.winner === teamA ? teamB : teamA].name}</h4>
-                ${renderBoxScore(game, state)}
-            </div>`;
-
-        await delay(500);
+    function renderLineupList(lineup, teamCode) {
+        return lineup.map((pid, i) => {
+            const p = state.players[pid];
+            if (!p) return `<tr><td>${i + 1}</td><td>-</td><td>-</td></tr>`;
+            return `<tr><td>${i + 1}</td><td>${p.position}</td><td>${p.name}</td><td>${p.ovr}</td></tr>`;
+        }).join('');
     }
 
-    const winner = winsA >= targetWins ? teamA : teamB;
-    const result = { winner, loser: winner === teamA ? teamB : teamA, winsA, winsB, games: seriesGames };
-    postseasonState.ks = result;
-    resultEl.innerHTML = `<strong>${state.teams[winner].name} 우승!</strong> (${winsA} - ${winsB})`;
-    btn.textContent = '완료';
+    document.getElementById('psGameBody').innerHTML = `
+        <div style="text-align:center;margin:8px 0;font-size:14px;color:var(--text-dim);">
+            시리즈 ${nameA} ${ss.winsA} - ${ss.winsB} ${nameB}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div>
+                <h4 style="margin-bottom:8px;">${nameA} (홈)</h4>
+                <div style="margin-bottom:8px;"><strong>선발:</strong> ${spAname}</div>
+                <table class="player-table" style="font-size:12px;">
+                    <thead><tr><th>#</th><th>포지션</th><th>선수</th><th>OVR</th></tr></thead>
+                    <tbody>${renderLineupList(lineupA, ss.teamA)}</tbody>
+                </table>
+            </div>
+            <div>
+                <h4 style="margin-bottom:8px;">${nameB} (원정)</h4>
+                <div style="margin-bottom:8px;"><strong>선발:</strong> ${spBname}</div>
+                <table class="player-table" style="font-size:12px;">
+                    <thead><tr><th>#</th><th>포지션</th><th>선수</th><th>OVR</th></tr></thead>
+                    <tbody>${renderLineupList(lineupB, ss.teamB)}</tbody>
+                </table>
+            </div>
+        </div>
+        <div style="text-align:center;margin-top:16px;">
+            <button class="btn btn--accent" id="btnPSStartGame" style="font-size:16px;padding:12px 40px;">
+                ⚾ ${gameNum}차전 경기 시작
+            </button>
+        </div>
+    `;
+
+    document.getElementById('btnPSStartGame').addEventListener('click', () => {
+        runPSGame(lineupA, lineupB, spA, spB);
+    });
+
+    openPSGameModal();
+}
+
+/** 경기 진행 (이닝별 실시간 표시) */
+async function runPSGame(lineupA, lineupB, spA, spB) {
+    const ss = psSeriesState;
+    const gameNum = ss.games.length + 1;
+    const nameA = state.teams[ss.teamA].name;
+    const nameB = state.teams[ss.teamB].name;
+
+    document.getElementById('psGameTitle').textContent = `${ss.matchLabel} — ${gameNum}차전 진행 중`;
+
+    // 게임 시뮬레이션
+    const game = simulateGame(state, ss.teamA, ss.teamB, lineupA, lineupB, spA, spB);
+    game.homeLineup = lineupA;
+    game.awayLineup = lineupB;
+    ss.games.push(game);
+
+    if (game.winner === ss.teamA) ss.winsA++;
+    else if (game.winner === ss.teamB) ss.winsB++;
+
+    // 이닝별로 순차 표시
+    const body = document.getElementById('psGameBody');
+    body.innerHTML = `
+        <div style="text-align:center;margin:8px 0;font-size:18px;font-weight:700;">
+            ${nameA} vs ${nameB} — ${gameNum}차전
+        </div>
+        <div id="psLiveScoreboard"></div>
+        <div style="display:flex;gap:8px;justify-content:center;margin:12px 0;">
+            <button class="btn btn--sm active" id="psTabBox" onclick="document.getElementById('psBoxContent').style.display='';document.getElementById('psPbpContent').style.display='none';this.classList.add('active');document.getElementById('psTabPbp').classList.remove('active');">박스스코어</button>
+            <button class="btn btn--sm" id="psTabPbp" onclick="document.getElementById('psPbpContent').style.display='';document.getElementById('psBoxContent').style.display='none';this.classList.add('active');document.getElementById('psTabBox').classList.remove('active');">플레이바이플레이</button>
+        </div>
+        <div id="psBoxContent"></div>
+        <div id="psPbpContent" style="display:none;"></div>
+        <div id="psGameFooter" style="text-align:center;margin-top:16px;"></div>
+    `;
+
+    // 이닝별로 스코어보드 업데이트 (순차 표시)
+    const scoreboardEl = document.getElementById('psLiveScoreboard');
+    for (let i = 0; i < game.innings.length; i++) {
+        const partialInnings = game.innings.slice(0, i + 1);
+        const pAwayScore = partialInnings.reduce((s, inn) => s + inn.away, 0);
+        const pHomeScore = partialInnings.reduce((s, inn) => s + inn.home, 0);
+
+        const innHeaders = partialInnings.map(inn => `<th>${inn.inning}</th>`).join('');
+        const awayScores = partialInnings.map(inn => `<td>${inn.away}</td>`).join('');
+        const homeScores = partialInnings.map(inn => `<td>${inn.home}</td>`).join('');
+
+        scoreboardEl.innerHTML = `
+            <table class="boxscore__scoreboard" style="margin:0 auto;max-width:600px;">
+                <thead><tr><th>팀</th>${innHeaders}<th>R</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>${nameB}</strong></td>${awayScores}<td><strong>${pAwayScore}</strong></td></tr>
+                    <tr><td><strong>${nameA}</strong></td>${homeScores}<td><strong>${pHomeScore}</strong></td></tr>
+                </tbody>
+            </table>`;
+
+        await delay(400);
+    }
+
+    // 최종 박스스코어 + 플레이바이플레이
+    document.getElementById('psBoxContent').innerHTML = renderBoxScore(game, state);
+    document.getElementById('psPbpContent').innerHTML = renderPlayByPlay(game, state);
+
+    // 경기 결과 + 다음 버튼
+    const winnerName = game.winner ? state.teams[game.winner].name : '무승부';
+    const seriesDone = ss.winsA >= ss.targetWins || ss.winsB >= ss.targetWins;
+
+    let footerHTML = `<div style="font-size:18px;font-weight:700;margin:8px 0;">${winnerName} 승리! (${game.homeScore} : ${game.awayScore})</div>`;
+    footerHTML += `<div style="margin:8px 0;">시리즈 ${nameA} ${ss.winsA} - ${ss.winsB} ${nameB}</div>`;
+
+    if (seriesDone) {
+        const seriesWinner = ss.winsA >= ss.targetWins ? ss.teamA : ss.teamB;
+        footerHTML += `<div style="font-size:20px;font-weight:700;color:var(--accent);margin:12px 0;">${state.teams[seriesWinner].name} 시리즈 승리!</div>`;
+        footerHTML += `<button class="btn btn--accent" id="btnPSFinish">확인</button>`;
+    } else {
+        footerHTML += `<button class="btn btn--accent" id="btnPSNext" style="font-size:14px;padding:10px 30px;">다음 ${ss.games.length + 1}차전 라인업 제출</button>`;
+    }
+
+    document.getElementById('psGameFooter').innerHTML = footerHTML;
+
+    if (seriesDone) {
+        document.getElementById('btnPSFinish').addEventListener('click', () => finishPSSeries());
+    } else {
+        document.getElementById('btnPSNext').addEventListener('click', () => showPSLineupScreen());
+    }
+}
+
+/** 시리즈 종료 처리 */
+function finishPSSeries() {
+    closePSGameModal();
+    const ss = psSeriesState;
+    const winner = ss.winsA >= ss.targetWins ? ss.teamA : ss.teamB;
+    const loser = winner === ss.teamA ? ss.teamB : ss.teamA;
+    const result = { winner, loser, winsA: ss.winsA, winsB: ss.winsB, games: ss.games };
+
+    // 시리즈 요약 카드
+    const summaryDiv = document.getElementById('postseasonSeriesSummary');
+    summaryDiv.innerHTML += `
+        <div style="margin:8px 0;padding:12px;background:var(--bg-card);border-radius:8px;border:1px solid var(--border);">
+            <strong>${ss.matchLabel}</strong> — ${state.teams[winner].name} 승리 (${ss.winsA}-${ss.winsB})
+            ${ss.games.map((g, i) => `<div style="font-size:12px;color:var(--text-dim);">${i + 1}차전: ${state.teams[g.homeCode].name} ${g.homeScore} - ${g.awayScore} ${state.teams[g.awayCode].name}</div>`).join('')}
+        </div>`;
+
+    if (ss.seriesKey === 'po1' || ss.seriesKey === 'po2') {
+        // PO 결과 저장
+        const resultEl = document.getElementById(`${ss.seriesKey.replace('po', 'po')}Result`);
+        const btn = document.getElementById(`btn${ss.seriesKey.toUpperCase()}`);
+        if (ss.seriesKey === 'po1') postseasonState.po1 = result;
+        else postseasonState.po2 = result;
+
+        document.getElementById(`po${ss.matchNum}Result`).innerHTML = `<strong>${state.teams[winner].name} 승리!</strong> (${ss.winsA}-${ss.winsB})`;
+        document.getElementById(`btnPO${ss.matchNum}`).textContent = '완료';
+        document.getElementById(`btnPO${ss.matchNum}`).disabled = true;
+
+        applyFatigue(state, winner);
+
+        if (postseasonState.po1 && postseasonState.po2) {
+            document.getElementById('btnKS').disabled = false;
+            document.getElementById('ksTeamA').innerHTML = `<img class="team-logo-sm" src="${teamLogo(postseasonState.po1.winner)}"> ${state.teams[postseasonState.po1.winner].name}`;
+            document.getElementById('ksTeamB').innerHTML = `<img class="team-logo-sm" src="${teamLogo(postseasonState.po2.winner)}"> ${state.teams[postseasonState.po2.winner].name}`;
+        }
+        showToast(`${ss.matchLabel}: ${state.teams[winner].name} 승리!`, 'success');
+    } else {
+        // 한국시리즈 결과
+        postseasonState.ks = result;
+        document.getElementById('ksResult').innerHTML = `<strong>${state.teams[winner].name} 우승!</strong> (${ss.winsA}-${ss.winsB})`;
+        document.getElementById('btnKS').textContent = '완료';
+        document.getElementById('btnKS').disabled = true;
 
     // Remove fatigue
     removeFatigue(state, teamA);

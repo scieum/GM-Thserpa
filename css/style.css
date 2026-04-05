@@ -3888,6 +3888,16 @@ body {
     color: var(--text-primary, #e8eaf0);
 }
 
+/* ===== 포스트시즌 게임 모달 ===== */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:1000; }
+.modal-content { background:var(--bg-card); border-radius:12px; padding:24px; position:relative; box-shadow:0 8px 32px rgba(0,0,0,0.4); }
+.modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.modal-header h3 { margin:0; font-size:18px; }
+.modal-close { background:none; border:none; font-size:24px; cursor:pointer; color:var(--text-dim); padding:4px 8px; }
+.modal-close:hover { color:var(--text-primary); }
+
+.boxscore__scoreboard { margin:0 auto; }
+
 /* ===== 박스스코어 ===== */
 .boxscore__scoreboard table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .boxscore__scoreboard th, .boxscore__scoreboard td { padding: 4px 8px; text-align: center; border: 1px solid var(--border); }
