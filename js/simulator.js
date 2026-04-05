@@ -219,6 +219,9 @@ async function simulateBatch(state, batchSize, onProgress) {
         await delay(30);
     }
 
+    // 부상 발생 & 복귀
+    processInjuries(state);
+
     // AI 팀 1/2군 교체
     aiRosterShuffle(state);
 
@@ -671,8 +674,8 @@ function aiRosterShuffle(state) {
         const roster2 = team.futuresRoster || [];
         if (roster2.length === 0) continue;
 
-        // 배치(5경기)당 교체 횟수: 3~6회 시도
-        const swapAttempts = Math.floor(3 + Math.random() * 4);
+        // 배치(5경기)당 교체 횟수: 5~9회 시도 (KBO 현실: 팀당 하루 1건+)
+        const swapAttempts = Math.floor(5 + Math.random() * 5);
 
         for (let attempt = 0; attempt < swapAttempts; attempt++) {
             // 1군 선수 중 비보호 대상 (외국인, 프랜차이즈스타 제외)
@@ -753,10 +756,104 @@ function swapPlayers(roster1, roster2, demoteP, promoteP, teamCode) {
     }
 }
 
+/**
+ * 부상 발생 & 복귀 시스템
+ * KBO 현실: 시즌 중 팀당 15~25명 부상 등록 (평균 배치당 1~2명 발생)
+ */
+function processInjuries(state) {
+    const teamCodes = Object.keys(state.teams);
+    const totalGames = getTotalGamesPlayed(state);
+
+    for (const code of teamCodes) {
+        const team = state.teams[code];
+        // 학생 팀은 건드리지 않음
+        if (typeof session !== 'undefined' && session.teamCode === code) continue;
+
+        const roster1 = team.roster || [];
+        const roster2 = team.futuresRoster || [];
+        const injured = team.injuredRoster || [];
+        if (!team.injuredRoster) team.injuredRoster = [];
+
+        // ── 부상 복귀 체크 ──
+        for (let i = injured.length - 1; i >= 0; i--) {
+            const pid = injured[i];
+            const p = state.players[pid];
+            if (!p) continue;
+
+            // 복귀 가능 여부: 부상 기간 경과
+            const injDuration = p._injuryDuration || 10;
+            const injStart = p._injuryStartGame || 0;
+            if (totalGames >= injStart + injDuration) {
+                // 복귀: 부상 → 2군 (재활)
+                injured.splice(i, 1);
+                roster2.push(pid);
+                delete p._injuryDuration;
+                delete p._injuryStartGame;
+                delete p._injuryType;
+            }
+        }
+
+        // ── 부상 발생 (배치당 0~2명) ──
+        // 확률: 선수당 약 2% per 배치 (시즌 144경기 = 29배치 × 2% ≈ 시즌당 팀 ~15명 부상)
+        const INJURY_RATE = 0.02;
+        const injuryTypes = [
+            { name: '햄스트링 부상', duration: 15, rate: 0.25 },
+            { name: '어깨 염증', duration: 20, rate: 0.15 },
+            { name: '팔꿈치 통증', duration: 25, rate: 0.10 },
+            { name: '허리 부상', duration: 12, rate: 0.15 },
+            { name: '손가락 부상', duration: 8, rate: 0.10 },
+            { name: '발목 염좌', duration: 10, rate: 0.10 },
+            { name: '타박상', duration: 5, rate: 0.10 },
+            { name: '컨디션 난조', duration: 3, rate: 0.05 },
+        ];
+
+        for (let i = roster1.length - 1; i >= 0; i--) {
+            const pid = roster1[i];
+            const p = state.players[pid];
+            if (!p || p.isForeign || p.isFranchiseStar) continue; // 외국인/프랜차이즈 보호
+
+            if (Math.random() < INJURY_RATE) {
+                // 부상 유형 결정
+                let roll = Math.random();
+                let injType = injuryTypes[injuryTypes.length - 1];
+                for (const t of injuryTypes) {
+                    roll -= t.rate;
+                    if (roll <= 0) { injType = t; break; }
+                }
+
+                // 1군 → 부상 리스트
+                roster1.splice(i, 1);
+                team.injuredRoster.push(pid);
+                p._injuryDuration = injType.duration;
+                p._injuryStartGame = totalGames;
+                p._injuryType = injType.name;
+
+                // 2군에서 같은 포지션 승격
+                const samePos = roster2.filter(id => {
+                    const pr = state.players[id];
+                    return pr && (p.position === 'P' ? pr.position === 'P' : pr.position !== 'P');
+                });
+                if (samePos.length > 0) {
+                    samePos.sort((a, b) => (state.players[b]?.ovr || 0) - (state.players[a]?.ovr || 0));
+                    const promoteId = samePos[0];
+                    const idx2 = roster2.indexOf(promoteId);
+                    if (idx2 >= 0) {
+                        roster2.splice(idx2, 1);
+                        roster1.push(promoteId);
+                    }
+                }
+
+                break; // 팀당 배치마다 최대 1명 부상
+            }
+        }
+    }
+}
+
 window.simulateQuarter = simulateQuarter;
 window.simulateBatch = simulateBatch;
 window.updateAllSimStats = updateAllSimStats;
 window.aiRosterShuffle = aiRosterShuffle;
+window.processInjuries = processInjuries;
 window.getTotalGamesPlayed = getTotalGamesPlayed;
 window.getStandings = getStandings;
 window.getCurrentQuarter = getCurrentQuarter;
