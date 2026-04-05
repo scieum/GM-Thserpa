@@ -156,13 +156,15 @@ function simulateHalfInning(state, lineup, batIdx, pitcher, pStats, pitStats, pl
         const paPC = 3 + Math.floor(Math.random() * 5);
         pitches += paPC;
 
-        // 결과 확률 계산 (KBO 현실 기준 — 타자 OVR vs 투수 OVR)
-        const matchup = (batterOvr - pitcherOvr) / 150; // -0.33 ~ +0.33
-        const bbRate = clamp(0.075 + eye / 1200 + matchup * 0.015, 0.03, 0.14);
-        const soRate = clamp(0.20 - contact / 800 + pitcherOvr / 800, 0.10, 0.32);
-        const hitRate = clamp(0.18 + contact / 600 + matchup * 0.04, 0.10, 0.28);
-        const hrRate = clamp(0.025 + power / 2500 + matchup * 0.01, 0.003, 0.05);
-        const hbpRate = 0.008;
+        // 결과 확률 계산 (KBO 포스트시즌 기준)
+        // KBO 평균: 아웃 68%, 안타 22%, 볼넷 8%, 삼진 20%, HR 2.5%
+        // 포스트시즌: 투수 우위, 긴장감 → 삼진↑ 안타↓
+        const matchup = (batterOvr - pitcherOvr) / 250;
+        const bbRate = clamp(0.055 + eye / 2000 + matchup * 0.008, 0.025, 0.10);
+        const soRate = clamp(0.21 - contact / 1200 + pitcherOvr / 1200, 0.12, 0.28);
+        const hitRate = clamp(0.13 + contact / 1000 + matchup * 0.025, 0.06, 0.20);
+        const hrRate = clamp(0.012 + power / 4000 + matchup * 0.005, 0.002, 0.03);
+        const hbpRate = 0.005;
 
         const roll = Math.random();
         let result, rbi = 0, earnedRuns = 0;

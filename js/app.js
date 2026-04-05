@@ -634,7 +634,7 @@ function renderDetailRoster(code) {
         const displayColor = hasOvr ? ratingColor(p.ovr) : powerColor(p.power);
         return `<tr>
             <td class="num-cell" style="color:var(--text-dim);cursor:pointer;" onclick="event.stopPropagation(); editPlayerNumber('${p.id}', this)" title="클릭하여 등번호 변경">${p.number != null ? p.number : '-'}</td>
-            <td>${p.name}${p.isForeign ? ' <span style="color:var(--kbo-gold);font-size:10px;">외</span>' : ''}${p.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''}</td>
+            <td style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px;" onclick="if(state.players['${p.id}'])showPlayerModal(state.players['${p.id}'])">${p.name}${p.isForeign ? ' <span style="color:var(--kbo-gold);font-size:10px;">외</span>' : ''}${p.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''}</td>
             <td>${p.role || '-'}</td>
             <td style="color:${displayColor};">${displayVal}</td>
             <td>${p.salary}억</td>
@@ -647,7 +647,7 @@ function renderDetailRoster(code) {
         const ovr = b.ovr != null ? b.ovr : pw;
         return `<tr>
             <td style="color:var(--text-dim);">${b.number != null ? b.number : '-'}</td>
-            <td>${b.name}${b.isForeign ? ' <span style="color:var(--kbo-gold);font-size:10px;">외</span>' : ''}${b.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''}</td>
+            <td style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px;" onclick="if(state.players['${b.id}'])showPlayerModal(state.players['${b.id}'])">${b.name}${b.isForeign ? ' <span style="color:var(--kbo-gold);font-size:10px;">외</span>' : ''}${b.isFranchiseStar ? ' <span class="franchise-star-badge">★</span>' : ''}</td>
             <td>${b.position}</td>
             <td style="color:${powerColor(typeof ovr === 'number' ? ovr : b.power)};">${typeof ovr === 'number' ? ovr.toFixed(0) : pw}</td>
             <td>${b.salary}억</td>
