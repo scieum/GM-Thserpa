@@ -3501,129 +3501,169 @@ function showPSLineupScreen() {
     openPSGameModal();
 }
 
-/** 경기 진행 (양팀 라인업 + 이닝별 문자 중계) */
+/** 경기 진행 (타석 단위 실시간 중계 — 전체 화면) */
 async function runPSGame(lineupA, lineupB, spA, spB) {
     const ss = psSeriesState;
     const gameNum = ss.games.length + 1;
     const nameA = state.teams[ss.teamA].name;
     const nameB = state.teams[ss.teamB].name;
 
-    document.getElementById('psGameTitle').textContent = `${ss.matchLabel} — ${gameNum}차전 진행 중`;
+    // 모달 전체화면
+    const modalContent = document.querySelector('#psGameModal .modal-content');
+    modalContent.style.maxWidth = '100%';
+    modalContent.style.width = '100%';
+    modalContent.style.height = '100vh';
+    modalContent.style.maxHeight = '100vh';
+    modalContent.style.borderRadius = '0';
+
+    document.getElementById('psGameTitle').textContent = `${ss.matchLabel} — ${gameNum}차전`;
 
     const game = simulateGame(state, ss.teamA, ss.teamB, lineupA, lineupB, spA, spB);
     game.homeLineup = lineupA;
     game.awayLineup = lineupB;
     ss.games.push(game);
-
     if (game.winner === ss.teamA) ss.winsA++;
     else if (game.winner === ss.teamB) ss.winsB++;
 
-    // 라인업 테이블 HTML
-    function lineupHTML(lineup, teamName, stats) {
-        return lineup.map(function(pid, i) {
-            var p = state.players[pid]; if (!p) return '';
-            var gs = stats[pid] || {};
-            var ab = gs.AB || 0, h = gs.H || 0;
-            return '<tr>' +
-                '<td>' + (i+1) + '</td>' +
-                '<td>' + p.position + '</td>' +
-                '<td style="cursor:pointer;text-decoration:underline dotted;" onclick="if(state.players[\'' + pid + '\'])showPlayerModal(state.players[\'' + pid + '\'])">' + p.name + '</td>' +
-                '<td>' + ab + '-' + h + '</td>' +
-                '<td>' + (gs.RBI||0) + '</td>' +
-                '<td>' + (gs.HR||0) + '</td>' +
-                '<td>' + (gs.BB||0) + '</td>' +
-                '<td>' + (gs.SO||0) + '</td>' +
-                '</tr>';
-        }).join('');
+    // 라인업 행 (야구공 표시용 id 부여)
+    function makeLineupRow(pid, idx, side) {
+        var p = state.players[pid]; if (!p) return '';
+        return '<tr id="ps_' + side + '_' + idx + '">' +
+            '<td style="width:20px;" id="ps_ball_' + side + '_' + idx + '"></td>' +
+            '<td>' + (idx+1) + '</td>' +
+            '<td style="font-size:11px;color:var(--text-dim);">' + p.position + '</td>' +
+            '<td style="cursor:pointer;text-decoration:underline dotted;font-weight:600;" onclick="if(state.players[\'' + pid + '\'])showPlayerModal(state.players[\'' + pid + '\'])">' + p.name + '</td>' +
+            '<td id="ps_abs_' + side + '_' + idx + '">0-0</td>' +
+            '<td id="ps_rbi_' + side + '_' + idx + '">0</td>' +
+            '</tr>';
     }
 
     const body = document.getElementById('psGameBody');
-    body.innerHTML = `
-        <div style="text-align:center;margin:8px 0;font-size:16px;font-weight:700;">
-            ${nameA} vs ${nameB} — ${gameNum}차전
-        </div>
-        <div id="psLiveScoreboard"></div>
-        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:12px;margin-top:12px;">
-            <div>
-                <h4 style="font-size:13px;margin-bottom:4px;">${nameA} 라인업</h4>
-                <table class="player-table" style="font-size:11px;">
-                    <thead><tr><th>#</th><th>포지션</th><th>선수</th><th>타수</th><th>타점</th><th>HR</th><th>BB</th><th>SO</th></tr></thead>
-                    <tbody id="psLineupA">${lineupHTML(lineupA, nameA, game.playerGameStats)}</tbody>
-                </table>
-            </div>
-            <div id="psLivePBP" style="max-height:400px;overflow-y:auto;min-width:220px;border:1px solid var(--border);border-radius:8px;padding:8px;font-size:12px;background:var(--bg-darker);"></div>
-            <div>
-                <h4 style="font-size:13px;margin-bottom:4px;">${nameB} 라인업</h4>
-                <table class="player-table" style="font-size:11px;">
-                    <thead><tr><th>#</th><th>포지션</th><th>선수</th><th>타수</th><th>타점</th><th>HR</th><th>BB</th><th>SO</th></tr></thead>
-                    <tbody id="psLineupB">${lineupHTML(lineupB, nameB, game.playerGameStats)}</tbody>
-                </table>
-            </div>
-        </div>
-        <div id="psGameFooter" style="text-align:center;margin-top:16px;"></div>
-    `;
+    body.innerHTML =
+        '<div style="text-align:center;margin:4px 0;font-size:14px;font-weight:700;">' + nameA + ' vs ' + nameB + ' — ' + gameNum + '차전</div>' +
+        '<div id="psLiveScoreboard" style="margin:8px 0;"></div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:8px;height:calc(100vh - 200px);">' +
+            '<div style="overflow-y:auto;">' +
+                '<h4 style="font-size:12px;text-align:center;margin:4px 0;">' + nameA + '</h4>' +
+                '<table class="player-table" style="font-size:11px;"><thead><tr><th></th><th>#</th><th>포지션</th><th>선수</th><th>타수</th><th>타점</th></tr></thead>' +
+                '<tbody>' + lineupA.map(function(pid, i) { return makeLineupRow(pid, i, 'A'); }).join('') + '</tbody></table>' +
+            '</div>' +
+            '<div id="psLivePBP" style="overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:8px;font-size:12px;background:var(--bg-darker);"></div>' +
+            '<div style="overflow-y:auto;">' +
+                '<h4 style="font-size:12px;text-align:center;margin:4px 0;">' + nameB + '</h4>' +
+                '<table class="player-table" style="font-size:11px;"><thead><tr><th></th><th>#</th><th>포지션</th><th>선수</th><th>타수</th><th>타점</th></tr></thead>' +
+                '<tbody>' + lineupB.map(function(pid, i) { return makeLineupRow(pid, i, 'B'); }).join('') + '</tbody></table>' +
+            '</div>' +
+        '</div>' +
+        '<div id="psGameFooter" style="text-align:center;margin-top:8px;"></div>';
 
-    // 이닝별 실시간 문자 중계
-    const scoreboardEl = document.getElementById('psLiveScoreboard');
-    const pbpEl = document.getElementById('psLivePBP');
+    var scoreboardEl = document.getElementById('psLiveScoreboard');
+    var pbpEl = document.getElementById('psLivePBP');
+    var batIdxA = {}, batIdxB = {}; // 타자별 누적 타수/안타/타점
 
-    for (let i = 0; i < game.innings.length; i++) {
-        const inn = game.innings[i];
-        const partialInnings = game.innings.slice(0, i + 1);
-        const pAwayScore = partialInnings.reduce((s, x) => s + x.away, 0);
-        const pHomeScore = partialInnings.reduce((s, x) => s + x.home, 0);
+    // 타석별 순차 표시
+    for (var i = 0; i < game.innings.length; i++) {
+        var inn = game.innings[i];
 
-        const innHeaders = partialInnings.map(x => '<th>' + x.inning + '</th>').join('');
-        const awayScores = partialInnings.map(x => '<td>' + x.away + '</td>').join('');
-        const homeScores = partialInnings.map(x => '<td>' + x.home + '</td>').join('');
+        // 스코어보드 업데이트
+        var partial = game.innings.slice(0, i + 1);
+        var pAway = partial.reduce(function(s, x) { return s + x.away; }, 0);
+        var pHome = partial.reduce(function(s, x) { return s + x.home; }, 0);
+        var innH = partial.map(function(x) { return '<th>' + x.inning + '</th>'; }).join('');
+        var awayS = partial.map(function(x) { return '<td>' + x.away + '</td>'; }).join('');
+        var homeS = partial.map(function(x) { return '<td>' + x.home + '</td>'; }).join('');
+        scoreboardEl.innerHTML = '<table class="boxscore__scoreboard" style="margin:0 auto;max-width:600px;"><thead><tr><th>팀</th>' + innH + '<th>R</th></tr></thead><tbody>' +
+            '<tr><td><strong>' + nameB + '</strong></td>' + awayS + '<td><strong>' + pAway + '</strong></td></tr>' +
+            '<tr><td><strong>' + nameA + '</strong></td>' + homeS + '<td><strong>' + pHome + '</strong></td></tr></tbody></table>';
 
-        scoreboardEl.innerHTML =
-            '<table class="boxscore__scoreboard" style="margin:0 auto;max-width:600px;">' +
-            '<thead><tr><th>팀</th>' + innHeaders + '<th>R</th></tr></thead>' +
-            '<tbody>' +
-            '<tr><td><strong>' + nameB + '</strong></td>' + awayScores + '<td><strong>' + pAwayScore + '</strong></td></tr>' +
-            '<tr><td><strong>' + nameA + '</strong></td>' + homeScores + '<td><strong>' + pHomeScore + '</strong></td></tr>' +
-            '</tbody></table>';
+        // 이닝 헤더
+        pbpEl.innerHTML += '<div style="border-bottom:2px solid var(--accent);padding:4px 0;margin:8px 0 4px;font-weight:700;color:var(--accent);">' + inn.inning + '회</div>';
 
-        // 문자 중계: 이닝별 플레이 추가
-        var innPBP = '<div style="border-bottom:1px solid var(--border);padding:4px 0;margin:4px 0;"><strong style="color:var(--accent);">' + inn.inning + '회</strong></div>';
-        inn.awayPlays.forEach(function(play) {
+        // 초 (원정 공격) — 타석별 표시
+        pbpEl.innerHTML += '<div style="font-size:10px;color:var(--text-dim);margin:2px 0;">' + nameB + ' 공격</div>';
+        for (var j = 0; j < inn.awayPlays.length; j++) {
+            var play = inn.awayPlays[j];
+            // 현재 타자 야구공 표시
+            clearBalls();
+            var batLineupIdx = lineupB.indexOf(play.batterId) >= 0 ? lineupB.indexOf(play.batterId) : (j % lineupB.length);
+            var ballEl = document.getElementById('ps_ball_B_' + batLineupIdx);
+            if (ballEl) ballEl.textContent = '⚾';
+
+            // 중계 텍스트
             var cls = play.result.indexOf('홈런') >= 0 ? 'color:#f59e0b;font-weight:700;' : play.result.indexOf('안타') >= 0 || play.result.indexOf('루타') >= 0 ? 'color:#34d399;' : play.result.indexOf('삼진') >= 0 ? 'color:#ef4444;' : '';
-            innPBP += '<div style="padding:1px 0;font-size:11px;">' + play.batter + ' <span style="' + cls + '">' + play.result + '</span>' + (play.rbi > 0 ? ' <span style="color:var(--accent);font-weight:600;">' + play.rbi + '타점</span>' : '') + '</div>';
-        });
-        if (inn.homePlays && inn.homePlays.length > 0) {
-            inn.homePlays.forEach(function(play) {
-                var cls = play.result.indexOf('홈런') >= 0 ? 'color:#f59e0b;font-weight:700;' : play.result.indexOf('안타') >= 0 || play.result.indexOf('루타') >= 0 ? 'color:#34d399;' : play.result.indexOf('삼진') >= 0 ? 'color:#ef4444;' : '';
-                innPBP += '<div style="padding:1px 0;font-size:11px;">' + play.batter + ' <span style="' + cls + '">' + play.result + '</span>' + (play.rbi > 0 ? ' <span style="color:var(--accent);font-weight:600;">' + play.rbi + '타점</span>' : '') + '</div>';
-            });
-        }
-        pbpEl.innerHTML += innPBP;
-        pbpEl.scrollTop = pbpEl.scrollHeight;
+            pbpEl.innerHTML += '<div style="padding:2px 0;"><span style="font-weight:600;">' + play.batter + '</span> <span style="' + cls + '">' + play.result + '</span>' + (play.rbi > 0 ? ' <span style="color:var(--accent);font-weight:700;">' + play.rbi + '타점</span>' : '') + '</div>';
+            pbpEl.scrollTop = pbpEl.scrollHeight;
 
-        await delay(500);
+            // 타자 성적 업데이트
+            updateBatterDisplay(play, 'B', lineupB);
+
+            await delay(350);
+        }
+
+        // 말 (홈 공격) — 타석별 표시
+        if (inn.homePlays && inn.homePlays.length > 0) {
+            pbpEl.innerHTML += '<div style="font-size:10px;color:var(--text-dim);margin:2px 0;">' + nameA + ' 공격</div>';
+            for (var k = 0; k < inn.homePlays.length; k++) {
+                var play2 = inn.homePlays[k];
+                clearBalls();
+                var batLineupIdx2 = lineupA.indexOf(play2.batterId) >= 0 ? lineupA.indexOf(play2.batterId) : (k % lineupA.length);
+                var ballEl2 = document.getElementById('ps_ball_A_' + batLineupIdx2);
+                if (ballEl2) ballEl2.textContent = '⚾';
+
+                var cls2 = play2.result.indexOf('홈런') >= 0 ? 'color:#f59e0b;font-weight:700;' : play2.result.indexOf('안타') >= 0 || play2.result.indexOf('루타') >= 0 ? 'color:#34d399;' : play2.result.indexOf('삼진') >= 0 ? 'color:#ef4444;' : '';
+                pbpEl.innerHTML += '<div style="padding:2px 0;"><span style="font-weight:600;">' + play2.batter + '</span> <span style="' + cls2 + '">' + play2.result + '</span>' + (play2.rbi > 0 ? ' <span style="color:var(--accent);font-weight:700;">' + play2.rbi + '타점</span>' : '') + '</div>';
+                pbpEl.scrollTop = pbpEl.scrollHeight;
+
+                updateBatterDisplay(play2, 'A', lineupA);
+
+                await delay(350);
+            }
+        }
+        clearBalls();
     }
 
-    // 경기 결과 + 다음 버튼
-    const winnerName = game.winner ? state.teams[game.winner].name : '무승부';
-    const seriesDone = ss.winsA >= ss.targetWins || ss.winsB >= ss.targetWins;
+    function clearBalls() {
+        document.querySelectorAll('[id^="ps_ball_"]').forEach(function(el) { el.textContent = ''; });
+    }
 
-    let footerHTML = `<div style="font-size:18px;font-weight:700;margin:8px 0;">${winnerName} 승리! (${game.homeScore} : ${game.awayScore})</div>`;
-    footerHTML += `<div style="margin:8px 0;">시리즈 ${nameA} ${ss.winsA} - ${ss.winsB} ${nameB}</div>`;
+    function updateBatterDisplay(play, side, lineup) {
+        var idx = lineup.indexOf(play.batterId);
+        if (idx < 0) return;
+        var gs = game.playerGameStats[play.batterId] || {};
+        var absEl = document.getElementById('ps_abs_' + side + '_' + idx);
+        var rbiEl = document.getElementById('ps_rbi_' + side + '_' + idx);
+        if (absEl) absEl.textContent = (gs.AB||0) + '-' + (gs.H||0);
+        if (rbiEl) rbiEl.textContent = (gs.RBI||0);
+    }
+
+    // 모달 크기 복원 함수
+    function restoreModalSize() {
+        modalContent.style.maxWidth = '960px';
+        modalContent.style.width = '95%';
+        modalContent.style.height = '';
+        modalContent.style.maxHeight = '90vh';
+        modalContent.style.borderRadius = '12px';
+    }
+
+    // 경기 결과
+    var winnerName = game.winner ? state.teams[game.winner].name : '무승부';
+    var seriesDone = ss.winsA >= ss.targetWins || ss.winsB >= ss.targetWins;
+    var footerHTML = '<div style="font-size:18px;font-weight:700;margin:8px 0;">' + winnerName + ' 승리! (' + game.homeScore + ' : ' + game.awayScore + ')</div>';
+    footerHTML += '<div style="margin:4px 0;">시리즈 ' + nameA + ' ' + ss.winsA + ' - ' + ss.winsB + ' ' + nameB + '</div>';
 
     if (seriesDone) {
-        const seriesWinner = ss.winsA >= ss.targetWins ? ss.teamA : ss.teamB;
-        footerHTML += `<div style="font-size:20px;font-weight:700;color:var(--accent);margin:12px 0;">${state.teams[seriesWinner].name} 시리즈 승리!</div>`;
-        footerHTML += `<button class="btn btn--accent" id="btnPSFinish">확인</button>`;
+        var sw = ss.winsA >= ss.targetWins ? ss.teamA : ss.teamB;
+        footerHTML += '<div style="font-size:20px;font-weight:700;color:var(--accent);margin:8px 0;">' + state.teams[sw].name + ' 시리즈 승리!</div>';
+        footerHTML += '<button class="btn btn--accent" id="btnPSFinish">확인</button>';
     } else {
-        footerHTML += `<button class="btn btn--accent" id="btnPSNext" style="font-size:14px;padding:10px 30px;">다음 ${ss.games.length + 1}차전 라인업 제출</button>`;
+        footerHTML += '<button class="btn btn--accent" id="btnPSNext" style="padding:10px 30px;">다음 ' + (ss.games.length + 1) + '차전 라인업 제출</button>';
     }
-
     document.getElementById('psGameFooter').innerHTML = footerHTML;
 
     if (seriesDone) {
-        document.getElementById('btnPSFinish').addEventListener('click', () => finishPSSeries());
+        document.getElementById('btnPSFinish').addEventListener('click', function() { restoreModalSize(); finishPSSeries(); });
     } else {
-        document.getElementById('btnPSNext').addEventListener('click', () => showPSLineupScreen());
+        document.getElementById('btnPSNext').addEventListener('click', function() { restoreModalSize(); showPSLineupScreen(); });
     }
 }
 
