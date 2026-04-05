@@ -1164,18 +1164,18 @@ function showGameDetail(logIdx) {
     document.getElementById('psGameBody').innerHTML = `
         <div style="text-align:center;margin:12px 0;">
             <div style="display:flex;align-items:center;justify-content:center;gap:24px;">
-                <div>
+                <div style="cursor:pointer;" onclick="closePSGameModal();document.getElementById('rosterTeamSelect').value='${gl.home}';showView('roster');">
                     <img src="${teamLogo(gl.home)}" style="width:48px;height:48px;"><br>
-                    <strong>${homeName}</strong>
+                    <strong style="text-decoration:underline dotted;text-underline-offset:3px;">${homeName}</strong>
                 </div>
                 <div style="font-size:32px;font-weight:900;letter-spacing:4px;">
                     <span style="color:${gl.winner===gl.home?'var(--accent)':'var(--text-dim)'}">${gl.homeRuns}</span>
                     <span style="color:var(--text-muted);margin:0 6px;">:</span>
                     <span style="color:${gl.winner===gl.away?'var(--accent)':'var(--text-dim)'}">${gl.awayRuns}</span>
                 </div>
-                <div>
+                <div style="cursor:pointer;" onclick="closePSGameModal();document.getElementById('rosterTeamSelect').value='${gl.away}';showView('roster');">
                     <img src="${teamLogo(gl.away)}" style="width:48px;height:48px;"><br>
-                    <strong>${awayName}</strong>
+                    <strong style="text-decoration:underline dotted;text-underline-offset:3px;">${awayName}</strong>
                 </div>
             </div>
             <div style="margin-top:6px;font-size:14px;color:var(--accent);font-weight:700;">
@@ -1198,12 +1198,12 @@ function showGameDetail(logIdx) {
         <!-- 선발투수 정보 -->
         <div style="display:flex;justify-content:center;gap:40px;margin:16px 0;font-size:13px;">
             ${gl.awayDetail?.sp ? `<div style="text-align:center;">
-                <div style="font-weight:700;">${gl.awayDetail.sp.name}</div>
+                <div style="font-weight:700;cursor:pointer;text-decoration:underline dotted;" onclick="if(state.players['${gl.awayDetail.sp.id}'])showPlayerModal(state.players['${gl.awayDetail.sp.id}'])">${gl.awayDetail.sp.name}</div>
                 <div style="color:var(--text-dim);font-size:11px;">이닝 ${fmtIP(gl.awayDetail.sp.IP)} | 피안타 ${gl.awayDetail.sp.H} | 자책 ${gl.awayDetail.sp.ER} | 삼진 ${gl.awayDetail.sp.SO}</div>
                 <div style="color:${gl.winner === gl.away ? '#22c55e' : '#ef4444'};font-weight:700;font-size:11px;">${gl.winner === gl.away ? '승리' : '패전'}</div>
             </div>` : ''}
             ${gl.homeDetail?.sp ? `<div style="text-align:center;">
-                <div style="font-weight:700;">${gl.homeDetail.sp.name}</div>
+                <div style="font-weight:700;cursor:pointer;text-decoration:underline dotted;" onclick="if(state.players['${gl.homeDetail.sp.id}'])showPlayerModal(state.players['${gl.homeDetail.sp.id}'])">${gl.homeDetail.sp.name}</div>
                 <div style="color:var(--text-dim);font-size:11px;">이닝 ${fmtIP(gl.homeDetail.sp.IP)} | 피안타 ${gl.homeDetail.sp.H} | 자책 ${gl.homeDetail.sp.ER} | 삼진 ${gl.homeDetail.sp.SO}</div>
                 <div style="color:${gl.winner === gl.home ? '#22c55e' : '#ef4444'};font-weight:700;font-size:11px;">${gl.winner === gl.home ? '승리' : '패전'}</div>
             </div>` : ''}
