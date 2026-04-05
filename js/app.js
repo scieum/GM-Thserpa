@@ -973,32 +973,49 @@ function renderScheduleView() {
         const dayName = DAYS[dateObj.getDay()];
         dateLabel.textContent = `${scheduleCurrentDate} (${dayName})`;
 
+        // 게임 로그에서 해당 날짜 결과 찾기
+        const gameLog = state.gameLog || [];
+        function findGameResult(date, home, away) {
+            return gameLog.find(gl => gl.date === date && gl.home === home && gl.away === away);
+        }
+
         if (scheduleTeamFilter === 'all') {
-            // 전체 보기: 당일 5경기 카드
             const dayData = schedule.find(d => d.d === scheduleCurrentDate);
             if (!dayData || dayData.g.length === 0) {
                 container.innerHTML = '<p style="text-align:center;color:var(--text-dim);padding:40px;">이 날은 경기가 없습니다.</p>';
                 return;
             }
             container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
-                ${dayData.g.map(g => {
+                ${dayData.g.map((g, gi) => {
                     const homeName = TEAM_NAMES[g.h] || g.h;
                     const awayName = TEAM_NAMES[g.a] || g.a;
-                    return `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-                            <div style="text-align:center;flex:1;">
+                    const res = findGameResult(dayData.d, g.h, g.a);
+                    const hasResult = !!res;
+                    const scoreHTML = hasResult
+                        ? `<div style="font-size:28px;font-weight:900;margin:8px 0;letter-spacing:2px;">
+                            <span style="color:${res.winner===g.h?'var(--accent)':'var(--text-dim)'}">${res.homeRuns}</span>
+                            <span style="color:var(--text-muted);margin:0 8px;">:</span>
+                            <span style="color:${res.winner===g.a?'var(--accent)':'var(--text-dim)'}">${res.awayRuns}</span>
+                           </div>
+                           <div style="font-size:11px;color:var(--text-muted);">${res.result==='draw'?'무승부': (res.winner===g.h?homeName:awayName)+' 승'}</div>`
+                        : `<div style="font-size:20px;font-weight:900;color:var(--text-dim);padding:8px 0;">VS</div>
+                           <div style="font-size:11px;color:var(--text-muted);">${g.t} 예정</div>`;
+                    const clickAttr = hasResult ? `onclick="showGameDetail(${gameLog.indexOf(res)})" style="cursor:pointer;"` : '';
+                    return `<div ${clickAttr} class="schedule-card ${hasResult?'schedule-card--done':''}" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;${hasResult?'cursor:pointer;':''}">
+                        <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:8px;">
+                            <div style="text-align:center;">
                                 <img src="${teamLogo(g.h)}" style="width:48px;height:48px;margin-bottom:4px;"><br>
-                                <span style="font-weight:700;font-size:14px;color:var(--text-bright);">${homeName}</span><br>
-                                <span style="color:#22c55e;font-weight:700;font-size:12px;">H</span>
+                                <span style="font-weight:700;font-size:14px;">${homeName}</span>
                             </div>
-                            <div style="font-size:20px;font-weight:900;color:var(--text-dim);padding:0 12px;">VS</div>
-                            <div style="text-align:center;flex:1;">
+                            <div style="min-width:80px;">
+                                ${scoreHTML}
+                            </div>
+                            <div style="text-align:center;">
                                 <img src="${teamLogo(g.a)}" style="width:48px;height:48px;margin-bottom:4px;"><br>
-                                <span style="font-weight:700;font-size:14px;color:var(--text-bright);">${awayName}</span><br>
-                                <span style="color:#ED1C24;font-weight:700;font-size:12px;">A</span>
+                                <span style="font-weight:700;font-size:14px;">${awayName}</span>
                             </div>
                         </div>
-                        <div style="color:var(--text-dim);font-size:12px;">${g.t} | ${g.s}</div>
+                        <div style="color:var(--text-dim);font-size:11px;">${g.s}${hasResult?' · 클릭하여 상세 보기':''}</div>
                     </div>`;
                 }).join('')}
             </div>`;
@@ -1041,7 +1058,7 @@ function renderScheduleView() {
                         <th style="padding:10px;text-align:center;color:var(--text-dim);font-size:12px;">날짜</th>
                         <th style="padding:10px;text-align:center;color:var(--text-dim);font-size:12px;">H/A</th>
                         <th style="padding:10px;text-align:center;color:var(--text-dim);font-size:12px;">상대</th>
-                        <th style="padding:10px;text-align:center;color:var(--text-dim);font-size:12px;">시간</th>
+                        <th style="padding:10px;text-align:center;color:var(--text-dim);font-size:12px;">결과</th>
                         <th style="padding:10px;text-align:center;color:var(--text-dim);font-size:12px;">구장</th>
                     </tr></thead>
                     <tbody>
@@ -1049,14 +1066,29 @@ function renderScheduleView() {
                         const d = new Date(g.date);
                         const dayStr = DAYS[d.getDay()];
                         const oppName = TEAM_NAMES[g.opponent] || g.opponent;
-                        return `<tr style="border-bottom:1px solid var(--border);">
+                        const home = g.isHome ? scheduleTeamFilter : g.opponent;
+                        const away = g.isHome ? g.opponent : scheduleTeamFilter;
+                        const res = findGameResult(g.date, home, away);
+                        let resultHTML = `<span style="color:var(--text-dim);">${g.time}</span>`;
+                        let rowClick = '';
+                        if (res) {
+                            const myRuns = g.isHome ? res.homeRuns : res.awayRuns;
+                            const oppRuns = g.isHome ? res.awayRuns : res.homeRuns;
+                            const isWin = res.winner === scheduleTeamFilter;
+                            const isDraw = res.result === 'draw';
+                            const badge = isDraw ? '<span style="color:#f59e0b;font-weight:700;">무</span>' : isWin ? '<span style="color:#22c55e;font-weight:700;">승</span>' : '<span style="color:#ef4444;font-weight:700;">패</span>';
+                            resultHTML = `${badge} <strong>${myRuns}</strong>:<strong>${oppRuns}</strong>`;
+                            const logIdx = gameLog.indexOf(res);
+                            rowClick = `onclick="showGameDetail(${logIdx})" style="cursor:pointer;"`;
+                        }
+                        return `<tr ${rowClick} style="border-bottom:1px solid var(--border);">
                             <td style="padding:10px;text-align:center;font-size:13px;">${g.date.slice(5)} (${dayStr})</td>
                             <td style="padding:10px;text-align:center;font-weight:700;color:${g.isHome ? '#22c55e' : '#ED1C24'};">${g.isHome ? 'H' : 'A'}</td>
                             <td style="padding:10px;text-align:center;">
                                 <img src="${teamLogo(g.opponent)}" style="width:20px;height:20px;vertical-align:middle;margin-right:4px;">
                                 <span style="font-size:13px;">${oppName}</span>
                             </td>
-                            <td style="padding:10px;text-align:center;font-size:13px;">${g.time}</td>
+                            <td style="padding:10px;text-align:center;font-size:13px;">${resultHTML}</td>
                             <td style="padding:10px;text-align:center;font-size:13px;color:var(--text-dim);">${g.stadium}</td>
                         </tr>`;
                     }).join('')}
@@ -1066,6 +1098,50 @@ function renderScheduleView() {
         }
     }
 }
+
+/** 경기 상세 결과 모달 (일정 탭에서 클릭 시) */
+function showGameDetail(logIdx) {
+    const gl = state.gameLog?.[logIdx];
+    if (!gl) return;
+
+    const homeName = state.teams[gl.home]?.name || gl.home;
+    const awayName = state.teams[gl.away]?.name || gl.away;
+    const isDraw = gl.result === 'draw';
+    const winnerName = isDraw ? '무승부' : (state.teams[gl.winner]?.name || gl.winner);
+
+    const modal = document.getElementById('psGameModal');
+    if (!modal) return;
+
+    document.getElementById('psGameTitle').textContent = `${gl.date || ''} ${homeName} vs ${awayName}`;
+    document.getElementById('psGameBody').innerHTML = `
+        <div style="text-align:center;margin:16px 0;">
+            <div style="display:flex;align-items:center;justify-content:center;gap:24px;">
+                <div>
+                    <img src="${teamLogo(gl.home)}" style="width:56px;height:56px;"><br>
+                    <strong>${homeName}</strong>
+                </div>
+                <div style="font-size:36px;font-weight:900;letter-spacing:4px;">
+                    <span style="color:${gl.winner===gl.home?'var(--accent)':'var(--text-dim)'}">${gl.homeRuns}</span>
+                    <span style="color:var(--text-muted);margin:0 8px;">:</span>
+                    <span style="color:${gl.winner===gl.away?'var(--accent)':'var(--text-dim)'}">${gl.awayRuns}</span>
+                </div>
+                <div>
+                    <img src="${teamLogo(gl.away)}" style="width:56px;height:56px;"><br>
+                    <strong>${awayName}</strong>
+                </div>
+            </div>
+            <div style="margin-top:8px;font-size:14px;color:var(--accent);font-weight:700;">
+                ${isDraw ? '무승부' : winnerName + ' 승리'}
+            </div>
+            <div style="margin-top:4px;font-size:12px;color:var(--text-dim);">
+                ${gl.date || ''} ${gl.time || ''} | ${gl.stadium || ''}
+            </div>
+        </div>
+    `;
+
+    modal.style.display = 'flex';
+}
+window.showGameDetail = showGameDetail;
 
 function renderStadiumView() {
     const grid = document.getElementById('stadiumGrid');
