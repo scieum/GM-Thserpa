@@ -2765,7 +2765,16 @@ function renderSimulator() {
             ).join('');
         } else {
             if (!simRunning) btn.classList.add('pulse');
-            lockMsg.style.display = 'none';
+            // 학생팀 5선발 경고 표시
+            const warns = canSim.teamWarnings || [];
+            if (warns.length > 0) {
+                lockMsg.style.display = 'block';
+                lockMsg.innerHTML = warns.map(tw =>
+                    `<div style="color:#f59e0b;">⚠️ <strong>${tw.team}:</strong> ${tw.warnings.join(', ')}</div>`
+                ).join('');
+            } else {
+                lockMsg.style.display = 'none';
+            }
         }
     }
 

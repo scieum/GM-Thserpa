@@ -200,6 +200,15 @@ function validateRoster(state, teamCode) {
     if (pitchers.length < 10) errors.push(`투수 ${pitchers.length}명 (최소 10명)`);
     if (batters.length < 14) errors.push(`야수 ${batters.length}명 (최소 14명)`);
 
+    // 5선발 로테이션 체크
+    const dc = team.depthChart;
+    if (dc) {
+        const rotFilled = (dc.rotation || []).filter(Boolean).length;
+        if (rotFilled < 5) {
+            warnings.push(`선발 로테이션 ${rotFilled}명 (5명 필요)`);
+        }
+    }
+
     // 샐러리캡 초과는 제재금(경고)이지 시뮬레이션 잠금은 아님
     if (penalty.overCap) {
         warnings.push(`샐러리캡 초과 ${penalty.excess.toFixed(1)}억 → 제재금 ${penalty.penaltyAmount.toFixed(1)}억 (${penalty.description})`);
@@ -348,13 +357,49 @@ function getErrorRate(player) {
 
 function canSimulateAll(state) {
     const allErrors = [];
+    const allWarnings = [];
     for (const code of Object.keys(state.teams)) {
+        // AI 팀: 5선발 미달 시 자동 배정
+        const isAI = typeof session === 'undefined' || !session.teamCode || session.teamCode !== code;
+        if (isAI) {
+            ensureFullRotation(state, code);
+        }
+
         const v = validateRoster(state, code);
         if (!v.valid) {
             allErrors.push({ team: state.teams[code].name, errors: v.errors });
         }
+        // 학생 팀: 5선발 경고
+        if (!isAI && v.warnings.length > 0) {
+            allWarnings.push({ team: state.teams[code].name, warnings: v.warnings });
+        }
     }
-    return { valid: allErrors.length === 0, teamErrors: allErrors };
+    return { valid: allErrors.length === 0, teamErrors: allErrors, teamWarnings: allWarnings };
+}
+
+/** AI 팀 5선발 자동 채움 */
+function ensureFullRotation(state, teamCode) {
+    const team = state.teams[teamCode];
+    if (!team.depthChart) {
+        if (typeof ensureDepthChart === 'function') ensureDepthChart(teamCode);
+        return;
+    }
+    const dc = team.depthChart;
+    const rot = dc.rotation || [];
+    const filled = rot.filter(Boolean);
+    if (filled.length >= 5) return;
+
+    // 로테이션에 없는 선발 투수 찾기
+    const pitchers = (team.roster || []).map(id => state.players[id]).filter(p => p && p.position === 'P' && p.role === '선발');
+    const usedIds = new Set(filled);
+    const available = pitchers.filter(p => !usedIds.has(p.id)).sort((a, b) => (b.ovr || 0) - (a.ovr || 0));
+
+    for (let i = 0; i < 5; i++) {
+        if (!rot[i] && available.length > 0) {
+            rot[i] = available.shift().id;
+        }
+    }
+    dc.rotation = rot;
 }
 
 // ── 리그 통계 ──
@@ -601,6 +646,7 @@ window.calcCapPenalty = calcCapPenalty;
 window.calcAvailableBudget = calcAvailableBudget;
 window.validateRoster = validateRoster;
 window.canSimulateAll = canSimulateAll;
+window.ensureFullRotation = ensureFullRotation;
 window.calcLeagueAvg = calcLeagueAvg;
 window.calcLeagueAvgPitchPower = calcLeagueAvgPitchPower;
 window.calcLeagueAvgBatPower = calcLeagueAvgBatPower;
