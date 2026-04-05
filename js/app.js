@@ -3385,7 +3385,7 @@ function showPSLineupScreen() {
         return lineup.map((pid, i) => {
             const p = state.players[pid];
             if (!p) return `<tr><td>${i + 1}</td><td>-</td><td>-</td></tr>`;
-            return `<tr><td>${i + 1}</td><td>${p.position}</td><td>${p.name}</td><td>${p.ovr}</td></tr>`;
+            return `<tr><td>${i + 1}</td><td>${p.position}</td><td style="cursor:pointer;text-decoration:underline dotted;" onclick="if(state.players['${pid}'])showPlayerModal(state.players['${pid}'])">${p.name}</td><td>${p.ovr}</td></tr>`;
         }).join('');
     }
 
@@ -3393,10 +3393,19 @@ function showPSLineupScreen() {
         <div style="text-align:center;margin:8px 0;font-size:14px;color:var(--text-dim);">
             시리즈 ${nameA} ${ss.winsA} - ${ss.winsB} ${nameB}
         </div>
+        <div style="text-align:center;margin:8px 0;">
+            <button class="btn btn--sm" onclick="closePSGameModal();document.getElementById('dcTeamSelect').value='${ss.teamA}';dcTeam='${ss.teamA}';showView('depthchart');">
+                📋 ${nameA} 뎁스차트 편집
+            </button>
+            <button class="btn btn--sm" onclick="closePSGameModal();document.getElementById('dcTeamSelect').value='${ss.teamB}';dcTeam='${ss.teamB}';showView('depthchart');">
+                📋 ${nameB} 뎁스차트 편집
+            </button>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">뎁스차트에서 라인업을 수정한 후 포스트시즌 탭으로 돌아오세요</div>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
             <div>
                 <h4 style="margin-bottom:8px;">${nameA} (홈)</h4>
-                <div style="margin-bottom:8px;"><strong>선발:</strong> ${spAname}</div>
+                <div style="margin-bottom:8px;"><strong>선발:</strong> <span style="cursor:pointer;text-decoration:underline dotted;" onclick="if(state.players['${spA}'])showPlayerModal(state.players['${spA}'])">${spAname}</span></div>
                 <table class="player-table" style="font-size:12px;">
                     <thead><tr><th>#</th><th>포지션</th><th>선수</th><th>OVR</th></tr></thead>
                     <tbody>${renderLineupList(lineupA, ss.teamA)}</tbody>
@@ -3404,7 +3413,7 @@ function showPSLineupScreen() {
             </div>
             <div>
                 <h4 style="margin-bottom:8px;">${nameB} (원정)</h4>
-                <div style="margin-bottom:8px;"><strong>선발:</strong> ${spBname}</div>
+                <div style="margin-bottom:8px;"><strong>선발:</strong> <span style="cursor:pointer;text-decoration:underline dotted;" onclick="if(state.players['${spB}'])showPlayerModal(state.players['${spB}'])">${spBname}</span></div>
                 <table class="player-table" style="font-size:12px;">
                     <thead><tr><th>#</th><th>포지션</th><th>선수</th><th>OVR</th></tr></thead>
                     <tbody>${renderLineupList(lineupB, ss.teamB)}</tbody>
@@ -3425,7 +3434,7 @@ function showPSLineupScreen() {
     openPSGameModal();
 }
 
-/** 경기 진행 (이닝별 실시간 표시) */
+/** 경기 진행 (양팀 라인업 + 이닝별 문자 중계) */
 async function runPSGame(lineupA, lineupB, spA, spB) {
     const ss = psSeriesState;
     const gameNum = ss.games.length + 1;
@@ -3434,7 +3443,6 @@ async function runPSGame(lineupA, lineupB, spA, spB) {
 
     document.getElementById('psGameTitle').textContent = `${ss.matchLabel} — ${gameNum}차전 진행 중`;
 
-    // 게임 시뮬레이션
     const game = simulateGame(state, ss.teamA, ss.teamB, lineupA, lineupB, spA, spB);
     game.homeLineup = lineupA;
     game.awayLineup = lineupB;
@@ -3443,48 +3451,90 @@ async function runPSGame(lineupA, lineupB, spA, spB) {
     if (game.winner === ss.teamA) ss.winsA++;
     else if (game.winner === ss.teamB) ss.winsB++;
 
-    // 이닝별로 순차 표시
+    // 라인업 테이블 HTML
+    function lineupHTML(lineup, teamName, stats) {
+        return lineup.map(function(pid, i) {
+            var p = state.players[pid]; if (!p) return '';
+            var gs = stats[pid] || {};
+            var ab = gs.AB || 0, h = gs.H || 0;
+            return '<tr>' +
+                '<td>' + (i+1) + '</td>' +
+                '<td>' + p.position + '</td>' +
+                '<td style="cursor:pointer;text-decoration:underline dotted;" onclick="if(state.players[\'' + pid + '\'])showPlayerModal(state.players[\'' + pid + '\'])">' + p.name + '</td>' +
+                '<td>' + ab + '-' + h + '</td>' +
+                '<td>' + (gs.RBI||0) + '</td>' +
+                '<td>' + (gs.HR||0) + '</td>' +
+                '<td>' + (gs.BB||0) + '</td>' +
+                '<td>' + (gs.SO||0) + '</td>' +
+                '</tr>';
+        }).join('');
+    }
+
     const body = document.getElementById('psGameBody');
     body.innerHTML = `
-        <div style="text-align:center;margin:8px 0;font-size:18px;font-weight:700;">
+        <div style="text-align:center;margin:8px 0;font-size:16px;font-weight:700;">
             ${nameA} vs ${nameB} — ${gameNum}차전
         </div>
         <div id="psLiveScoreboard"></div>
-        <div style="display:flex;gap:8px;justify-content:center;margin:12px 0;">
-            <button class="btn btn--sm active" id="psTabBox" onclick="document.getElementById('psBoxContent').style.display='';document.getElementById('psPbpContent').style.display='none';this.classList.add('active');document.getElementById('psTabPbp').classList.remove('active');">박스스코어</button>
-            <button class="btn btn--sm" id="psTabPbp" onclick="document.getElementById('psPbpContent').style.display='';document.getElementById('psBoxContent').style.display='none';this.classList.add('active');document.getElementById('psTabBox').classList.remove('active');">플레이바이플레이</button>
+        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:12px;margin-top:12px;">
+            <div>
+                <h4 style="font-size:13px;margin-bottom:4px;">${nameA} 라인업</h4>
+                <table class="player-table" style="font-size:11px;">
+                    <thead><tr><th>#</th><th>포지션</th><th>선수</th><th>타수</th><th>타점</th><th>HR</th><th>BB</th><th>SO</th></tr></thead>
+                    <tbody id="psLineupA">${lineupHTML(lineupA, nameA, game.playerGameStats)}</tbody>
+                </table>
+            </div>
+            <div id="psLivePBP" style="max-height:400px;overflow-y:auto;min-width:220px;border:1px solid var(--border);border-radius:8px;padding:8px;font-size:12px;background:var(--bg-darker);"></div>
+            <div>
+                <h4 style="font-size:13px;margin-bottom:4px;">${nameB} 라인업</h4>
+                <table class="player-table" style="font-size:11px;">
+                    <thead><tr><th>#</th><th>포지션</th><th>선수</th><th>타수</th><th>타점</th><th>HR</th><th>BB</th><th>SO</th></tr></thead>
+                    <tbody id="psLineupB">${lineupHTML(lineupB, nameB, game.playerGameStats)}</tbody>
+                </table>
+            </div>
         </div>
-        <div id="psBoxContent"></div>
-        <div id="psPbpContent" style="display:none;"></div>
         <div id="psGameFooter" style="text-align:center;margin-top:16px;"></div>
     `;
 
-    // 이닝별로 스코어보드 업데이트 (순차 표시)
+    // 이닝별 실시간 문자 중계
     const scoreboardEl = document.getElementById('psLiveScoreboard');
+    const pbpEl = document.getElementById('psLivePBP');
+
     for (let i = 0; i < game.innings.length; i++) {
+        const inn = game.innings[i];
         const partialInnings = game.innings.slice(0, i + 1);
-        const pAwayScore = partialInnings.reduce((s, inn) => s + inn.away, 0);
-        const pHomeScore = partialInnings.reduce((s, inn) => s + inn.home, 0);
+        const pAwayScore = partialInnings.reduce((s, x) => s + x.away, 0);
+        const pHomeScore = partialInnings.reduce((s, x) => s + x.home, 0);
 
-        const innHeaders = partialInnings.map(inn => `<th>${inn.inning}</th>`).join('');
-        const awayScores = partialInnings.map(inn => `<td>${inn.away}</td>`).join('');
-        const homeScores = partialInnings.map(inn => `<td>${inn.home}</td>`).join('');
+        const innHeaders = partialInnings.map(x => '<th>' + x.inning + '</th>').join('');
+        const awayScores = partialInnings.map(x => '<td>' + x.away + '</td>').join('');
+        const homeScores = partialInnings.map(x => '<td>' + x.home + '</td>').join('');
 
-        scoreboardEl.innerHTML = `
-            <table class="boxscore__scoreboard" style="margin:0 auto;max-width:600px;">
-                <thead><tr><th>팀</th>${innHeaders}<th>R</th></tr></thead>
-                <tbody>
-                    <tr><td><strong>${nameB}</strong></td>${awayScores}<td><strong>${pAwayScore}</strong></td></tr>
-                    <tr><td><strong>${nameA}</strong></td>${homeScores}<td><strong>${pHomeScore}</strong></td></tr>
-                </tbody>
-            </table>`;
+        scoreboardEl.innerHTML =
+            '<table class="boxscore__scoreboard" style="margin:0 auto;max-width:600px;">' +
+            '<thead><tr><th>팀</th>' + innHeaders + '<th>R</th></tr></thead>' +
+            '<tbody>' +
+            '<tr><td><strong>' + nameB + '</strong></td>' + awayScores + '<td><strong>' + pAwayScore + '</strong></td></tr>' +
+            '<tr><td><strong>' + nameA + '</strong></td>' + homeScores + '<td><strong>' + pHomeScore + '</strong></td></tr>' +
+            '</tbody></table>';
 
-        await delay(400);
+        // 문자 중계: 이닝별 플레이 추가
+        var innPBP = '<div style="border-bottom:1px solid var(--border);padding:4px 0;margin:4px 0;"><strong style="color:var(--accent);">' + inn.inning + '회</strong></div>';
+        inn.awayPlays.forEach(function(play) {
+            var cls = play.result.indexOf('홈런') >= 0 ? 'color:#f59e0b;font-weight:700;' : play.result.indexOf('안타') >= 0 || play.result.indexOf('루타') >= 0 ? 'color:#34d399;' : play.result.indexOf('삼진') >= 0 ? 'color:#ef4444;' : '';
+            innPBP += '<div style="padding:1px 0;font-size:11px;">' + play.batter + ' <span style="' + cls + '">' + play.result + '</span>' + (play.rbi > 0 ? ' <span style="color:var(--accent);font-weight:600;">' + play.rbi + '타점</span>' : '') + '</div>';
+        });
+        if (inn.homePlays && inn.homePlays.length > 0) {
+            inn.homePlays.forEach(function(play) {
+                var cls = play.result.indexOf('홈런') >= 0 ? 'color:#f59e0b;font-weight:700;' : play.result.indexOf('안타') >= 0 || play.result.indexOf('루타') >= 0 ? 'color:#34d399;' : play.result.indexOf('삼진') >= 0 ? 'color:#ef4444;' : '';
+                innPBP += '<div style="padding:1px 0;font-size:11px;">' + play.batter + ' <span style="' + cls + '">' + play.result + '</span>' + (play.rbi > 0 ? ' <span style="color:var(--accent);font-weight:600;">' + play.rbi + '타점</span>' : '') + '</div>';
+            });
+        }
+        pbpEl.innerHTML += innPBP;
+        pbpEl.scrollTop = pbpEl.scrollHeight;
+
+        await delay(500);
     }
-
-    // 최종 박스스코어 + 플레이바이플레이
-    document.getElementById('psBoxContent').innerHTML = renderBoxScore(game, state);
-    document.getElementById('psPbpContent').innerHTML = renderPlayByPlay(game, state);
 
     // 경기 결과 + 다음 버튼
     const winnerName = game.winner ? state.teams[game.winner].name : '무승부';
