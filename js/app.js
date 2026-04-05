@@ -2950,6 +2950,12 @@ async function runSimulation() {
         console.warn('Supabase 동기화 실패 (로컬 저장은 완료):', e);
     }
 
+    // 경기 일정 날짜를 마지막 진행 경기일로 자동 이동
+    if (state.gameLog && state.gameLog.length > 0) {
+        const lastGame = state.gameLog[state.gameLog.length - 1];
+        if (lastGame.date) scheduleCurrentDate = lastGame.date;
+    }
+
     // 외국인 스카우트 미션 체크 (1Q/2Q 완료 시)
     checkForeignMissionTrigger();
 }
