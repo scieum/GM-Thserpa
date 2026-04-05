@@ -1159,6 +1159,9 @@ function closeMissionCard(choice) {
 
 // ── 미션 트리거 체크 (시뮬레이션 배치 후 호출) ──
 function checkForeignMissionTrigger() {
+    // 교사는 미션 카드 표시 안 함 (학생 전용)
+    if (typeof isAdmin === 'function' && isAdmin()) return;
+
     const totalPlayed = getTotalGamesPlayed(state);
     for (const [key, mission] of Object.entries(GM_MISSIONS)) {
         if (totalPlayed >= mission.trigger && !foreignScoutState['done_'+key]) {

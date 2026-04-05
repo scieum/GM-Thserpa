@@ -543,21 +543,21 @@ function generateBatterSimStats(p, totalGames, seasonPct) {
     const SF = Math.round(PA * 0.005);
     const AB = PA - BB - HBP - SF;
 
-    // 타율 — ratings 기반 + 시즌 변동
-    const ratingAVG = 0.200 + contactR * 0.15;
-    const baseAVG = real.AVG ? real.AVG * 0.4 + ratingAVG * 0.6 : ratingAVG; // 60% 랜덤, 40% 참고
-    const AVG = clamp(randNorm(baseAVG * (1 + sv), 0.025), 0.140, 0.400);
+    // 타율 — ratings 기반 + 시즌 변동 (KBO 평균 .270 기준)
+    const ratingAVG = 0.215 + contactR * 0.16;
+    const baseAVG = real.AVG ? real.AVG * 0.4 + ratingAVG * 0.6 : ratingAVG;
+    const AVG = clamp(randNorm(baseAVG * (1 + sv), 0.025), 0.150, 0.410);
     const H = Math.round(AB * AVG);
 
     // 장타력 — 시즌 변동 크게 적용
-    const ratingISO = 0.05 + powerR * 0.25;
-    const baseISO = real.IsoP ? real.IsoP * 0.3 + ratingISO * 0.7 : ratingISO;
-    const ISO = clamp(randNorm(baseISO * (1 + sv * 1.5), 0.035), 0.02, 0.40);
+    const ratingISO = 0.06 + powerR * 0.28;
+    const baseISO = real.IsoP ? real.IsoP * 0.35 + ratingISO * 0.65 : ratingISO;
+    const ISO = clamp(randNorm(baseISO * (1 + sv * 1.5), 0.035), 0.02, 0.42);
 
-    // 홈런
-    const ratingHRrate = 0.005 + powerR * 0.055;
-    const baseHRrate = real.HR && real.AB ? real.HR / real.AB * 0.3 + ratingHRrate * 0.7 : ratingHRrate;
-    const HR = Math.round(AB * clamp(randNorm(baseHRrate * (1 + sv * 1.5), 0.008), 0, 0.08));
+    // 홈런 — 상향 (KBO 평균 팀당 ~140HR/시즌)
+    const ratingHRrate = 0.008 + powerR * 0.065;
+    const baseHRrate = real.HR && real.AB ? real.HR / real.AB * 0.35 + ratingHRrate * 0.65 : ratingHRrate;
+    const HR = Math.round(AB * clamp(randNorm(baseHRrate * (1 + sv * 1.5), 0.010), 0, 0.09));
 
     const doubles = Math.round(H * clamp(randNorm(0.22, 0.04), 0.10, 0.38));
     const triples = Math.round(H * clamp(randNorm(0.015 + speedR * 0.02, 0.008), 0, 0.06));
@@ -636,15 +636,15 @@ function generatePitcherSimStats(p, totalGames, seasonPct, teamW, teamL) {
 
     if (G <= 0 || IP <= 0) return null;
 
-    // 피안타율 (H/IP 비율) — OVR 기반
-    const ratingH9 = clamp(10.5 - ovr * 0.06, 6, 13);
+    // 피안타율 (H/IP 비율) — 상향 (타자 버프)
+    const ratingH9 = clamp(10.8 - ovr * 0.055, 7, 14);
     const baseH9 = real.H && real.IP ? real.H / real.IP * 9 * 0.3 + ratingH9 * 0.7 : ratingH9;
-    const H = Math.round(IP * clamp(randNorm(baseH9 * (1 - sv * 0.3) / 9, 0.08), 0.5, 1.6));
+    const H = Math.round(IP * clamp(randNorm(baseH9 * (1 - sv * 0.3) / 9, 0.09), 0.55, 1.7));
 
-    // 볼넷
-    const ratingBB9 = clamp(4.5 - ovr * 0.04, 1.5, 6);
+    // 볼넷 — 약간 상향
+    const ratingBB9 = clamp(4.8 - ovr * 0.04, 1.8, 6.5);
     const baseBB9 = real.BB && real.IP ? real.BB / real.IP * 9 * 0.3 + ratingBB9 * 0.7 : ratingBB9;
-    const BB = Math.round(IP * clamp(randNorm(baseBB9 * (1 - sv * 0.2) / 9, 0.04), 0.1, 0.8));
+    const BB = Math.round(IP * clamp(randNorm(baseBB9 * (1 - sv * 0.2) / 9, 0.04), 0.15, 0.85));
     const HBP = Math.round(IP * clamp(randNorm(0.04, 0.015), 0, 0.1));
 
     // 삼진
@@ -656,9 +656,9 @@ function generatePitcherSimStats(p, totalGames, seasonPct, teamW, teamL) {
     const hrBase = real.HR && real.IP ? real.HR / real.IP * 0.3 + (0.10 - ovr * 0.0008) * 0.7 : 0.10 - ovr * 0.0008;
     const HR = Math.round(IP * clamp(randNorm(hrBase, 0.025), 0.02, 0.22));
 
-    // 자책점 (ER) → ERA 역산 (정확한 계산 보장)
-    const ratingER9 = clamp(6.5 - ovr * 0.07, 1.5, 8.5);
-    const baseER9 = real.ERA ? real.ERA * 0.3 + ratingER9 * 0.7 : ratingER9;
+    // 자책점 (ER) → ERA 역산 (투수 너프: 기본 ERA 상향)
+    const ratingER9 = clamp(7.0 - ovr * 0.065, 2.0, 9.0);
+    const baseER9 = real.ERA ? real.ERA * 0.35 + ratingER9 * 0.65 : ratingER9;
     const targetER9 = clamp(randNorm(baseER9 * (1 - sv * 0.8), 0.6), 0.80, 10.0);
     const ER = Math.max(0, Math.round(IP * targetER9 / 9));
     const R = ER + Math.round(ER * clamp(randNorm(0.1, 0.05), 0, 0.3));
