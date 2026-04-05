@@ -1032,83 +1032,139 @@ function unlockBatterTab(animate = true) {
     foreignScoutState.batterUnlocked = true;
 }
 
-// ── 미션 카드 표시 ──
-function showMissionCard() {
-    if (foreignScoutState.missionShown) return;
+// ══════════════════════════════════════════
+// ── 범용 GM 미션 카드 시스템 ──
+// ══════════════════════════════════════════
+
+const GM_MISSIONS = {
+    mission2: {
+        trigger: 36, tag: '[판단 요청]', title: '외국인 투수, 교체인가 신뢰인가?',
+        sender: '구단주님의 메시지',
+        message: `우리 팀 외국인 에이스가 최근 성적이 좋지 않습니다.<br>팬들은 교체를 요구하고 있지만, 스카우팅팀은 반등 가능성을 주장합니다.<br><strong>단장으로서 데이터를 보고 직접 판단하세요.</strong>`,
+        getData: (tc) => {
+            const fp = getTeamPitchers(state, tc).filter(p => p.isForeign)[0];
+            const nm = fp?.name || '외국인 에이스';
+            return `<div style="margin-bottom:8px;font-weight:700;">📊 ${nm} — 최근 성적 분석</div>
+            <table><tr><th>지표</th><th>현재</th><th>리그 평균</th><th>판단</th></tr>
+            <tr><td>ERA</td><td class="stat-bad">6.50</td><td>4.20</td><td class="stat-bad">부진</td></tr>
+            <tr><td>FIP</td><td class="stat-warn">4.80</td><td>4.10</td><td class="stat-warn">평균 이하</td></tr>
+            <tr><td>xFIP</td><td class="stat-ok">3.90</td><td>4.10</td><td class="stat-ok">양호</td></tr>
+            <tr><td>BABIP</td><td class="stat-bad">.350</td><td>.300</td><td class="stat-warn">불운?</td></tr>
+            <tr><td>IVB</td><td class="stat-ok">42cm</td><td>38cm</td><td class="stat-ok">구위 유지</td></tr></table>
+            <div style="margin-top:10px;font-size:12px;color:var(--text-muted);">ERA는 높지만 xFIP와 BABIP를 보면 <strong>불운</strong>일 가능성도 있습니다.</div>`;
+        },
+        choices: [
+            { id:'replace', icon:'🔄', label:'교체한다', desc:'외국인 스카우트에서 새 투수를 찾는다', action:()=>{ showToast('외국인 스카우트에서 새 투수를 찾아보세요.','success'); setTimeout(()=>showView('foreign-scout'),500); } },
+            { id:'keep', icon:'🛡️', label:'유지한다', desc:'반등 근거 데이터를 분석한다', action:()=>{ showToast('기존 투수를 유지합니다.','info'); } },
+        ],
+    },
+    mission3: {
+        trigger: 42, tag: '[특명]', title: '저평가 에이스 발굴 — FIP & BABIP',
+        sender: '스카우팅팀 보고',
+        message: `팬들은 ERA만 보고 투수를 비난합니다. 하지만 단장인 당신은 달라야 합니다.<br><strong>ERA는 높지만 FIP가 낮고 BABIP가 높은 투수 = 불운에 빠진 숨겨진 에이스!</strong><br>이 선수는 지금 헐값에 트레이드가 가능합니다.`,
+        getData: (tc) => {
+            const allP = Object.values(state.players).filter(p => p.position === 'P' && p.realStats?.ERA && p.realStats?.FIP);
+            const uv = allP.filter(p => p.realStats.FIP < p.realStats.ERA - 0.5 && (p.realStats.BABIP||0) > 0.310).slice(0,5);
+            if (!uv.length) return '<div style="color:var(--text-dim);">리그에서 저평가 투수를 분석 중...</div>';
+            return `<div style="margin-bottom:8px;font-weight:700;">📊 저평가 의심 투수</div>
+            <table><tr><th>선수</th><th>팀</th><th>ERA</th><th>FIP</th><th>BABIP</th></tr>
+            ${uv.map(p=>`<tr><td>${p.name}</td><td>${p.team}</td><td class="stat-bad">${p.realStats.ERA.toFixed(2)}</td><td class="stat-ok">${p.realStats.FIP.toFixed(2)}</td><td class="stat-warn">${(p.realStats.BABIP||0).toFixed(3)}</td></tr>`).join('')}</table>
+            <div style="margin-top:8px;font-size:12px;color:var(--text-muted);">"저는 수비의 불운에 가려진 에이스를 봅니다."</div>`;
+        },
+        choices: [
+            { id:'scout', icon:'🔍', label:'저평가 투수 트레이드 추진', desc:'FIP가 낮은 투수를 찾아 영입한다', action:()=>{ showToast('트레이드 탭에서 저평가 투수를 찾아보세요!','success'); setTimeout(()=>showView('trade'),500); } },
+            { id:'pass', icon:'⏭️', label:'현 전력으로 유지', desc:'기존 투수진을 신뢰한다', action:()=>{ showToast('현 전력을 유지합니다.','info'); } },
+        ],
+    },
+    mission4: {
+        trigger: 54, tag: '[경보]', title: '불펜진 붕괴! 위기 봉쇄 투수 영입',
+        sender: '코칭스태프 긴급 보고',
+        message: `우리 팀 불펜은 2스트라이크를 잡고도 자꾸 안타를 맞아 역전패를 당하고 있습니다.<br><strong>CSW%가 높은 '결정구 마스터' 불펜 투수를 찾아 영입하세요.</strong><br>이 선수가 마운드에 오르면 타자들은 포기합니다.`,
+        getData: (tc) => {
+            const bp = getTeamPitchers(state, tc).filter(p => p.role==='중계'||p.role==='마무리');
+            const avgERA = bp.length ? (bp.reduce((s,p) => s+(p.simStats?.ERA||p.realStats?.ERA||4.5),0)/bp.length).toFixed(2) : '?';
+            return `<div style="margin-bottom:8px;font-weight:700;">📊 우리 팀 불펜 현황</div>
+            <table><tr><th>역할</th><th>인원</th><th>평균 ERA</th></tr>
+            <tr><td>마무리</td><td>${bp.filter(p=>p.role==='마무리').length}명</td><td rowspan="2">${avgERA}</td></tr>
+            <tr><td>중계</td><td>${bp.filter(p=>p.role==='중계').length}명</td></tr></table>
+            <div style="margin-top:8px;font-size:12px;color:var(--text-muted);">CSW%가 높은 투수 = 결정구가 뛰어난 투수!</div>`;
+        },
+        choices: [
+            { id:'recruit', icon:'🔥', label:'불펜 투수 영입', desc:'트레이드로 결정구 마스터를 데려온다', action:()=>{ showToast('트레이드 탭에서 불펜 투수를 찾아보세요!','success'); setTimeout(()=>showView('trade'),500); } },
+            { id:'internal', icon:'🔧', label:'내부 선수 전환', desc:'2군에서 유망 투수를 올린다', action:()=>{ showToast('로스터에서 2군 투수를 확인하세요.','info'); setTimeout(()=>showView('roster'),500); } },
+        ],
+    },
+    mission6: {
+        trigger: 72, tag: '[예산 경보]', title: '샐러리캡 한도! 가성비 출루형 타자',
+        sender: '재무팀 경고',
+        message: `화려한 홈런 타자는 살 수가 없습니다.<br><strong>wRC+가 높으면서도 연봉이 낮은 '가성비 출루형' 선수를 찾아야 합니다.</strong><br>연봉 대비 wRC+ 효율이 가장 좋은 타자를 영입하세요.`,
+        getData: (tc) => {
+            const allB = Object.values(state.players).filter(p => p.position!=='P' && p.realStats?.['wRC+'] && p.salary>0);
+            const eff = allB.map(p=>({...p, eff: p.realStats['wRC+']/Math.max(p.salary,0.3)})).sort((a,b)=>b.eff-a.eff).slice(0,5);
+            if (!eff.length) return '<div style="color:var(--text-dim);">분석 중...</div>';
+            return `<div style="margin-bottom:8px;font-weight:700;">📊 가성비 TOP 5 타자 (wRC+/연봉)</div>
+            <table><tr><th>선수</th><th>팀</th><th>wRC+</th><th>연봉</th><th>효율</th></tr>
+            ${eff.map(p=>`<tr><td>${p.name}</td><td>${p.team}</td><td>${p.realStats['wRC+'].toFixed(1)}</td><td>${p.salary}억</td><td class="stat-ok">${p.eff.toFixed(1)}</td></tr>`).join('')}</table>
+            <div style="margin-top:8px;font-size:12px;color:var(--text-muted);">연봉 대비 생산성 = 머니볼의 핵심!</div>`;
+        },
+        choices: [
+            { id:'trade', icon:'💰', label:'가성비 타자 트레이드', desc:'효율 높은 선수를 영입한다', action:()=>{ showToast('트레이드 탭에서 가성비 타자를 찾아보세요!','success'); setTimeout(()=>showView('trade'),500); } },
+            { id:'develop', icon:'📈', label:'2군 유망주 육성', desc:'내부 자원으로 해결한다', action:()=>{ showToast('로스터에서 유망주를 확인하세요.','info'); setTimeout(()=>showView('roster'),500); } },
+        ],
+    },
+};
+
+/** 범용 미션 카드 표시 */
+function showMissionCard(missionKey) {
+    if (!missionKey) { missionKey = 'mission2'; } // 기존 호환
+    const mission = GM_MISSIONS[missionKey];
+    if (!mission) return;
+    if (foreignScoutState['done_' + missionKey]) return;
 
     const modal = document.getElementById('missionModal');
     if (!modal) return;
 
-    const userTeamCode = document.getElementById('rosterTeamSelect')?.value || Object.keys(state.teams)[0];
-    const foreignPitchers = getTeamPitchers(state, userTeamCode).filter(p => p.isForeign);
+    const tc = (typeof getMyTeam==='function'&&getMyTeam()) || document.getElementById('rosterTeamSelect')?.value || Object.keys(state.teams)[0];
+    document.getElementById('missionTag').textContent = mission.tag;
+    document.getElementById('missionTitle').textContent = mission.title;
+    document.getElementById('missionSender').textContent = mission.sender;
+    document.getElementById('missionMessage').innerHTML = mission.message;
+    document.getElementById('missionData').innerHTML = mission.getData(tc);
 
-    let targetPitcher = foreignPitchers[0];
-    const dataEl = document.getElementById('missionData');
+    const choicesEl = document.getElementById('missionChoices');
+    choicesEl.innerHTML = mission.choices.map(c=>`
+        <button class="mission-choice" data-choice="${c.id}">
+            <span class="mission-choice__icon">${c.icon}</span>
+            <span class="mission-choice__label">${c.label}</span>
+            <span class="mission-choice__desc">${c.desc}</span>
+        </button>`).join('');
 
-    if (targetPitcher) {
-        dataEl.innerHTML = `
-            <div style="margin-bottom:8px;font-weight:700;color:var(--text-primary);">
-                <span style="font-size:16px;">📊</span> ${targetPitcher.name} — 최근 성적 분석
-            </div>
-            <table>
-                <tr><th>지표</th><th>현재</th><th>리그 평균</th><th>판단</th></tr>
-                <tr><td>ERA</td><td class="stat-bad">6.50</td><td>4.20</td><td class="stat-bad">부진</td></tr>
-                <tr><td>FIP</td><td class="stat-warn">4.80</td><td>4.10</td><td class="stat-warn">평균 이하</td></tr>
-                <tr><td>xFIP</td><td class="stat-ok">3.90</td><td>4.10</td><td class="stat-ok">양호</td></tr>
-                <tr><td>BABIP</td><td class="stat-bad">.350</td><td>.300</td><td class="stat-warn">불운?</td></tr>
-                <tr><td>IVB</td><td class="stat-ok">42cm</td><td>38cm</td><td class="stat-ok">구위 유지</td></tr>
-            </table>
-            <div style="margin-top:10px;font-size:12px;color:var(--text-muted);">
-                ERA는 높지만, xFIP와 BABIP를 보면 <strong>불운</strong>일 가능성도 있습니다.
-                구위(IVB)는 여전히 살아있습니다. 어떻게 판단하시겠습니까?
-            </div>`;
-    } else {
-        dataEl.innerHTML = `
-            <div style="margin-bottom:8px;font-weight:700;color:var(--text-primary);">
-                <span style="font-size:16px;">📊</span> 외국인 에이스 — 최근 성적 분석
-            </div>
-            <table>
-                <tr><th>지표</th><th>현재</th><th>리그 평균</th><th>판단</th></tr>
-                <tr><td>ERA</td><td class="stat-bad">6.50</td><td>4.20</td><td class="stat-bad">부진</td></tr>
-                <tr><td>FIP</td><td class="stat-warn">4.80</td><td>4.10</td><td class="stat-warn">평균 이하</td></tr>
-                <tr><td>xFIP</td><td class="stat-ok">3.90</td><td>4.10</td><td class="stat-ok">양호</td></tr>
-                <tr><td>BABIP</td><td class="stat-bad">.350</td><td>.300</td><td class="stat-warn">불운?</td></tr>
-                <tr><td>IVB</td><td class="stat-ok">42cm</td><td>38cm</td><td class="stat-ok">구위 유지</td></tr>
-            </table>
-            <div style="margin-top:10px;font-size:12px;color:var(--text-muted);">
-                ERA는 높지만, xFIP와 BABIP를 보면 <strong>불운</strong>일 가능성도 있습니다.
-                구위(IVB)는 여전히 살아있습니다. 어떻게 판단하시겠습니까?
-            </div>`;
-    }
+    choicesEl.querySelectorAll('.mission-choice').forEach(btn => {
+        btn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            foreignScoutState['done_'+missionKey] = btn.dataset.choice;
+            saveForeignScoutState();
+            const ch = mission.choices.find(c=>c.id===btn.dataset.choice);
+            if (ch?.action) ch.action();
+        });
+    });
 
     modal.style.display = 'flex';
-    foreignScoutState.missionShown = true;
-    saveForeignScoutState();
 }
 
 function closeMissionCard(choice) {
     const modal = document.getElementById('missionModal');
     if (modal) modal.style.display = 'none';
-
-    foreignScoutState.missionChoice = choice;
-    saveForeignScoutState();
-
-    if (choice === 'replace') {
-        showToast('외국인 스카우트에서 새 투수를 찾아보세요.', 'success');
-        setTimeout(() => showView('foreign-scout'), 500);
-    } else {
-        showToast('기존 투수를 유지합니다. 외국인 스카우트에서 데이터를 비교해보세요.', 'info');
-        setTimeout(() => showView('foreign-scout'), 500);
-    }
-
-    renderForeignScout();
 }
 
-// ── 1Q 종료 체크 ──
+// ── 미션 트리거 체크 (시뮬레이션 배치 후 호출) ──
 function checkForeignMissionTrigger() {
     const totalPlayed = getTotalGamesPlayed(state);
-    if (totalPlayed >= 36 && !foreignScoutState.missionShown) {
-        setTimeout(() => showMissionCard(), 800);
+    for (const [key, mission] of Object.entries(GM_MISSIONS)) {
+        if (totalPlayed >= mission.trigger && !foreignScoutState['done_'+key]) {
+            setTimeout(() => showMissionCard(key), 800);
+            return;
+        }
     }
 }
 

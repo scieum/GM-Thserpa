@@ -11,7 +11,7 @@
     <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
     <!-- Pretendard (보조 한글 폰트) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-    <link rel="stylesheet" href="css/style.css?v=20">
+    <link rel="stylesheet" href="css/style.css?v=21">
 </head>
 <body>
     <!-- ===== LOGIN SCREEN (Premium Landing) ===== -->
@@ -1032,36 +1032,21 @@
         </div>
     </div>
 
-    <!-- Mission Card Modal -->
+    <!-- Mission Card Modal (범용) -->
     <div class="mission-overlay" id="missionModal" style="display:none;">
         <div class="mission-card">
             <div class="mission-card__badge">🃏 GM 미션 카드</div>
             <div class="mission-card__header" id="missionHeader">
-                <div class="mission-card__tag">[판단 요청]</div>
-                <h2 class="mission-card__title">외국인 투수 교체 여부 결정</h2>
+                <div class="mission-card__tag" id="missionTag">[판단 요청]</div>
+                <h2 class="mission-card__title" id="missionTitle"></h2>
             </div>
             <div class="mission-card__body" id="missionBody">
                 <div class="mission-card__message">
-                    <div class="mission-card__sender">구단주님의 메시지</div>
-                    <p>"우리 팀 외국인 에이스가 최근 성적이 좋지 않습니다.<br>
-                    팬들은 교체를 요구하고 있지만, 스카우팅팀은 반등 가능성을 주장합니다.<br>
-                    <strong>단장으로서 데이터를 보고 직접 판단하세요.</strong>"</p>
+                    <div class="mission-card__sender" id="missionSender">구단주님의 메시지</div>
+                    <p id="missionMessage"></p>
                 </div>
-                <div class="mission-card__data" id="missionData">
-                    <!-- JS로 부진 투수 데이터 채움 -->
-                </div>
-                <div class="mission-card__choices">
-                    <button class="mission-choice mission-choice--replace" id="missionReplace">
-                        <span class="mission-choice__icon">🔄</span>
-                        <span class="mission-choice__label">교체한다</span>
-                        <span class="mission-choice__desc">외국인 스카우트에서 새 투수를 찾는다</span>
-                    </button>
-                    <button class="mission-choice mission-choice--keep" id="missionKeep">
-                        <span class="mission-choice__icon">🛡️</span>
-                        <span class="mission-choice__label">유지한다</span>
-                        <span class="mission-choice__desc">반등 근거 데이터를 분석한다</span>
-                    </button>
-                </div>
+                <div class="mission-card__data" id="missionData"></div>
+                <div class="mission-card__choices" id="missionChoices"></div>
             </div>
             <div class="mission-card__footer">
                 <span>⚠️ 어떤 선택이든 데이터 근거가 필요합니다</span>
@@ -1074,20 +1059,20 @@
 
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="js/supabase.js?v=20"></script>
+    <script src="js/supabase.js?v=21"></script>
 
     <!-- Scripts -->
-    <script src="js/data.js?v=20"></script>
-    <script src="js/models.js?v=20"></script>
-    <script src="js/charts.js?v=20"></script>
-    <script src="js/simulator.js?v=20"></script>
-    <script src="js/postseason.js?v=20"></script>
-    <script src="js/trade.js?v=20"></script>
+    <script src="js/data.js?v=21"></script>
+    <script src="js/models.js?v=21"></script>
+    <script src="js/charts.js?v=21"></script>
+    <script src="js/simulator.js?v=21"></script>
+    <script src="js/postseason.js?v=21"></script>
+    <script src="js/trade.js?v=21"></script>
 
-    <script src="js/foreign-scout.js?v=20"></script>
-    <script src="js/ui.js?v=20"></script>
-    <script src="js/depthchart.js?v=20"></script>
-    <script src="js/app.js?v=20"></script>
-    <script src="js/auth.js?v=20"></script>
+    <script src="js/foreign-scout.js?v=21"></script>
+    <script src="js/ui.js?v=21"></script>
+    <script src="js/depthchart.js?v=21"></script>
+    <script src="js/app.js?v=21"></script>
+    <script src="js/auth.js?v=21"></script>
 </body>
 </html>
