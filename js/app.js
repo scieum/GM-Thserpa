@@ -3161,25 +3161,28 @@ function showFullBatterRecord(stat) {
     const formatVal = v => typeof v === 'number' ? (v < 1 && v > -1 && stat !== 'WAR' && stat !== 'wRC+' ? v.toFixed(3) : Number.isInteger(v) ? v : v.toFixed(2)) : (v || '-');
 
     const headers = [
-        {key:null,label:'순위'},{key:null,label:'팀'},{key:null,label:'이름'},{key:null,label:'포지션'},
-        {key:'AVG',label:'AVG'},{key:'HR',label:'HR'},{key:'RBI',label:'RBI'},{key:'H',label:'H'},
-        {key:'OPS',label:'OPS'},{key:'SB',label:'SB'},{key:'BB',label:'BB'},{key:'WAR',label:'WAR'},
-        {key:'G',label:'G'},{key:'PA',label:'PA'}
+        {key:null,label:'#'},{key:null,label:'팀'},{key:null,label:'이름'},{key:null,label:'포지션'},
+        {key:'G',label:'G'},{key:'PA',label:'PA'},{key:'AB',label:'AB'},
+        {key:'AVG',label:'AVG'},{key:'OBP',label:'OBP'},{key:'SLG',label:'SLG'},{key:'OPS',label:'OPS'},
+        {key:'H',label:'H'},{key:'2B',label:'2B'},{key:'3B',label:'3B'},{key:'HR',label:'HR'},
+        {key:'RBI',label:'RBI'},{key:'R',label:'R'},{key:'SB',label:'SB'},{key:'CS',label:'CS'},
+        {key:'BB',label:'BB'},{key:'SO',label:'SO'},{key:'wRC+',label:'wRC+'},{key:'WAR',label:'WAR'},
     ];
 
     container.innerHTML = `
         <h3 style="margin-bottom:8px;">타자 기록</h3>
         <button class="btn btn--sm" onclick="document.getElementById('batterFullRecords').style.display='none'" style="margin-bottom:12px;">닫기</button>
-        <table class="player-table records-full-table" id="batterRecordTable">
+        <div style="overflow-x:auto;">
+        <table class="player-table records-full-table" id="batterRecordTable" style="min-width:900px;">
             <thead><tr>${headers.map(h => h.key
-                ? `<th data-sort="${h.key}" style="cursor:pointer;${h.key === sortKey ? 'color:var(--accent);' : ''}">${h.label}${h.key === sortKey ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}</th>`
+                ? `<th data-sort="${h.key}" style="cursor:pointer;white-space:nowrap;${h.key === sortKey ? 'color:var(--accent);' : ''}">${h.label}${h.key === sortKey ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}</th>`
                 : `<th>${h.label}</th>`
             ).join('')}</tr></thead>
             <tbody>${sorted.map((p, i) => {
                 const rs = p[statsKey];
-                return `<tr><td>${i + 1}</td><td><img src="${teamLogo(p.team)}" style="width:18px;height:18px;vertical-align:middle"></td><td style="font-weight:600;cursor:pointer;text-decoration:underline dotted;" onclick="if(state.players['${p.id}'])showPlayerModal(state.players['${p.id}'])">${p.name}</td><td>${p.position}</td><td>${(rs.AVG||0).toFixed(3)}</td><td>${rs.HR||0}</td><td>${rs.RBI||0}</td><td>${rs.H||0}</td><td>${(rs.OPS||0).toFixed(3)}</td><td>${rs.SB||0}</td><td>${rs.BB||0}</td><td>${(rs.WAR||0).toFixed(1)}</td><td>${rs.G||0}</td><td>${rs.PA||0}</td></tr>`;
+                return `<tr><td>${i + 1}</td><td><img src="${teamLogo(p.team)}" style="width:18px;height:18px;vertical-align:middle"></td><td style="font-weight:600;cursor:pointer;text-decoration:underline dotted;white-space:nowrap;" onclick="if(state.players['${p.id}'])showPlayerModal(state.players['${p.id}'])">${p.name}</td><td>${p.position}</td><td>${rs.G||0}</td><td>${rs.PA||0}</td><td>${rs.AB||0}</td><td>${(rs.AVG||0).toFixed(3)}</td><td>${(rs.OBP||0).toFixed(3)}</td><td>${(rs.SLG||0).toFixed(3)}</td><td>${(rs.OPS||0).toFixed(3)}</td><td>${rs.H||0}</td><td>${rs['2B']||0}</td><td>${rs['3B']||0}</td><td>${rs.HR||0}</td><td>${rs.RBI||0}</td><td>${rs.R||0}</td><td>${rs.SB||0}</td><td>${rs.CS||0}</td><td>${rs.BB||0}</td><td>${rs.SO||0}</td><td>${(rs['wRC+']||0).toFixed(1)}</td><td>${(rs.WAR||0).toFixed(1)}</td></tr>`;
             }).join('')}</tbody>
-        </table>`;
+        </table></div>`;
 
     // 정렬 이벤트
     container.querySelectorAll('th[data-sort]').forEach(th => {
@@ -3212,25 +3215,29 @@ function showFullPitcherRecord(stat) {
     const container = document.getElementById('pitcherFullRecords');
 
     const headers = [
-        {key:null,label:'순위'},{key:null,label:'팀'},{key:null,label:'이름'},{key:null,label:'역할'},
-        {key:'ERA',label:'ERA'},{key:'W',label:'W'},{key:'L',label:'L'},{key:'S',label:'S'},
-        {key:'SO',label:'SO'},{key:'IP',label:'IP'},{key:'WHIP',label:'WHIP'},{key:'WAR',label:'WAR'},
-        {key:'G',label:'G'},{key:'HLD',label:'HLD'}
+        {key:null,label:'#'},{key:null,label:'팀'},{key:null,label:'이름'},{key:null,label:'역할'},
+        {key:'ERA',label:'ERA'},{key:'G',label:'G'},{key:'GS',label:'GS'},
+        {key:'W',label:'W'},{key:'L',label:'L'},{key:'S',label:'S'},{key:'HLD',label:'HLD'},
+        {key:'IP',label:'IP'},{key:'H',label:'H'},{key:'HR',label:'HR'},
+        {key:'BB',label:'BB'},{key:'HBP',label:'HBP'},{key:'SO',label:'SO'},
+        {key:'ER',label:'ER'},{key:'WHIP',label:'WHIP'},{key:'FIP',label:'FIP'},
+        {key:'WAR',label:'WAR'},{key:'BABIP',label:'BABIP'},
     ];
 
     container.innerHTML = `
         <h3 style="margin-bottom:8px;">투수 기록</h3>
         <button class="btn btn--sm" onclick="document.getElementById('pitcherFullRecords').style.display='none'" style="margin-bottom:12px;">닫기</button>
-        <table class="player-table records-full-table" id="pitcherRecordTable">
+        <div style="overflow-x:auto;">
+        <table class="player-table records-full-table" id="pitcherRecordTable" style="min-width:950px;">
             <thead><tr>${headers.map(h => h.key
-                ? `<th data-sort="${h.key}" style="cursor:pointer;${h.key === sortKey ? 'color:var(--accent);' : ''}">${h.label}${h.key === sortKey ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}</th>`
+                ? `<th data-sort="${h.key}" style="cursor:pointer;white-space:nowrap;${h.key === sortKey ? 'color:var(--accent);' : ''}">${h.label}${h.key === sortKey ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}</th>`
                 : `<th>${h.label}</th>`
             ).join('')}</tr></thead>
             <tbody>${sorted.map((p, i) => {
                 const rs = p[statsKey];
-                return `<tr><td>${i + 1}</td><td><img src="${teamLogo(p.team)}" style="width:18px;height:18px;vertical-align:middle"></td><td style="font-weight:600;cursor:pointer;text-decoration:underline dotted;" onclick="if(state.players['${p.id}'])showPlayerModal(state.players['${p.id}'])">${p.name}</td><td>${p.role || '-'}</td><td>${(rs.ERA||0).toFixed(2)}</td><td>${rs.W||0}</td><td>${rs.L||0}</td><td>${rs.S||0}</td><td>${rs.SO||0}</td><td>${fmtIP(rs.IP||0)}</td><td>${(rs.WHIP||0).toFixed(2)}</td><td>${(rs.WAR||0).toFixed(1)}</td><td>${rs.G||0}</td><td>${rs.HLD||0}</td></tr>`;
+                return `<tr><td>${i + 1}</td><td><img src="${teamLogo(p.team)}" style="width:18px;height:18px;vertical-align:middle"></td><td style="font-weight:600;cursor:pointer;text-decoration:underline dotted;white-space:nowrap;" onclick="if(state.players['${p.id}'])showPlayerModal(state.players['${p.id}'])">${p.name}</td><td>${p.role || '-'}</td><td>${(rs.ERA||0).toFixed(2)}</td><td>${rs.G||0}</td><td>${rs.GS||0}</td><td>${rs.W||0}</td><td>${rs.L||0}</td><td>${rs.S||0}</td><td>${rs.HLD||0}</td><td>${fmtIP(rs.IP||0)}</td><td>${rs.H||0}</td><td>${rs.HR||0}</td><td>${rs.BB||0}</td><td>${rs.HBP||0}</td><td>${rs.SO||0}</td><td>${rs.ER||0}</td><td>${(rs.WHIP||0).toFixed(2)}</td><td>${(rs.FIP||0).toFixed(2)}</td><td>${(rs.WAR||0).toFixed(1)}</td><td>${(rs.BABIP||0).toFixed(3)}</td></tr>`;
             }).join('')}</tbody>
-        </table>`;
+        </table></div>`;
 
     container.querySelectorAll('th[data-sort]').forEach(th => {
         th.addEventListener('click', () => {
@@ -3245,6 +3252,10 @@ function showFullPitcherRecord(stat) {
     container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+let teamRecordSortKey = 'avgAVG';
+let teamRecordSortDir = 'desc';
+let teamRecordSection = 'bat'; // 'bat' or 'pit'
+
 function renderTeamRecords() {
     const standings = getStandings(state);
     const container = document.getElementById('teamRecordsContent');
@@ -3256,35 +3267,76 @@ function renderTeamRecords() {
         const batters = Object.values(state.players).filter(p => p.team === s.code && p.position !== 'P' && p[sk]);
         const pitchers = Object.values(state.players).filter(p => p.team === s.code && p.position === 'P' && p[sk]);
         const avgAVG = batters.length ? batters.reduce((sum, b) => sum + (b[sk].AVG || 0), 0) / batters.length : 0;
+        const totalH = batters.reduce((sum, b) => sum + (b[sk].H || 0), 0);
         const totalHR = batters.reduce((sum, b) => sum + (b[sk].HR || 0), 0);
         const totalRBI = batters.reduce((sum, b) => sum + (b[sk].RBI || 0), 0);
+        const totalR = batters.reduce((sum, b) => sum + (b[sk].R || 0), 0);
         const totalSB = batters.reduce((sum, b) => sum + (b[sk].SB || 0), 0);
+        const totalBB = batters.reduce((sum, b) => sum + (b[sk].BB || 0), 0);
+        const totalSO_bat = batters.reduce((sum, b) => sum + (b[sk].SO || 0), 0);
+        const avgOBP = batters.length ? batters.reduce((sum, b) => sum + (b[sk].OBP || 0), 0) / batters.length : 0;
+        const avgSLG = batters.length ? batters.reduce((sum, b) => sum + (b[sk].SLG || 0), 0) / batters.length : 0;
         const avgOPS = batters.length ? batters.reduce((sum, b) => sum + (b[sk].OPS || 0), 0) / batters.length : 0;
         const qualPitchers = pitchers.filter(p => (p[sk].IP || 0) > 0);
         const avgERA = qualPitchers.length ? qualPitchers.reduce((sum, p) => sum + (p[sk].ERA || 0), 0) / qualPitchers.length : 0;
+        const avgWHIP = qualPitchers.length ? qualPitchers.reduce((sum, p) => sum + (p[sk].WHIP || 0), 0) / qualPitchers.length : 0;
         const totalSO = pitchers.reduce((sum, p) => sum + (p[sk].SO || 0), 0);
-        return { ...s, avgAVG, totalHR, totalRBI, totalSB, avgOPS, avgERA, totalSO };
+        const totalW = s.wins, totalL = s.losses, totalD = s.draws || 0;
+        return { ...s, avgAVG, totalH, totalHR, totalRBI, totalR, totalSB, totalBB, totalSO_bat, avgOBP, avgSLG, avgOPS, avgERA, avgWHIP, totalSO, totalW, totalL, totalD };
     });
 
-    // 시즌 시작 전이고 simStats가 없으면 0값 표시
     if (active === 'sim' && teamStats.every(t => t.avgAVG === 0)) {
-        container.innerHTML = `<div class="pm-no-data">아직 시뮬레이션이 진행되지 않았습니다.</div>`;
+        container.innerHTML = '<div class="pm-no-data">아직 시뮬레이션이 진행되지 않았습니다.</div>';
         return;
     }
 
-    container.innerHTML = `
-        <div style="text-align:center;margin-bottom:12px;color:var(--text-dim);font-size:12px;">${yearLabel} 시즌 팀 기록</div>
-        <h3 style="margin-bottom:12px;">팀 공격 기록</h3>
-        <table class="player-table"><thead><tr><th>순위</th><th>팀</th><th>타율</th><th>홈런</th><th>타점</th><th>도루</th><th>OPS</th><th>득점</th></tr></thead>
-        <tbody>${[...teamStats].sort((a, b) => b.avgAVG - a.avgAVG).map((s, i) => `
-            <tr><td>${i + 1}</td><td><div class="team-name-cell"><img class="team-logo-sm" src="${teamLogo(s.code)}" alt="">${s.name}</div></td><td>${s.avgAVG.toFixed(3)}</td><td>${s.totalHR}</td><td>${s.totalRBI}</td><td>${s.totalSB}</td><td>${s.avgOPS.toFixed(3)}</td><td>${s.rs || 0}</td></tr>
-        `).join('')}</tbody></table>
-        <h3 style="margin:20px 0 12px;">팀 투수 기록</h3>
-        <table class="player-table"><thead><tr><th>순위</th><th>팀</th><th>평균자책</th><th>삼진</th><th>실점</th><th>승</th><th>패</th><th>무</th><th>승률</th></tr></thead>
-        <tbody>${[...teamStats].sort((a, b) => a.avgERA - b.avgERA).map((s, i) => `
-            <tr><td>${i + 1}</td><td><div class="team-name-cell"><img class="team-logo-sm" src="${teamLogo(s.code)}" alt="">${s.name}</div></td><td>${s.avgERA.toFixed(2)}</td><td>${s.totalSO}</td><td>${s.ra || 0}</td><td>${s.wins}</td><td>${s.losses}</td><td>${s.draws || 0}</td><td>${formatRate(s.rate)}</td></tr>
-        `).join('')}</tbody></table>
-    `;
+    function sortTH(key, label, isAsc) {
+        var active = teamRecordSortKey === key;
+        var arrow = active ? (teamRecordSortDir === 'asc' ? ' ▲' : ' ▼') : '';
+        return '<th data-tsort="' + key + '" style="cursor:pointer;white-space:nowrap;' + (active ? 'color:var(--accent);' : '') + '">' + label + arrow + '</th>';
+    }
+
+    var sorted = [...teamStats].sort(function(a, b) {
+        var va = a[teamRecordSortKey] || 0, vb = b[teamRecordSortKey] || 0;
+        return teamRecordSortDir === 'asc' ? va - vb : vb - va;
+    });
+
+    container.innerHTML =
+        '<div style="text-align:center;margin-bottom:12px;color:var(--text-dim);font-size:12px;">' + yearLabel + ' 시즌 팀 기록</div>' +
+        '<h3 style="margin-bottom:12px;">팀 공격 기록</h3>' +
+        '<div style="overflow-x:auto;"><table class="player-table" style="min-width:700px;"><thead><tr>' +
+        '<th>#</th><th>팀</th>' + sortTH('avgAVG','타율') + sortTH('avgOBP','출루') + sortTH('avgSLG','장타') + sortTH('avgOPS','OPS') +
+        sortTH('totalH','안타') + sortTH('totalHR','홈런') + sortTH('totalRBI','타점') + sortTH('totalR','득점') +
+        sortTH('totalSB','도루') + sortTH('totalBB','볼넷') + sortTH('totalSO_bat','삼진') + sortTH('rs','득점(팀)') +
+        '</tr></thead><tbody>' +
+        sorted.map(function(s, i) {
+            return '<tr><td>' + (i+1) + '</td><td><div class="team-name-cell"><img class="team-logo-sm" src="' + teamLogo(s.code) + '">' + s.name + '</div></td>' +
+                '<td>' + s.avgAVG.toFixed(3) + '</td><td>' + s.avgOBP.toFixed(3) + '</td><td>' + s.avgSLG.toFixed(3) + '</td><td>' + s.avgOPS.toFixed(3) + '</td>' +
+                '<td>' + s.totalH + '</td><td>' + s.totalHR + '</td><td>' + s.totalRBI + '</td><td>' + s.totalR + '</td>' +
+                '<td>' + s.totalSB + '</td><td>' + s.totalBB + '</td><td>' + s.totalSO_bat + '</td><td>' + (s.rs||0) + '</td></tr>';
+        }).join('') +
+        '</tbody></table></div>' +
+        '<h3 style="margin:20px 0 12px;">팀 투수 기록</h3>' +
+        '<div style="overflow-x:auto;"><table class="player-table" style="min-width:600px;"><thead><tr>' +
+        '<th>#</th><th>팀</th>' + sortTH('avgERA','ERA') + sortTH('avgWHIP','WHIP') + sortTH('totalSO','삼진') +
+        sortTH('ra','실점') + sortTH('totalW','승') + sortTH('totalL','패') + sortTH('totalD','무') + sortTH('rate','승률') +
+        '</tr></thead><tbody>' +
+        sorted.map(function(s, i) {
+            return '<tr><td>' + (i+1) + '</td><td><div class="team-name-cell"><img class="team-logo-sm" src="' + teamLogo(s.code) + '">' + s.name + '</div></td>' +
+                '<td>' + s.avgERA.toFixed(2) + '</td><td>' + s.avgWHIP.toFixed(2) + '</td><td>' + s.totalSO + '</td>' +
+                '<td>' + (s.ra||0) + '</td><td>' + s.totalW + '</td><td>' + s.totalL + '</td><td>' + s.totalD + '</td><td>' + formatRate(s.rate) + '</td></tr>';
+        }).join('') +
+        '</tbody></table></div>';
+
+    // 정렬 이벤트
+    container.querySelectorAll('th[data-tsort]').forEach(function(th) {
+        th.addEventListener('click', function() {
+            var key = th.dataset.tsort;
+            if (teamRecordSortKey === key) teamRecordSortDir = teamRecordSortDir === 'asc' ? 'desc' : 'asc';
+            else { teamRecordSortKey = key; teamRecordSortDir = ['avgERA','avgWHIP'].includes(key) ? 'asc' : 'desc'; }
+            renderTeamRecords();
+        });
+    });
 }
 
 // ══════════════════════════════════════════
