@@ -191,6 +191,12 @@ async function simulateBatch(state, batchSize, onProgress) {
             state.teams[away].seasonRecord[qKey].rs = (state.teams[away].seasonRecord[qKey].rs || 0) + awayRuns;
             state.teams[away].seasonRecord[qKey].ra = (state.teams[away].seasonRecord[qKey].ra || 0) + homeRuns;
 
+            // 이닝별 스코어 생성 (총 득점을 9이닝에 분배)
+            const homeInnings = distributeRunsToInnings(homeRuns);
+            const awayInnings = distributeRunsToInnings(awayRuns);
+            const homeH = Math.round(homeRuns * 1.8 + Math.random() * 3);
+            const awayH = Math.round(awayRuns * 1.8 + Math.random() * 3);
+
             // 게임 로그 저장
             state.gameLog.push({
                 day: dayIdx + 1,
@@ -199,8 +205,12 @@ async function simulateBatch(state, batchSize, onProgress) {
                 stadium: match.stadium,
                 home, away,
                 homeRuns, awayRuns,
+                homeHits: homeH, awayHits: awayH,
+                homeErrors: Math.random() < 0.3 ? 1 : 0,
+                awayErrors: Math.random() < 0.3 ? 1 : 0,
+                homeInnings, awayInnings,
                 winner,
-                result, // 'home'|'away'|'draw'
+                result,
                 quarter: q,
             });
         }
@@ -216,6 +226,15 @@ async function simulateBatch(state, batchSize, onProgress) {
     updateAllSimStats(state);
 
     return getStandings(state);
+}
+
+/** 총 득점을 9이닝에 랜덤 분배 */
+function distributeRunsToInnings(totalRuns) {
+    const innings = new Array(9).fill(0);
+    for (let r = 0; r < totalRuns; r++) {
+        innings[Math.floor(Math.random() * 9)]++;
+    }
+    return innings;
 }
 
 /** 포아송 분포 난수 생성 */
@@ -299,7 +318,6 @@ function distributePitcherWinLoss(pitchers, teamW, teamL) {
     let starterLosses = Math.round(teamL * starterLossShare);
 
     if (starters.length > 0) {
-        // 승 배분: GS가 많고 ERA가 낮을수록 승 많이
         const wWeights = starters.map(p => {
             const gs = p.simStats.GS || 1;
             const era = p.simStats.ERA || 4.5;
@@ -308,7 +326,6 @@ function distributePitcherWinLoss(pitchers, teamW, teamL) {
         });
         const wTotal = wWeights.reduce((s, w) => s + w, 0) || 1;
 
-        // 패 배분: GS가 많고 ERA가 높을수록 패 많이
         const lWeights = starters.map(p => {
             const gs = p.simStats.GS || 1;
             const era = p.simStats.ERA || 4.5;
@@ -319,23 +336,26 @@ function distributePitcherWinLoss(pitchers, teamW, teamL) {
         let wLeft = starterWins, lLeft = starterLosses;
         for (let i = 0; i < starters.length; i++) {
             const p = starters[i];
+            const gs = p.simStats.GS || 0;
+            const g = p.simStats.G || 0;
             if (i === starters.length - 1) {
-                p.simStats.W = Math.max(0, wLeft);
-                p.simStats.L = Math.max(0, lLeft);
+                p.simStats.W = Math.min(Math.max(0, wLeft), gs);
+                p.simStats.L = Math.min(Math.max(0, lLeft), gs - p.simStats.W);
             } else {
-                p.simStats.W = Math.round(starterWins * wWeights[i] / wTotal);
-                p.simStats.L = Math.round(starterLosses * lWeights[i] / lTotal);
+                p.simStats.W = Math.min(Math.round(starterWins * wWeights[i] / wTotal), gs);
+                p.simStats.L = Math.min(Math.round(starterLosses * lWeights[i] / lTotal), gs - p.simStats.W);
                 wLeft -= p.simStats.W;
                 lLeft -= p.simStats.L;
             }
         }
+        // 상한 초과분 재계산
+        starterWins = starters.reduce((s, p) => s + p.simStats.W, 0);
+        starterLosses = starters.reduce((s, p) => s + p.simStats.L, 0);
     }
 
     // ── 불펜 승/패 배분 (잔여분) ──
-    let bullpenWins = teamW - starters.reduce((s, p) => s + (p.simStats?.W || 0), 0);
-    let bullpenLosses = teamL - starters.reduce((s, p) => s + (p.simStats?.L || 0), 0);
-    bullpenWins = Math.max(0, bullpenWins);
-    bullpenLosses = Math.max(0, bullpenLosses);
+    let bullpenWins = Math.max(0, teamW - starterWins);
+    let bullpenLosses = Math.max(0, teamL - starterLosses);
 
     const bullpen = [...closers, ...relievers];
     if (bullpen.length > 0) {
@@ -344,12 +364,13 @@ function distributePitcherWinLoss(pitchers, teamW, teamL) {
         let bwLeft = bullpenWins, blLeft = bullpenLosses;
         for (let i = 0; i < bullpen.length; i++) {
             const p = bullpen[i];
+            const g = p.simStats?.G || 0;
             if (i === bullpen.length - 1) {
-                p.simStats.W = Math.max(0, bwLeft);
-                p.simStats.L = Math.max(0, blLeft);
+                p.simStats.W = Math.min(Math.max(0, bwLeft), g);
+                p.simStats.L = Math.min(Math.max(0, blLeft), g - p.simStats.W);
             } else {
-                p.simStats.W = Math.round(bullpenWins * bWeights[i] / bTotal);
-                p.simStats.L = Math.round(bullpenLosses * bWeights[i] / bTotal);
+                p.simStats.W = Math.min(Math.round(bullpenWins * bWeights[i] / bTotal), g);
+                p.simStats.L = Math.min(Math.round(bullpenLosses * bWeights[i] / bTotal), g - p.simStats.W);
                 bwLeft -= p.simStats.W;
                 blLeft -= p.simStats.L;
             }
@@ -364,10 +385,11 @@ function distributePitcherWinLoss(pitchers, teamW, teamL) {
         const cTotal = cWeights.reduce((s, w) => s + w, 0) || 1;
         let sLeft = totalSaves;
         for (let i = 0; i < closers.length; i++) {
+            const g = closers[i].simStats?.G || 0;
             if (i === closers.length - 1) {
-                closers[i].simStats.S = Math.max(0, sLeft);
+                closers[i].simStats.S = Math.min(Math.max(0, sLeft), g);
             } else {
-                closers[i].simStats.S = Math.round(totalSaves * cWeights[i] / cTotal);
+                closers[i].simStats.S = Math.min(Math.round(totalSaves * cWeights[i] / cTotal), g);
                 sLeft -= closers[i].simStats.S;
             }
         }
@@ -381,10 +403,11 @@ function distributePitcherWinLoss(pitchers, teamW, teamL) {
         const hTotal = hWeights.reduce((s, w) => s + w, 0) || 1;
         let hLeft = totalHolds;
         for (let i = 0; i < relievers.length; i++) {
+            const g = relievers[i].simStats?.G || 0;
             if (i === relievers.length - 1) {
-                relievers[i].simStats.HLD = Math.max(0, hLeft);
+                relievers[i].simStats.HLD = Math.min(Math.max(0, hLeft), g);
             } else {
-                relievers[i].simStats.HLD = Math.round(totalHolds * hWeights[i] / hTotal);
+                relievers[i].simStats.HLD = Math.min(Math.round(totalHolds * hWeights[i] / hTotal), g);
                 hLeft -= relievers[i].simStats.HLD;
             }
         }

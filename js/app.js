@@ -1121,30 +1121,49 @@ function showGameDetail(logIdx) {
     const modal = document.getElementById('psGameModal');
     if (!modal) return;
 
+    // 이닝별 스코어보드
+    const hInn = gl.homeInnings || [];
+    const aInn = gl.awayInnings || [];
+    const innCount = Math.max(hInn.length, aInn.length, 9);
+    let innHeaders = '', homeScores = '', awayScores = '';
+    for (let i = 0; i < innCount; i++) {
+        innHeaders += `<th>${i+1}</th>`;
+        awayScores += `<td>${aInn[i] != null ? aInn[i] : '-'}</td>`;
+        homeScores += `<td>${hInn[i] != null ? hInn[i] : '-'}</td>`;
+    }
+
     document.getElementById('psGameTitle').textContent = `${gl.date || ''} ${homeName} vs ${awayName}`;
     document.getElementById('psGameBody').innerHTML = `
-        <div style="text-align:center;margin:16px 0;">
+        <div style="text-align:center;margin:12px 0;">
             <div style="display:flex;align-items:center;justify-content:center;gap:24px;">
                 <div>
-                    <img src="${teamLogo(gl.home)}" style="width:56px;height:56px;"><br>
+                    <img src="${teamLogo(gl.home)}" style="width:48px;height:48px;"><br>
                     <strong>${homeName}</strong>
                 </div>
-                <div style="font-size:36px;font-weight:900;letter-spacing:4px;">
+                <div style="font-size:32px;font-weight:900;letter-spacing:4px;">
                     <span style="color:${gl.winner===gl.home?'var(--accent)':'var(--text-dim)'}">${gl.homeRuns}</span>
-                    <span style="color:var(--text-muted);margin:0 8px;">:</span>
+                    <span style="color:var(--text-muted);margin:0 6px;">:</span>
                     <span style="color:${gl.winner===gl.away?'var(--accent)':'var(--text-dim)'}">${gl.awayRuns}</span>
                 </div>
                 <div>
-                    <img src="${teamLogo(gl.away)}" style="width:56px;height:56px;"><br>
+                    <img src="${teamLogo(gl.away)}" style="width:48px;height:48px;"><br>
                     <strong>${awayName}</strong>
                 </div>
             </div>
-            <div style="margin-top:8px;font-size:14px;color:var(--accent);font-weight:700;">
+            <div style="margin-top:6px;font-size:14px;color:var(--accent);font-weight:700;">
                 ${isDraw ? '무승부' : winnerName + ' 승리'}
             </div>
-            <div style="margin-top:4px;font-size:12px;color:var(--text-dim);">
-                ${gl.date || ''} ${gl.time || ''} | ${gl.stadium || ''}
-            </div>
+            <div style="font-size:12px;color:var(--text-dim);">${gl.date || ''} ${gl.time || ''} | ${gl.stadium || ''}</div>
+        </div>
+
+        <div class="boxscore__scoreboard" style="margin:16px auto;max-width:700px;">
+            <table>
+                <thead><tr><th>팀</th>${innHeaders}<th style="border-left:2px solid var(--border);">R</th><th>H</th><th>E</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>${awayName}</strong></td>${awayScores}<td style="border-left:2px solid var(--border);font-weight:700;">${gl.awayRuns}</td><td>${gl.awayHits||'-'}</td><td>${gl.awayErrors||0}</td></tr>
+                    <tr><td><strong>${homeName}</strong></td>${homeScores}<td style="border-left:2px solid var(--border);font-weight:700;">${gl.homeRuns}</td><td>${gl.homeHits||'-'}</td><td>${gl.homeErrors||0}</td></tr>
+                </tbody>
+            </table>
         </div>
     `;
 
