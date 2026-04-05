@@ -1044,9 +1044,12 @@ function renderScheduleView() {
             // Find current week range (7 days from current date)
             const curDate = new Date(scheduleCurrentDate);
             const weekStart = new Date(curDate);
-            weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Sunday
+            // KBO: 화~일이 한 주 (화요일 시작)
+            const dayOfWeek = weekStart.getDay(); // 0=일, 1=월, 2=화 ...
+            const offsetToTuesday = (dayOfWeek + 5) % 7; // 화요일까지 역산
+            weekStart.setDate(weekStart.getDate() - offsetToTuesday);
             const weekEnd = new Date(weekStart);
-            weekEnd.setDate(weekEnd.getDate() + 6); // Saturday
+            weekEnd.setDate(weekEnd.getDate() + 6); // 월요일까지
 
             const weekGames = teamGames.filter(g => {
                 const d = new Date(g.date);
