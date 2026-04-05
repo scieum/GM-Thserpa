@@ -222,6 +222,15 @@ function showView(viewName) {
         }
     }
 
+    // 뎁스차트/트레이드에서 선택한 구단을 로스터에 역동기화
+    if (viewName === 'roster' || isFutures) {
+        const dcSel = document.getElementById('dcTeamSelect');
+        const rosterSel = document.getElementById('rosterTeamSelect');
+        if (dcSel && dcSel.value && rosterSel) {
+            rosterSel.value = dcSel.value;
+        }
+    }
+
     // Refresh view data
     if (actualView === 'dashboard') renderDashboard();
     if (actualView === 'roster') renderRoster();
