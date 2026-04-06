@@ -1183,6 +1183,22 @@ const NATIONALITY_CODES = {
     '멕시코': 'mx', '콜롬비아': 'co', '파나마': 'pa', '니카라과': 'ni',
 };
 
+/** 릴리스 높이 계산 (ft 단위, MLB Savant 기준) — 키 기반 + 투구폼 보정 */
+function calcReleaseZ(p) {
+    if (!p || !p.height) return '-';
+    var heightCm = p.height;
+    var heightFt = heightCm / 30.48;
+    // 릴리스 높이 ≈ 키(ft) × 0.88~0.94 (오버핸드 높음, 사이드암 낮음)
+    var mult = 0.91;
+    if (p.throwBat && (p.throwBat.includes('사') || p.throwBat.includes('언'))) mult = 0.82;
+    var releaseZ = heightFt * mult;
+    // 약간의 개인차 (이름 해시 기반)
+    var h = 0;
+    for (var i = 0; i < (p.name||'').length; i++) h = ((h << 5) - h + p.name.charCodeAt(i)) | 0;
+    releaseZ += ((h & 0xff) - 128) / 128 * 0.3;
+    return releaseZ.toFixed(1) + 'ft';
+}
+
 // ── 투수 구종 자동 생성 (선수 특성 기반) ──
 function generatePitchRepertoire(p) {
     const r = p.ratings;
@@ -1274,6 +1290,7 @@ function sortFsPool(pool, type) {
         else if (fsSortKey === 'role' || fsSortKey === 'position') { va = a[fsSortKey] || ''; vb = b[fsSortKey] || ''; }
         else if (fsSortKey === 'salary' || fsSortKey === 'age') { va = a[fsSortKey] || 0; vb = b[fsSortKey] || 0; }
         else if (fsSortKey === 'throwBat') { va = a.throwBat || ''; vb = b.throwBat || ''; }
+        else if (fsSortKey === 'release_z') { va = parseFloat(calcReleaseZ(a)) || 0; vb = parseFloat(calcReleaseZ(b)) || 0; }
         else { va = (a.stats && a.stats[fsSortKey]) || 0; vb = (b.stats && b.stats[fsSortKey]) || 0; }
         if (typeof va === 'string') return fsSortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
         return fsSortDir === 'asc' ? va - vb : vb - va;
@@ -1364,6 +1381,7 @@ function renderFsPitchers() {
         fsSortHeader('출신','origin') + fsSortHeader('투구','throwBat') + fsSortHeader('역할','role') +
         fsSortHeader('연봉(만$)','salary') + fsSortHeader('나이','age') +
         fsSortHeader('ERA','ERA') + fsSortHeader('FIP','FIP') +
+        fsSortHeader('릴리스','release_z') +
         fsSortHeader('IVB','IVB') + fsSortHeader('CSW%','CSW%') +
         fsSortHeader('K/9','K/9') + fsSortHeader('Putaway%','Putaway%') +
         fsSortHeader('IP','IP') + fsSortHeader('SO','SO') +
@@ -1382,6 +1400,7 @@ function renderFsPitchers() {
             <td>${p.age}</td>
             <td>${p.stats.ERA.toFixed(2)}</td>
             <td>${p.stats.FIP.toFixed(2)}</td>
+            <td>${calcReleaseZ(p)}</td>
             <td>${p.stats.IVB}</td>
             <td>${p.stats['CSW%']}</td>
             <td>${p.stats['K/9']}</td>
@@ -1787,7 +1806,7 @@ function showFsPlayerDetail(type, name) {
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;">
                 <div class="fs-stat-box"><div class="fs-stat-label">ERA</div><div class="fs-stat-val">${p.stats.ERA.toFixed(2)}</div></div>
                 <div class="fs-stat-box"><div class="fs-stat-label">FIP</div><div class="fs-stat-val">${p.stats.FIP.toFixed(2)}</div></div>
-                <div class="fs-stat-box"><div class="fs-stat-label">xFIP</div><div class="fs-stat-val">${p.stats.xFIP.toFixed(2)}</div></div>
+                <div class="fs-stat-box"><div class="fs-stat-label">릴리스 높이</div><div class="fs-stat-val">${calcReleaseZ(p)}</div></div>
                 <div class="fs-stat-box"><div class="fs-stat-label">IVB</div><div class="fs-stat-val">${p.stats.IVB}cm</div></div>
                 <div class="fs-stat-box"><div class="fs-stat-label">VAA</div><div class="fs-stat-val">${p.stats.VAA.toFixed(1)}</div></div>
                 <div class="fs-stat-box"><div class="fs-stat-label">CSW%</div><div class="fs-stat-val">${p.stats['CSW%']}%</div></div>
