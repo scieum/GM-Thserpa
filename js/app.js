@@ -2957,6 +2957,9 @@ async function runSimulation() {
         if (lastGame.date) scheduleCurrentDate = lastGame.date;
     }
 
+    // 시뮬 결과 기반 뉴스 생성
+    generateBatchNews(state);
+
     // 외국인 스카우트 미션 체크 (1Q/2Q 완료 시)
     checkForeignMissionTrigger();
 }
@@ -4679,11 +4682,183 @@ function generateNews() {
         });
     }
 
-    // 우선순위 정렬
+    // 시뮬 진행 중 누적 뉴스 합치기
+    if (state.newsLog && state.newsLog.length > 0) {
+        news = news.concat(state.newsLog);
+    }
+
+    // 우선순위 정렬 (속보 > 주요 > 참고 > 일반), 같으면 최신순
     var priorityOrder = { '속보': 0, '주요': 1, '참고': 2, '일반': 3 };
-    news.sort(function(a, b) { return (priorityOrder[a.priority] || 3) - (priorityOrder[b.priority] || 3); });
+    news.sort(function(a, b) {
+        var pa = priorityOrder[a.priority] || 3, pb = priorityOrder[b.priority] || 3;
+        if (pa !== pb) return pa - pb;
+        return (b.gameDay || 0) - (a.gameDay || 0);
+    });
 
     return news;
+}
+
+/**
+ * 시뮬레이션 배치 후 호출 — 새 뉴스를 state.newsLog에 추가
+ * 매 배치마다 2~5개의 뉴스가 생성됨
+ */
+function generateBatchNews(state) {
+    if (!state || !state.teams) return;
+    if (!state.newsLog) state.newsLog = [];
+
+    var totalPlayed = getTotalGamesPlayed(state);
+    var standings = getStandings(state);
+    if (totalPlayed <= 0 || standings.length < 2) return;
+
+    var teamCodes = Object.keys(state.teams);
+    var date = '';
+    if (state.gameLog && state.gameLog.length > 0) {
+        date = state.gameLog[state.gameLog.length - 1].date || '';
+    }
+
+    // 이미 이 경기일에 뉴스를 생성했으면 스킵
+    if (state._lastNewsDay === totalPlayed) return;
+    state._lastNewsDay = totalPlayed;
+
+    var newNews = [];
+
+    // ── 1) 최근 5경기 성적 기반 핫/콜드 팀 뉴스 ──
+    var hotTeam = standings[0];
+    var coldTeam = standings[standings.length - 1];
+    var q = Math.min(4, Math.floor((totalPlayed - 1) / 36) + 1);
+
+    // 연승/연패 팀 감지 (gameLog에서)
+    var streaks = {};
+    teamCodes.forEach(function(code) { streaks[code] = 0; });
+    if (state.gameLog) {
+        var recentGames = state.gameLog.slice(-50);
+        teamCodes.forEach(function(code) {
+            var teamGames = recentGames.filter(function(g) { return g.home === code || g.away === code; }).slice(-5);
+            var streak = 0;
+            for (var i = teamGames.length - 1; i >= 0; i--) {
+                if (teamGames[i].winner === code) streak++;
+                else break;
+            }
+            streaks[code] = streak;
+        });
+    }
+
+    // 5연승 이상 팀
+    teamCodes.forEach(function(code) {
+        if (streaks[code] >= 5) {
+            newNews.push({
+                cat: 'ranking', priority: '속보', team: code, gameDay: totalPlayed,
+                title: state.teams[code].name + ' ' + streaks[code] + '연승! 파죽지세 질주',
+                date: date, tags: ['팀순위','기사'],
+                body: state.teams[code].name + '가 ' + streaks[code] + '연승을 달리며 무서운 기세를 보이고 있다.\n\n' + totalPlayed + '경기 소화 시점에서 ' + (standings.find(function(s){return s.code===code;})?.wins||0) + '승을 기록 중이다. 투타 조화가 빛나는 가운데, 감독의 용병술도 적중하고 있다는 평가다.\n\n팬들 사이에서는 "올 시즌은 다르다"는 기대감이 높아지고 있으며, 라이벌 팀들도 경계심을 늦추지 못하고 있다.',
+                views: Math.floor(1500 + Math.random() * 1000), comments: Math.floor(80 + Math.random() * 80),
+            });
+        }
+    });
+
+    // ── 2) 개인 성적 뉴스 (simStats 기반) ──
+    var allBatters = [];
+    var allPitchers = [];
+    teamCodes.forEach(function(code) {
+        var roster = state.teams[code].roster || [];
+        roster.forEach(function(id) {
+            var p = state.players[id];
+            if (!p || !p.simStats) return;
+            if (p.position === 'P') allPitchers.push(p);
+            else allBatters.push(p);
+        });
+    });
+
+    // 타율왕 후보
+    var avgLeader = allBatters.filter(function(p){return (p.simStats.PA||0)>50;}).sort(function(a,b){return (b.simStats.AVG||0)-(a.simStats.AVG||0);})[0];
+    if (avgLeader && (avgLeader.simStats.AVG||0) > 0.330) {
+        newNews.push({
+            cat: 'ranking', priority: '주요', team: avgLeader.team, gameDay: totalPlayed,
+            title: avgLeader.name + ', 타율 ' + avgLeader.simStats.AVG.toFixed(3) + '으로 타격왕 선두!',
+            date: date, tags: ['칼럼/분석','기사'],
+            body: state.teams[avgLeader.team].name + '의 ' + avgLeader.name + '(' + avgLeader.position + ')이(가) 타율 ' + avgLeader.simStats.AVG.toFixed(3) + '으로 리그 타격왕 선두를 달리고 있다.\n\n' + totalPlayed + '경기 기준 ' + avgLeader.simStats.H + '안타, ' + avgLeader.simStats.HR + '홈런, ' + avgLeader.simStats.RBI + '타점을 기록 중이며, OPS ' + avgLeader.simStats.OPS.toFixed(3) + '으로 리그 최상위권 공격력을 과시하고 있다.\n\n스카우팅 리포트에 따르면 ' + avgLeader.name + '의 컨택 능력(contact ' + (avgLeader.ratings?.contact||'?') + ')과 선구안(eye ' + (avgLeader.ratings?.eye||'?') + ')이 올 시즌 폭발적으로 향상됐다는 분석이다.',
+            views: Math.floor(1800 + Math.random() * 800), comments: Math.floor(60 + Math.random() * 60),
+        });
+    }
+
+    // 홈런왕 후보
+    var hrLeader = allBatters.sort(function(a,b){return (b.simStats.HR||0)-(a.simStats.HR||0);})[0];
+    if (hrLeader && (hrLeader.simStats.HR||0) >= 5 && totalPlayed % 10 === 0) {
+        newNews.push({
+            cat: 'ranking', priority: '참고', team: hrLeader.team, gameDay: totalPlayed,
+            title: hrLeader.name + ', ' + hrLeader.simStats.HR + '호 홈런! 홈런왕 경쟁 선두',
+            date: date, tags: ['팀순위','기사'],
+            body: state.teams[hrLeader.team].name + '의 ' + hrLeader.name + '이(가) 시즌 ' + hrLeader.simStats.HR + '호 홈런으로 홈런왕 경쟁 선두에 올랐다.\n\n파워 레이팅 ' + (hrLeader.ratings?.power||'?') + '의 장타력이 올 시즌 유감없이 발휘되고 있다. ' + hrLeader.simStats.RBI + '타점도 함께 기록하며 클린업 라인의 핵심 역할을 하고 있다.',
+            views: Math.floor(1200 + Math.random() * 600), comments: Math.floor(40 + Math.random() * 50),
+        });
+    }
+
+    // 다승왕 후보
+    var winLeader = allPitchers.filter(function(p){return p.role==='선발';}).sort(function(a,b){return (b.simStats.W||0)-(a.simStats.W||0);})[0];
+    if (winLeader && (winLeader.simStats.W||0) >= 3 && totalPlayed % 15 === 0) {
+        newNews.push({
+            cat: 'ranking', priority: '참고', team: winLeader.team, gameDay: totalPlayed,
+            title: winLeader.name + ', ' + winLeader.simStats.W + '승 기록! 다승왕 향해 순항',
+            date: date, tags: ['팀순위','기사'],
+            body: state.teams[winLeader.team].name + '의 에이스 ' + winLeader.name + '이(가) 시즌 ' + winLeader.simStats.W + '승(' + winLeader.simStats.L + '패)을 기록하며 다승왕 경쟁을 이끌고 있다.\n\nERA ' + winLeader.simStats.ERA.toFixed(2) + ', ' + fmtIP(winLeader.simStats.IP) + '이닝 ' + winLeader.simStats.SO + '탈삼진으로 안정적인 투구를 보여주고 있다.\n\n' + (winLeader.simStats.ERA < 3.0 ? '"올 시즌 최고의 투수"라는 찬사가 이어지고 있다.' : '꾸준한 퀄리티 스타트로 팀의 버팀목 역할을 하고 있다.'),
+            views: Math.floor(1000 + Math.random() * 500), comments: Math.floor(30 + Math.random() * 40),
+        });
+    }
+
+    // ── 3) 루머/이적설 (랜덤) ──
+    if (Math.random() < 0.15) {
+        var rumorTeam = teamCodes[Math.floor(Math.random() * teamCodes.length)];
+        var rumorBatters = (state.teams[rumorTeam].roster||[]).map(function(id){return state.players[id];}).filter(function(p){return p&&p.position!=='P'&&!p.isForeign;});
+        var rumorTarget = rumorBatters[Math.floor(Math.random() * rumorBatters.length)];
+        var rumorDest = teamCodes.filter(function(c){return c!==rumorTeam;})[Math.floor(Math.random() * 9)];
+        if (rumorTarget) {
+            newNews.push({
+                cat: 'trade', priority: '참고', team: rumorTeam, gameDay: totalPlayed,
+                title: '[루머] ' + state.teams[rumorTeam].name + ' ' + rumorTarget.name + ', ' + state.teams[rumorDest].name + ' 이적설 솔솔',
+                date: date, tags: ['이적/트레이드','루머'],
+                body: state.teams[rumorTeam].name + '의 ' + rumorTarget.name + '(' + rumorTarget.position + ', OVR ' + (rumorTarget.ovr||'?') + ')에 대한 ' + state.teams[rumorDest].name + '의 관심이 포착됐다는 루머가 돌고 있다.\n\n양 구단 모두 공식적으로는 부인하고 있지만, 복수의 관계자에 따르면 비공식적인 접촉이 있었던 것으로 전해진다.\n\n' + rumorTarget.name + '의 연봉은 ' + rumorTarget.salary + '억원으로, 트레이드가 성사될 경우 양 팀의 연봉 구조에도 영향을 미칠 전망이다.\n\n※ 본 기사는 확인되지 않은 루머에 기반합니다.',
+                views: Math.floor(2000 + Math.random() * 1500), comments: Math.floor(100 + Math.random() * 150),
+            });
+        }
+    }
+
+    // ── 4) 팬 반응 (매 배치) ──
+    if (Math.random() < 0.3) {
+        var fanTeam = teamCodes[Math.floor(Math.random() * teamCodes.length)];
+        var fanRecord = standings.find(function(s){return s.code===fanTeam;});
+        var fanSentiment = fanRecord && fanRecord.rate > 0.55 ? '긍정적' : fanRecord && fanRecord.rate < 0.45 ? '불만족' : '엇갈린';
+        var fanReactions = {
+            '긍정적': ['"올해는 진짜 우승 가능할 것 같다!"', '"감독님 믿고 갑니다"', '"역대급 시즌이 될 수 있다"'],
+            '불만족': ['"단장 나와라"', '"트레이드 좀 해라"', '"이게 프로야구 팀이냐"', '"투수 보강 시급하다"'],
+            '엇갈린': ['"아직 갈 길이 멀다"', '"좋아지고는 있는데..."', '"후반기에 진가를 보여줘야 한다"'],
+        };
+        var reactions = fanReactions[fanSentiment] || fanReactions['엇갈린'];
+        newNews.push({
+            cat: 'fan', priority: '일반', team: fanTeam, gameDay: totalPlayed,
+            title: state.teams[fanTeam].name + ' 팬 반응: ' + reactions[Math.floor(Math.random() * reactions.length)],
+            date: date, tags: ['팬여론','커뮤니티'],
+            body: state.teams[fanTeam].name + ' 커뮤니티가 뜨겁다.\n\n현재 시즌 성적 ' + (fanRecord?.wins||0) + '승 ' + (fanRecord?.losses||0) + '패(승률 ' + formatRate(fanRecord?.rate||0) + ')에 대해 팬들의 반응이 ' + fanSentiment + '이다.\n\n주요 의견:\n' + reactions.map(function(r){return '· ' + r;}).join('\n') + '\n\n' + (fanSentiment === '긍정적' ? '시즌 초반의 좋은 흐름을 이어가며 팬들의 기대감이 최고조에 달하고 있다.' : fanSentiment === '불만족' ? '팬들의 인내심이 한계에 달하고 있다. 구단의 결단이 필요한 시점이다.' : '팬들은 조심스러운 낙관론과 현실론 사이에서 고민하고 있다.'),
+            views: Math.floor(800 + Math.random() * 1000), comments: Math.floor(50 + Math.random() * 100),
+        });
+    }
+
+    // ── 5) 쿼터 종료 뉴스 ──
+    if (totalPlayed === 36 || totalPlayed === 72 || totalPlayed === 108 || totalPlayed === 144) {
+        newNews.push({
+            cat: 'ranking', priority: '속보', team: null, gameDay: totalPlayed,
+            title: q + 'Q 종료! ' + hotTeam.name + ' ' + hotTeam.wins + '승으로 선두, ' + coldTeam.name + ' ' + coldTeam.losses + '패로 최하위',
+            date: date, tags: ['팀순위','기사'],
+            body: totalPlayed + '경기(Q' + q + ')가 종료되었다.\n\n▶ 순위표\n' + standings.map(function(s, i) {
+                return (i+1) + '위 ' + s.name + ' ' + s.wins + '승 ' + (s.draws||0) + '무 ' + s.losses + '패 (승률 ' + formatRate(s.rate) + ')';
+            }).join('\n') + '\n\n' + hotTeam.name + '가 ' + hotTeam.wins + '승으로 선두를 달리고 있으며, ' + coldTeam.name + '는 ' + coldTeam.losses + '패로 가장 부진한 성적을 보이고 있다.',
+            views: Math.floor(3000 + Math.random() * 2000), comments: Math.floor(200 + Math.random() * 200),
+        });
+    }
+
+    // 새 뉴스 추가
+    if (newNews.length > 0) {
+        state.newsLog = state.newsLog.concat(newNews);
+    }
 }
 
 /** 뉴스 뷰 렌더링 */
