@@ -4535,16 +4535,40 @@ function generateNews() {
             cat: 'coaching', priority: '일반', team: code,
             title: manager + ' ' + name + ' 감독 "새 단장과 호흡 기대, 시즌 준비 만전"',
             date: date, tags: ['감독/코칭','기사'],
-            body: manager + ' 감독은 "새 단장님과의 소통이 원활하다"며 "올 시즌 목표는 분명하다. 포스트시즌 진출, 그리고 한국시리즈 우승"이라고 밝혔다.\n\n' + manager + ' 감독 체제는 지난 시즌부터 이어져 온 전술적 기반 위에 새 단장의 데이터 분석 역량이 더해질 것으로 기대된다.',
+            body: manager + ' 감독은 인터뷰에서 "새 단장님과의 소통이 원활하다"며 시즌 준비에 자신감을 내비쳤다.\n\n"올 시즌 목표는 분명합니다. 포스트시즌 진출, 그리고 한국시리즈 우승입니다. 선수단의 분위기도 좋고, 스프링캠프에서의 훈련도 순조롭습니다."\n\n' + manager + ' 감독 체제는 지난 시즌부터 이어져 온 전술적 기반 위에 새 단장의 데이터 분석 역량이 더해질 것으로 기대된다. 특히 투수 운용과 타순 배치에서 데이터를 적극 활용하겠다는 방침이다.\n\n"과거에는 경험과 감에 의존했지만, 이제는 데이터가 말하는 것을 무시할 수 없는 시대입니다. 단장님과 함께 최적의 의사결정을 내리겠습니다."\n\n코칭스태프 역시 전면 개편되었다. 투수코치와 타격코치가 새로 합류하면서 기존의 약점을 보완할 계획이다.',
             views: Math.floor(100 + Math.random() * 200), comments: Math.floor(20 + Math.random() * 50),
         });
 
+        // 유망주 기사 — 실제 2군 로스터 데이터 활용
+        var futures = (team.futuresRoster || []).map(function(id) { return state.players[id]; }).filter(Boolean);
+        var topProspects = futures.sort(function(a,b) { return (b.ovr||0)-(a.ovr||0); }).slice(0,5);
+        var prospectList = topProspects.map(function(p, i) {
+            return (i+1) + '. ' + p.name + ' (' + p.position + (p.position==='P' ? '/' + (p.role||'') : '') + ', OVR ' + (p.ovr||'?') + ')';
+        }).join('\n');
         news.push({
             cat: 'prospect', priority: '일반', team: code,
             title: name + ' 2026 기대주 TOP 5, 1군 합류 전망은?',
             date: date, tags: ['육성/마이너','기사'],
-            body: name + '의 퓨처스리그에서 두각을 나타낸 유망주들이 2026 시즌 1군 합류를 노리고 있다. 스프링캠프에서의 경쟁이 치열할 전망이다.',
+            body: name + '의 퓨처스리그에서 두각을 나타낸 유망주들이 2026 시즌 1군 합류를 노리고 있다.\n\n▶ ' + name + ' 유망주 TOP 5\n' + prospectList + '\n\n' + (topProspects[0] ? topProspects[0].name + '은(는) 2군에서 꾸준한 성장세를 보이며 1군 엔트리 경쟁에서 가장 유력한 후보로 꼽힌다. ' + (topProspects[0].position==='P' ? '투수진의 두께를 더할 수 있는 카드로 평가받고 있다.' : '타선에 활력을 불어넣을 수 있는 자원으로 기대를 모으고 있다.') : '') + '\n\n' + manager + ' 감독은 "스프링캠프에서 누구에게나 기회를 줄 것"이라며 "결과로 증명하는 선수가 1군에 올라갈 것"이라고 밝혔다.\n\n다만, 유망주의 성공과 팀 성적 사이에서 균형을 잡는 것은 모든 단장의 숙제다. 무리한 승격보다는 적절한 시기에, 적절한 역할을 부여하는 것이 핵심이다.',
             views: Math.floor(800 + Math.random() * 500), comments: Math.floor(30 + Math.random() * 40),
+        });
+
+        // 팀 전력 분석 기사 — 실제 1군 로스터 데이터 활용
+        var pitchers1 = team.roster.map(function(id){return state.players[id];}).filter(function(p){return p&&p.position==='P';});
+        var batters1 = team.roster.map(function(id){return state.players[id];}).filter(function(p){return p&&p.position!=='P';});
+        var ace = pitchers1.filter(function(p){return p.role==='선발';}).sort(function(a,b){return (b.ovr||0)-(a.ovr||0);})[0];
+        var closer = pitchers1.filter(function(p){return p.role==='마무리';})[0];
+        var topBatter = batters1.sort(function(a,b){return (b.ovr||0)-(a.ovr||0);})[0];
+        var foreigners = team.roster.map(function(id){return state.players[id];}).filter(function(p){return p&&p.isForeign;});
+        var foreignList = foreigners.map(function(p){return p.name+'('+p.position+(p.position==='P'?'/'+p.role:'')+')';}).join(', ');
+        var teamSalary = typeof calcTeamSalaryRaw === 'function' ? calcTeamSalaryRaw(state, code).toFixed(1) : '?';
+
+        news.push({
+            cat: 'column', priority: '참고', team: code,
+            title: '2025 시즌 리뷰: ' + name + ' — 전력 분석 및 2026 전망',
+            date: date, tags: ['팀순위','기사'],
+            body: name + '의 2026 시즌을 앞두고 전력을 분석한다.\n\n▶ 투수진\n에이스: ' + (ace?ace.name+' (OVR '+ace.ovr+')':'미정') + '\n마무리: ' + (closer?closer.name+' (OVR '+closer.ovr+')':'미정') + '\n선발 로테이션: ' + pitchers1.filter(function(p){return p.role==='선발';}).map(function(p){return p.name;}).join(', ') + '\n불펜: ' + pitchers1.filter(function(p){return p.role==='중계';}).length + '명\n\n▶ 타선\n주포: ' + (topBatter?topBatter.name+' ('+topBatter.position+', OVR '+topBatter.ovr+')':'미정') + '\n주전 야수: ' + batters1.slice(0,9).map(function(p){return p.name+'('+p.position+')';}).join(', ') + '\n\n▶ 외국인 선수\n' + (foreignList||'없음') + '\n\n▶ 재정\n총 연봉: ' + teamSalary + '억원\n\n' + name + '는 ' + (ace?ace.name+'을(를) 중심으로 한 선발 로테이션':'투수진 재편') + '과 ' + (topBatter?topBatter.name+'이(가) 이끄는 타선':'타선 보강') + '으로 2026 시즌에 도전한다.',
+            views: Math.floor(800 + Math.random() * 600), comments: Math.floor(30 + Math.random() * 30),
         });
     });
 
@@ -4565,11 +4589,19 @@ function generateNews() {
         views: Math.floor(1500 + Math.random() * 600), comments: Math.floor(10 + Math.random() * 20),
     });
 
+    // 스토브리그 점검 — 실제 팀별 외국인/연봉 데이터
+    var stoveBody = '각 구단의 스토브리그 성적표를 중간 점검한다.\n\n';
+    teamCodes.forEach(function(code) {
+        var t = state.teams[code];
+        var foreignP = t.roster.map(function(id){return state.players[id];}).filter(function(p){return p&&p.isForeign;});
+        var sal = typeof calcTeamSalaryRaw === 'function' ? calcTeamSalaryRaw(state, code).toFixed(1) : '?';
+        stoveBody += '▶ ' + t.name + ' — 외국인 ' + foreignP.length + '명 (' + foreignP.map(function(p){return p.name;}).join(', ') + ') | 총연봉 ' + sal + '억\n';
+    });
     news.push({
         cat: 'event', priority: '주요', team: null,
         title: '2025-26 스토브리그 중간 점검: KBO 10개 구단 보강 현황',
         date: date, tags: ['이적/트레이드','기사'],
-        body: '각 구단의 스토브리그 성적표를 중간 점검한다. 외국인 선수 영입, FA 계약, 트레이드 현황을 종합 분석했다.',
+        body: stoveBody,
         views: Math.floor(500 + Math.random() * 300), comments: Math.floor(30 + Math.random() * 30),
     });
 
@@ -4578,19 +4610,25 @@ function generateNews() {
         var top = standings[0];
         var bot = standings[standings.length - 1];
 
+        // 선두팀 뉴스 — 실제 스탯 참조
+        var topAce = getTeamPitchers(state, top.code).filter(function(p){return p.role==='선발';}).sort(function(a,b){return (b.ovr||0)-(a.ovr||0);})[0];
+        var topSlugger = getTeamBatters(state, top.code).sort(function(a,b){return (b.ovr||0)-(a.ovr||0);})[0];
         news.push({
             cat: 'ranking', priority: '속보', team: top.code,
-            title: top.name + ', ' + totalPlayed + '경기 소화 후 ' + top.wins + '승 ' + top.losses + '패로 선두 질주!',
+            title: top.name + ', ' + totalPlayed + '경기 소화 후 ' + top.wins + '승 ' + (top.draws||0) + '무 ' + top.losses + '패로 선두 질주!',
             date: date, tags: ['팀순위','기사'],
-            body: top.name + '가 리그 선두를 달리고 있다. 투타 밸런스가 뛰어난 가운데, ' + (totalPlayed >= 72 ? '후반기에도 이 기세를 이어갈 수 있을지 주목된다.' : '아직 시즌 초반이지만 기세가 예사롭지 않다.'),
+            body: top.name + '가 리그 선두를 달리고 있다. 승률 ' + formatRate(top.rate) + '로 2위와의 격차를 벌리고 있다.\n\n▶ 선두 비결\n투수력 ' + top.pitchPower.toFixed(1) + ' | 타력 ' + top.batPower.toFixed(1) + '\n' + (topAce ? '에이스 ' + topAce.name + '(OVR ' + topAce.ovr + ')이(가) 마운드를 이끌고 있으며, ' : '') + (topSlugger ? topSlugger.name + '(OVR ' + topSlugger.ovr + ')이(가) 타선의 핵심이다.' : '') + '\n\n' + (totalPlayed >= 72 ? '후반기에도 이 기세를 이어갈 수 있을지, 추격팀들의 반격이 있을지 주목된다.' : '아직 시즌 초반이지만 기세가 예사롭지 않다. 다만 시즌은 길고, 변수는 항상 존재한다.') + '\n\n팬들의 반응도 뜨겁다. "올해는 진짜 우승 가능하다"는 낙관론과 "아직 너무 이르다"는 신중론이 공존하고 있다.',
             views: Math.floor(2000 + Math.random() * 1000), comments: Math.floor(100 + Math.random() * 100),
         });
 
+        // 하위팀 뉴스
+        var botPitchers = getTeamPitchers(state, bot.code);
+        var botBatters = getTeamBatters(state, bot.code);
         news.push({
             cat: 'ranking', priority: '일반', team: bot.code,
             title: bot.name + ', 시즌 ' + bot.wins + '승 ' + bot.losses + '패 부진…반등 가능할까?',
             date: date, tags: ['팀순위','기사'],
-            body: bot.name + '가 리그 하위권에 머물고 있다. 투수력과 타선 모두 리그 평균을 밑돌고 있으며, 대대적인 보강이 필요하다는 목소리가 높다.',
+            body: bot.name + '가 리그 하위권에 머물고 있다. 승률 ' + formatRate(bot.rate) + '로 고전 중이다.\n\n▶ 부진 원인 분석\n투수력 ' + bot.pitchPower.toFixed(1) + ' | 타력 ' + bot.batPower.toFixed(1) + '\n투수진 ' + botPitchers.length + '명, 야수진 ' + botBatters.length + '명 체제로 운영 중이나 전체적인 전력이 리그 평균을 밑돌고 있다.\n\n트레이드나 외국인 선수 교체 등 대대적인 보강이 필요하다는 목소리가 높다. 팬들 사이에서는 "리빌딩이 필요하다"는 의견과 "아직 포기하기 이르다"는 의견이 엇갈리고 있다.',
             views: Math.floor(1000 + Math.random() * 500), comments: Math.floor(50 + Math.random() * 50),
         });
 
@@ -4615,11 +4653,12 @@ function generateNews() {
             injured.forEach(function(pid) {
                 var p = state.players[pid];
                 if (p && p._injuryType) {
+                    var posLabel = p.position === 'P' ? (p.role||'투수') : p.position;
                     news.push({
                         cat: 'event', priority: '속보', team: code,
-                        title: '[부상] ' + state.teams[code].name + ' ' + p.name + ', ' + p._injuryType + '으로 이탈',
+                        title: '[부상] ' + state.teams[code].name + ' ' + p.name + '(' + posLabel + '), ' + p._injuryType + '으로 이탈',
                         date: date, tags: ['시즌이벤트','기사'],
-                        body: state.teams[code].name + '의 ' + p.name + '이(가) ' + p._injuryType + '으로 부상자 명단에 등록되었다. 약 ' + (p._injuryDuration || '?') + '일간 이탈이 예상된다.',
+                        body: state.teams[code].name + '의 ' + posLabel + ' ' + p.name + '(OVR ' + (p.ovr||'?') + ')이(가) ' + p._injuryType + '으로 부상자 명단에 등록되었다.\n\n예상 이탈 기간: 약 ' + (p._injuryDuration || '?') + '일\n\n' + (p.ovr >= 60 ? '주전급 선수의 이탈로 팀 전력에 큰 영향이 예상된다. 대체 자원 확보가 시급한 상황이다.' : '전력 손실은 크지 않지만, 로스터 운영에 차질이 불가피하다.') + '\n\n' + state.teams[code].name + '는 2군에서 대체 선수를 승격시켜 공백을 메울 예정이다.',
                         views: Math.floor(300 + Math.random() * 500), comments: Math.floor(20 + Math.random() * 40),
                     });
                 }
