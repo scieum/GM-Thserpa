@@ -4682,6 +4682,31 @@ function generateNews() {
         });
     }
 
+    // ── 프리시즌 칼럼 (시뮬 전에도 표시) ──
+    var preseasonColumns = [
+        {
+            title: '[칼럼] 출루율의 진짜 가치 — "타율보다 중요한 단 하나의 지표"',
+            body: '머니볼 혁명 이후 20년이 지난 지금, KBO에서도 출루율(OBP)의 가치가 재조명되고 있다.\n\n▶ 왜 출루율인가?\n득점은 아웃을 만들지 않는 것에서 시작된다. 27아웃을 피해야 9이닝 동안 득점 기회를 만들 수 있고, 그 출발점이 바로 출루다. 타율 .290 + 출루율 .330 타자보다, 타율 .265 + 출루율 .380 타자가 훨씬 더 가치 있다.\n\n▶ 데이터가 말하는 것\n2015~2024년 KBO 데이터를 분석하면, 팀 출루율과 팀 득점의 상관계수는 0.91로 타율(0.78)보다 훨씬 높다.\n\n▶ wOBA로 한 단계 더\n출루율의 한계는 모든 출루를 동등하게 본다는 점이다. 볼넷과 홈런이 같은 가치일 리 없다. 그래서 등장한 것이 wOBA(weighted On-Base Average)다.\n\n▶ 단장의 시선\n비싼 홈런 타자보다, 저평가된 출루 머신을 발굴하는 것이 머니볼의 핵심이다.',
+        },
+        {
+            title: '[칼럼] VAA의 비밀 — "왜 평평한 패스트볼이 헛스윙을 만드는가"',
+            body: 'VAA(Vertical Approach Angle)는 공이 홈플레이트에 도달하는 순간 지면과 이루는 수직 각도다.\n\n• VAA = -6.0° → 가파르게 떨어짐 (땅볼 유도형)\n• VAA = -4.0° → 거의 수평 (하이 패스트볼, 헛스윙 유도)\n\n타자의 뇌는 0.2초 만에 스윙 여부를 결정해야 한다. VAA가 -4°로 평평하면 타자는 "공이 떠오른다"고 착각한다.\n\n2024 KBO에서 VAA가 가장 평평한 투수 TOP10의 평균 헛스윙률은 12.8%로, 리그 평균(9.2%)을 크게 상회했다.',
+        },
+        {
+            title: '[칼럼] IVB와 마그누스 효과 — "공이 떠오르는 과학"',
+            body: 'IVB(Induced Vertical Break)는 중력의 영향을 제외한, 순수하게 공의 회전이 만드는 수직 무브먼트다.\n\n야구공의 백스핀이 공기 흐름을 비대칭으로 만들어, 양력을 받는다. 이것이 마그누스 효과다.\n\n회전수가 100 RPM 증가할 때마다 IVB는 약 0.5 inch 증가한다. 구속보다 회전수, 회전수보다 회전축이 중요하다.',
+        },
+    ];
+    preseasonColumns.forEach(function(col) {
+        news.push({
+            cat: 'column', priority: '참고', team: null,
+            title: col.title, date: date,
+            tags: ['칼럼/분석','세이버메트릭스'],
+            body: col.body,
+            views: Math.floor(1500 + Math.random() * 1000), comments: Math.floor(60 + Math.random() * 80),
+        });
+    });
+
     // 시뮬 진행 중 누적 뉴스 합치기
     if (state.newsLog && state.newsLog.length > 0) {
         news = news.concat(state.newsLog);
