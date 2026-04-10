@@ -4899,18 +4899,19 @@ function generateBatchNews(state) {
         },
     ];
 
-    // 다음 발행할 칼럼 찾기
-    var nextCol = COLUMNS.find(function(c) { return c.week === weekIdx && publishedCols.indexOf(c.week) < 0; });
-    if (nextCol) {
-        state._publishedColumns.push(nextCol.week);
-        newNews.push({
-            cat: 'column', priority: '주요', team: null, gameDay: totalPlayed,
-            title: nextCol.title,
-            date: date, tags: nextCol.tags,
-            body: nextCol.body,
-            views: Math.floor(2000 + Math.random() * 1500), comments: Math.floor(80 + Math.random() * 100),
-        });
-    }
+    // 다음 발행할 칼럼 찾기 (현재 weekIdx 이하의 미발행 칼럼 모두)
+    COLUMNS.forEach(function(c) {
+        if (c.week <= weekIdx && publishedCols.indexOf(c.week) < 0) {
+            state._publishedColumns.push(c.week);
+            newNews.push({
+                cat: 'column', priority: '주요', team: null, gameDay: totalPlayed,
+                title: c.title,
+                date: date, tags: c.tags,
+                body: c.body,
+                views: Math.floor(2000 + Math.random() * 1500), comments: Math.floor(80 + Math.random() * 100),
+            });
+        }
+    });
 
     // 새 뉴스 추가
     if (newNews.length > 0) {
